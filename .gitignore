@@ -1,0 +1,16 @@
+# Internal NRD Sight data (reviews of private repos, security findings). Never commit.
+docs/research/nrd-sight/local/
+
+# Domain packs describe internal systems. Only the template is public.
+.claude/skills/argus/domains/*
+!.claude/skills/argus/domains/_template.md
+
+# Detected profile of this hub repo itself (target repos commit theirs; see D5)
+.workflow/
+
+# Local paths to private repos used by scripts/test-detector.sh
+docs/validation/matrix.local.json
+
+# Overlays hold org-specific content (domain packs, ticket keys, sign-in notes). Only the template is public.
+overlays/*
+!overlays/_template/

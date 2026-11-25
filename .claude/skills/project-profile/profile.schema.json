@@ -1,0 +1,130 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.invalid/workflow/profile.schema.json",
+  "title": "Workflow project profile (.workflow/profile.json)",
+  "type": "object",
+  "required": ["schema", "generator", "generated_at", "manifest_hash", "rules_digest", "manifests", "roots", "integrations", "gaps", "confirmed"],
+  "additionalProperties": false,
+  "properties": {
+    "schema": {"type": "integer", "enum": [1]},
+    "generator": {"type": "string"},
+    "generated_at": {"type": "string"},
+    "manifest_hash": {"type": "string"},
+    "rules_digest": {"type": "string"},
+    "manifests": {"type": "array", "items": {"type": "string"}},
+    "roots": {"type": "array", "items": {"$ref": "#/definitions/root"}},
+    "integrations": {
+      "type": "object",
+      "required": ["code_host", "tickets", "graph"],
+      "additionalProperties": false,
+      "properties": {
+        "code_host": {
+          "type": "object",
+          "required": ["kind", "repo"],
+          "properties": {
+            "kind": {"type": ["string", "null"], "enum": ["github", "gitlab", "bitbucket", "azure-devops", "other", "mixed", null]},
+            "repo": {"type": ["string", "null"]}
+          }
+        },
+        "tickets": {
+          "type": "object",
+          "required": ["system", "key", "evidence"],
+          "properties": {
+            "system": {"type": "string", "enum": ["linear", "jira", "github", "unknown", "none"]},
+            "key": {"type": ["string", "null"]},
+            "evidence": {"type": "string"}
+          }
+        },
+        "graph": {
+          "type": "object",
+          "required": ["graphify"],
+          "properties": {"graphify": {"type": "boolean"}}
+        }
+      }
+    },
+    "gaps": {"type": "array", "items": {"type": "string"}},
+    "confirmed": {"type": "boolean"}
+  },
+  "definitions": {
+    "command": {
+      "type": "object",
+      "required": ["cmd", "source", "confidence"],
+      "additionalProperties": false,
+      "properties": {
+        "cmd": {"type": "string"},
+        "source": {"type": "string"},
+        "confidence": {"type": "string", "enum": ["script", "derived", "inferred", "user"]},
+        "confirmed": {"type": "boolean"},
+        "unsafe": {"type": "boolean"}
+      }
+    },
+    "root": {
+      "type": "object",
+      "required": ["path", "name", "layer", "languages", "frameworks", "packs", "package_manager", "commands", "test", "ui", "data", "infra"],
+      "additionalProperties": false,
+      "properties": {
+        "path": {"type": "string"},
+        "name": {"type": "string"},
+        "layer": {"type": "string", "enum": ["ui", "api", "worker", "data", "infra", "lib", "cli"]},
+        "languages": {
+          "type": "array",
+          "items": {"type": "object", "required": ["name", "files"], "properties": {"name": {"type": "string"}, "files": {"type": "integer"}}}
+        },
+        "frameworks": {"type": "array", "items": {"type": "string"}},
+        "packs": {"type": "array", "items": {"type": "string"}},
+        "package_manager": {"type": ["string", "null"]},
+        "commands": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "install": {"$ref": "#/definitions/command"},
+            "test": {"$ref": "#/definitions/command"},
+            "lint": {"$ref": "#/definitions/command"},
+            "typecheck": {"$ref": "#/definitions/command"},
+            "build": {"$ref": "#/definitions/command"},
+            "dev": {"$ref": "#/definitions/command"},
+            "format": {"$ref": "#/definitions/command"}
+          }
+        },
+        "test": {
+          "type": "object",
+          "required": ["frameworks", "patterns"],
+          "properties": {
+            "frameworks": {"type": "array", "items": {"type": "string"}},
+            "patterns": {"type": "array", "items": {"type": "string"}}
+          }
+        },
+        "ui": {
+          "type": "object",
+          "required": ["present", "dev_url", "router"],
+          "properties": {
+            "present": {"type": "boolean"},
+            "dev_url": {"type": ["string", "null"]},
+            "router": {"type": ["string", "null"]}
+          }
+        },
+        "data": {
+          "type": "object",
+          "required": ["databases", "migrations"],
+          "properties": {
+            "databases": {"type": "array", "items": {"type": "string"}},
+            "migrations": {
+              "type": ["object", "null"],
+              "required": ["tool", "path"],
+              "properties": {"tool": {"type": "string"}, "path": {"type": "string"}}
+            }
+          }
+        },
+        "infra": {
+          "type": "object",
+          "required": ["iac", "ci", "containers"],
+          "properties": {
+            "iac": {"type": "array", "items": {"type": "string"}},
+            "ci": {"type": "array", "items": {"type": "string"}},
+            "containers": {"type": "array", "items": {"type": "string"}}
+          }
+        }
+      }
+    }
+  }
+}

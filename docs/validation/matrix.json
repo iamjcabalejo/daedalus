@@ -1,0 +1,682 @@
+{
+  "about": "Detector validation matrix (Phase 1). 'local' rows need a path in matrix.local.json (gitignored). 'git' rows are fetched at the pinned sha.",
+  "rows": [
+    {
+      "id": "A",
+      "kind": "local",
+      "label": "Python FastAPI service (private)",
+      "expect": "in matrix.local.json"
+    },
+    {
+      "id": "B",
+      "kind": "local",
+      "label": "React/Vite admin UI (private)",
+      "expect": "in matrix.local.json"
+    },
+    {
+      "id": "C",
+      "kind": "local",
+      "label": "Python Lambda/SQS worker (private)",
+      "expect": "in matrix.local.json"
+    },
+    {
+      "id": "D",
+      "kind": "local",
+      "label": "Flyway migrations repo (private)",
+      "expect": "in matrix.local.json"
+    },
+    {
+      "id": "E",
+      "kind": "local",
+      "label": "Snowflake SQL migrations repo (private)",
+      "expect": "in matrix.local.json"
+    },
+    {
+      "id": "F",
+      "kind": "git",
+      "label": "Node/Express + Prisma API (public)",
+      "repo": "gothinkster/node-express-realworld-example-app",
+      "sha": "30b68e1e881462b2f4164ea09ab4c4f5699c7b0b",
+      "expect": {
+        "tickets": "none",
+        "roots": {
+          ".": {
+            "packs": [
+              "iac",
+              "node-js",
+              "sql-migrations"
+            ],
+            "layer": "api",
+            "test": "npm test",
+            "lint": null,
+            "build": "npm run build",
+            "dev": "npm run start",
+            "ui": false
+          }
+        }
+      }
+    },
+    {
+      "id": "G",
+      "kind": "git",
+      "label": "Go Gin API (public)",
+      "repo": "realworld-apps/golang-gin-realworld-example-app",
+      "sha": "de2be2ab883217c609a22b3872f200d9fad9cfb9",
+      "expect": {
+        "tickets": "none",
+        "roots": {
+          ".": {
+            "packs": [
+              "ci-cd",
+              "go"
+            ],
+            "layer": "api",
+            "test": "go test ./...",
+            "lint": "golangci-lint run",
+            "build": "go build ./...",
+            "dev": null,
+            "ui": false
+          }
+        }
+      }
+    },
+    {
+      "id": "H1",
+      "kind": "git",
+      "label": "Django API (public)",
+      "repo": "gothinkster/django-realworld-example-app",
+      "sha": "29c9d42831fa0cfc5a4aa7561f674396eacf20a2",
+      "expect": {
+        "tickets": "none",
+        "roots": {
+          ".": {
+            "packs": [
+              "python",
+              "sql-migrations"
+            ],
+            "layer": "api",
+            "test": "python manage.py test",
+            "lint": null,
+            "build": null,
+            "dev": "python manage.py runserver",
+            "ui": false
+          }
+        }
+      }
+    },
+    {
+      "id": "H2",
+      "kind": "git",
+      "label": "Rails API, no Ruby pack (public)",
+      "repo": "gothinkster/rails-realworld-example-app",
+      "sha": "a2ae4fff78b3337683cea988c023281dcb5551b9",
+      "expect": {
+        "tickets": "none",
+        "roots": {
+          ".": {
+            "packs": [
+              "sql-migrations"
+            ],
+            "layer": "api",
+            "test": "bin/rails test",
+            "lint": null,
+            "build": null,
+            "dev": "bin/rails server",
+            "ui": false
+          }
+        }
+      }
+    },
+    {
+      "id": "I",
+      "kind": "git",
+      "label": "pnpm/turbo monorepo (public)",
+      "repo": "t3-oss/create-t3-turbo",
+      "sha": "8f945b7bb3bfb3ca8358d48b1ff0214079bc11ee",
+      "expect": {
+        "tickets": "none",
+        "roots": {
+          ".": {
+            "packs": [
+              "ci-cd",
+              "web-frontend"
+            ],
+            "layer": "lib",
+            "test": null,
+            "lint": "pnpm lint",
+            "build": "pnpm build",
+            "dev": "pnpm dev",
+            "ui": false
+          },
+          "apps/expo": {
+            "packs": [
+              "web-frontend"
+            ],
+            "layer": "ui",
+            "test": null,
+            "lint": "pnpm lint",
+            "build": null,
+            "dev": "pnpm dev",
+            "ui": true
+          },
+          "apps/nextjs": {
+            "packs": [
+              "node-js",
+              "web-frontend"
+            ],
+            "layer": "ui",
+            "test": null,
+            "lint": "pnpm lint",
+            "build": "pnpm build",
+            "dev": "pnpm dev",
+            "ui": true
+          },
+          "apps/tanstack-start": {
+            "packs": [
+              "node-js",
+              "web-frontend"
+            ],
+            "layer": "ui",
+            "test": null,
+            "lint": "pnpm lint",
+            "build": "pnpm build",
+            "dev": "pnpm dev",
+            "ui": true
+          },
+          "packages/api": {
+            "packs": [],
+            "layer": "lib",
+            "test": null,
+            "lint": "pnpm lint",
+            "build": "pnpm build",
+            "dev": "pnpm dev",
+            "ui": false
+          },
+          "packages/auth": {
+            "packs": [],
+            "layer": "lib",
+            "test": null,
+            "lint": "pnpm lint",
+            "build": null,
+            "dev": null,
+            "ui": false
+          },
+          "packages/db": {
+            "packs": [],
+            "layer": "lib",
+            "test": null,
+            "lint": "pnpm lint",
+            "build": "pnpm build",
+            "dev": "pnpm dev",
+            "ui": false
+          },
+          "packages/ui": {
+            "packs": [
+              "web-frontend"
+            ],
+            "layer": "ui",
+            "test": null,
+            "lint": "pnpm lint",
+            "build": null,
+            "dev": null,
+            "ui": true
+          },
+          "packages/validators": {
+            "packs": [],
+            "layer": "lib",
+            "test": null,
+            "lint": "pnpm lint",
+            "build": "pnpm build",
+            "dev": "pnpm dev",
+            "ui": false
+          },
+          "tooling/eslint": {
+            "packs": [
+              "web-frontend"
+            ],
+            "layer": "lib",
+            "test": null,
+            "lint": null,
+            "build": null,
+            "dev": null,
+            "ui": false
+          },
+          "tooling/github": {
+            "packs": [],
+            "layer": "lib",
+            "test": null,
+            "lint": null,
+            "build": null,
+            "dev": null,
+            "ui": false
+          },
+          "tooling/prettier": {
+            "packs": [],
+            "layer": "lib",
+            "test": null,
+            "lint": null,
+            "build": null,
+            "dev": null,
+            "ui": false
+          },
+          "tooling/tailwind": {
+            "packs": [],
+            "layer": "lib",
+            "test": null,
+            "lint": "pnpm lint",
+            "build": null,
+            "dev": null,
+            "ui": false
+          },
+          "tooling/typescript": {
+            "packs": [],
+            "layer": "lib",
+            "test": null,
+            "lint": null,
+            "build": null,
+            "dev": null,
+            "ui": false
+          }
+        }
+      }
+    },
+    {
+      "id": "J",
+      "kind": "git",
+      "label": "Rust Cargo workspace, no Rust pack (public)",
+      "repo": "BurntSushi/ripgrep",
+      "sha": "3e85c6c148fdce38a99ceeb9d2780dc7b03b4a4f",
+      "expect": {
+        "tickets": "none",
+        "roots": {
+          ".": {
+            "packs": [
+              "ci-cd"
+            ],
+            "layer": "cli",
+            "test": "cargo test",
+            "lint": "cargo clippy",
+            "build": "cargo build",
+            "dev": null,
+            "ui": false
+          },
+          "crates/cli": {
+            "packs": [],
+            "layer": "lib",
+            "test": "cargo test",
+            "lint": "cargo clippy",
+            "build": "cargo build",
+            "dev": null,
+            "ui": false
+          },
+          "crates/globset": {
+            "packs": [],
+            "layer": "lib",
+            "test": "cargo test",
+            "lint": "cargo clippy",
+            "build": "cargo build",
+            "dev": null,
+            "ui": false
+          },
+          "crates/grep": {
+            "packs": [],
+            "layer": "lib",
+            "test": "cargo test",
+            "lint": "cargo clippy",
+            "build": "cargo build",
+            "dev": null,
+            "ui": false
+          },
+          "crates/ignore": {
+            "packs": [],
+            "layer": "lib",
+            "test": "cargo test",
+            "lint": "cargo clippy",
+            "build": "cargo build",
+            "dev": null,
+            "ui": false
+          },
+          "crates/matcher": {
+            "packs": [],
+            "layer": "lib",
+            "test": "cargo test",
+            "lint": "cargo clippy",
+            "build": "cargo build",
+            "dev": null,
+            "ui": false
+          },
+          "crates/pcre2": {
+            "packs": [],
+            "layer": "lib",
+            "test": "cargo test",
+            "lint": "cargo clippy",
+            "build": "cargo build",
+            "dev": null,
+            "ui": false
+          },
+          "crates/printer": {
+            "packs": [],
+            "layer": "lib",
+            "test": "cargo test",
+            "lint": "cargo clippy",
+            "build": "cargo build",
+            "dev": null,
+            "ui": false
+          },
+          "crates/regex": {
+            "packs": [],
+            "layer": "lib",
+            "test": "cargo test",
+            "lint": "cargo clippy",
+            "build": "cargo build",
+            "dev": null,
+            "ui": false
+          },
+          "crates/searcher": {
+            "packs": [],
+            "layer": "lib",
+            "test": "cargo test",
+            "lint": "cargo clippy",
+            "build": "cargo build",
+            "dev": null,
+            "ui": false
+          }
+        }
+      }
+    },
+    {
+      "id": "S1",
+      "kind": "synthetic",
+      "label": "npm+lockfile; prisma migrate inside build",
+      "files": {
+        "package.json": "{\n  \"name\": \"s1\",\n  \"scripts\": {\n    \"test\": \"vitest run\",\n    \"lint\": \"eslint .\",\n    \"build\": \"prisma migrate deploy && next build\",\n    \"dev\": \"next dev\"\n  },\n  \"dependencies\": {\n    \"next\": \"14.2.0\",\n    \"react\": \"18.3.0\",\n    \"@prisma/client\": \"5.0.0\"\n  }\n}",
+        "package-lock.json": "{}\n",
+        "app/page.tsx": "export default function Page() { return null }\n"
+      },
+      "commands": {
+        ".": {
+          "install": {
+            "cmd": "npm ci"
+          },
+          "build": {
+            "unsafe": true
+          },
+          "test": {
+            "cmd": "npm test",
+            "unsafe": false
+          },
+          "dev": {
+            "unsafe": false
+          }
+        }
+      },
+      "expect": {
+        "tickets": "none",
+        "roots": {
+          ".": {
+            "packs": [
+              "node-js",
+              "web-frontend"
+            ],
+            "layer": "ui",
+            "test": "npm test",
+            "lint": "npm run lint",
+            "build": "npm run build",
+            "dev": "npm run dev",
+            "ui": true
+          }
+        }
+      }
+    },
+    {
+      "id": "S2",
+      "kind": "synthetic",
+      "label": "vite: --mode production safe; npm run hop to a migration flagged",
+      "files": {
+        "package.json": "{\n  \"name\": \"s2\",\n  \"scripts\": {\n    \"build\": \"npm run compile\",\n    \"compile\": \"vite build --mode production\",\n    \"test\": \"npm run unit\",\n    \"unit\": \"vitest\",\n    \"dev\": \"npm run db:migrate && vite\",\n    \"db:migrate\": \"knex migrate:latest\"\n  },\n  \"dependencies\": {\n    \"react\": \"18.3.0\",\n    \"knex\": \"3.0.0\"\n  },\n  \"devDependencies\": {\n    \"vite\": \"5.0.0\"\n  }\n}",
+        "yarn.lock": "\n",
+        "src/App.tsx": "export const App = () => null\n"
+      },
+      "commands": {
+        ".": {
+          "install": {
+            "cmd": "yarn install --frozen-lockfile"
+          },
+          "build": {
+            "cmd": "yarn build",
+            "unsafe": false
+          },
+          "test": {
+            "unsafe": false
+          },
+          "dev": {
+            "unsafe": true
+          }
+        }
+      },
+      "expect": {
+        "tickets": "none",
+        "roots": {
+          ".": {
+            "packs": [
+              "node-js",
+              "web-frontend"
+            ],
+            "layer": "ui",
+            "test": "yarn test",
+            "lint": null,
+            "build": "yarn build",
+            "dev": "yarn dev",
+            "ui": true
+          }
+        }
+      }
+    },
+    {
+      "id": "S3",
+      "kind": "synthetic",
+      "label": "Makefile build recipe calls a deploy script",
+      "files": {
+        "Makefile": "test:\n\tpytest\n\nbuild: lint\n\tdocker build -t app .\n\t./scripts/deploy.sh\n\nlint:\n\truff check .\n",
+        "pyproject.toml": "[project]\nname = \"s3\"\ndependencies = [\"fastapi\", \"pytest\", \"ruff\"]\n",
+        "app/main.py": "app = None\n"
+      },
+      "commands": {
+        ".": {
+          "build": {
+            "cmd": "make build",
+            "unsafe": true
+          },
+          "test": {
+            "cmd": "make test",
+            "unsafe": false
+          },
+          "lint": {
+            "cmd": "make lint",
+            "unsafe": false
+          }
+        }
+      },
+      "expect": {
+        "tickets": "none",
+        "roots": {
+          ".": {
+            "packs": [
+              "ci-cd",
+              "python"
+            ],
+            "layer": "api",
+            "test": "make test",
+            "lint": "make lint",
+            "build": "make build",
+            "dev": "uvicorn app.main:app --reload",
+            "ui": false
+          }
+        }
+      }
+    },
+    {
+      "id": "S4",
+      "kind": "synthetic",
+      "label": "uv project gets uv sync",
+      "files": {
+        "pyproject.toml": "[project]\nname = \"s4\"\ndependencies = [\"fastapi\", \"pytest\"]\n",
+        "uv.lock": "version = 1\n",
+        "app/main.py": "app = None\n"
+      },
+      "commands": {
+        ".": {
+          "install": {
+            "cmd": "uv sync"
+          },
+          "test": {
+            "cmd": "pytest"
+          }
+        }
+      },
+      "expect": {
+        "tickets": "none",
+        "roots": {
+          ".": {
+            "packs": [
+              "python"
+            ],
+            "layer": "api",
+            "test": "pytest",
+            "lint": null,
+            "build": null,
+            "dev": "uvicorn app.main:app --reload",
+            "ui": false
+          }
+        }
+      }
+    },
+    {
+      "id": "S5",
+      "kind": "synthetic",
+      "label": "dbt build is unsafe (writes to the target)",
+      "files": {
+        "dbt_project.yml": "name: s5\nprofile: s5\n",
+        "models/x.sql": "select 1 as id\n"
+      },
+      "commands": {
+        ".": {
+          "build": {
+            "cmd": "dbt build",
+            "unsafe": true
+          },
+          "test": {
+            "cmd": "dbt test",
+            "unsafe": false
+          }
+        }
+      },
+      "expect": {
+        "tickets": "none",
+        "roots": {
+          ".": {
+            "packs": [
+              "data-warehouse"
+            ],
+            "layer": "data",
+            "test": "dbt test",
+            "lint": null,
+            "build": "dbt build",
+            "dev": null,
+            "ui": false
+          }
+        }
+      }
+    },
+    {
+      "id": "S6",
+      "kind": "synthetic",
+      "label": "pretest hops to a DB reset under a neutral name; TypeORM schema:drop in dev",
+      "files": {
+        "package.json": "{\n  \"name\": \"s6\",\n  \"scripts\": {\n    \"test\": \"jest\",\n    \"pretest\": \"npm run fresh\",\n    \"dev\": \"typeorm schema:drop && nest start\",\n    \"lint\": \"eslint .\",\n    \"fresh\": \"prisma migrate reset --force\"\n  },\n  \"dependencies\": {\n    \"@nestjs/core\": \"10.0.0\",\n    \"typeorm\": \"0.3.0\"\n  }\n}",
+        "package-lock.json": "{}\n",
+        "src/main.ts": "export const x = 1\n"
+      },
+      "commands": {
+        ".": {
+          "test": {
+            "cmd": "npm test",
+            "unsafe": true
+          },
+          "dev": {
+            "unsafe": true
+          },
+          "lint": {
+            "unsafe": false
+          }
+        }
+      },
+      "expect": {}
+    },
+    {
+      "id": "S7",
+      "kind": "synthetic",
+      "label": "pnpm/turbo root build fans out to a migrating member build",
+      "files": {
+        "package.json": "{\n  \"name\": \"root\",\n  \"private\": true,\n  \"scripts\": {\n    \"build\": \"turbo run build\",\n    \"lint\": \"turbo run lint\"\n  },\n  \"devDependencies\": {\n    \"turbo\": \"2.0.0\"\n  }\n}",
+        "pnpm-workspace.yaml": "packages:\n  - \"apps/*\"\n",
+        "pnpm-lock.yaml": "\n",
+        "apps/web/package.json": "{\n  \"name\": \"web\",\n  \"scripts\": {\n    \"build\": \"prisma migrate deploy && next build\",\n    \"dev\": \"next dev\",\n    \"lint\": \"next lint\"\n  },\n  \"dependencies\": {\n    \"next\": \"14.2.0\",\n    \"react\": \"18.3.0\"\n  }\n}",
+        "apps/web/app/page.tsx": "export default function Page() { return null }\n",
+        "apps/web/app/layout.tsx": "export default function L({ children }: { children: unknown }) { return children }\n",
+        "apps/web/app/a.tsx": "export const a = 1\n",
+        "apps/web/app/b.tsx": "export const b = 1\n",
+        "apps/web/app/c.tsx": "export const c = 1\n"
+      },
+      "commands": {
+        ".": {
+          "build": {
+            "cmd": "pnpm build",
+            "unsafe": true
+          },
+          "lint": {
+            "unsafe": false
+          }
+        },
+        "apps/web": {
+          "build": {
+            "cmd": "pnpm build",
+            "unsafe": true
+          },
+          "install": {
+            "cmd": "pnpm install --frozen-lockfile"
+          }
+        }
+      },
+      "expect": {}
+    },
+    {
+      "id": "S8",
+      "kind": "synthetic",
+      "label": "npm workspace members install from the root lockfile",
+      "files": {
+        "package.json": "{\n  \"name\": \"root\",\n  \"private\": true,\n  \"workspaces\": [\n    \"packages/*\"\n  ],\n  \"scripts\": {\n    \"test\": \"npm test --workspaces\"\n  }\n}",
+        "package-lock.json": "{}\n",
+        "packages/x/package.json": "{\n  \"name\": \"x\",\n  \"scripts\": {\n    \"test\": \"vitest\"\n  }\n}",
+        "packages/x/src/index.ts": "export const y = 2\n"
+      },
+      "commands": {
+        ".": {
+          "install": {
+            "cmd": "npm ci"
+          }
+        },
+        "packages/x": {
+          "install": {
+            "cmd": "npm ci"
+          },
+          "test": {
+            "cmd": "npm test",
+            "unsafe": false
+          }
+        }
+      },
+      "expect": {}
+    }
+  ]
+}

@@ -1,0 +1,45 @@
+# .workflow/config.yml — workflow choices for one repo (facts live in .workflow/profile.json).
+#
+# Where it can live (all are read and merged key by key, nearest first; an explicit value wins,
+# a missing or null one falls through):
+#   1. <repo>/.workflow/config.yml        team choices for this repo (commit it)
+#   2. <workspace>/.workflow/config.yml   choices shared by a multi-repo workspace
+#   3. ~/.workflow/config.yml             personal defaults (and the installed overlay's config.yml)
+# Mappings merge recursively; lists are replaced whole. Argus also reads the legacy .argus.yml files.
+#
+# Write only what you actually choose. /setup leaves out defaults so farther files still apply.
+# Every key below is optional; the value shown is the default.
+
+overlay: none                 # name of an installed overlay (its rules, packs, QA and report notes)
+
+# Stack packs. "auto" = the profile's packs per root, plus any pack matching a changed file.
+stacks: auto                  # or an explicit list, e.g. [python, sql-migrations]
+extra_stacks: []              # always added, e.g. [serverless-queues]
+
+tickets:
+  system: auto                # auto | linear | jira | github | none
+  key: null                   # regex for ticket keys, e.g. '\b(ENG|OPS)-\d+\b' (null → the profile's, then a generic one)
+  team: null                  # default team / project for new tickets
+
+chat: none                    # teams | slack | none (used by /daily-report)
+
+graph: auto                   # auto (use a graph when graphify-out/ exists) | graphify | none
+
+ignore: []                    # globs never reviewed, e.g. ["**/generated/**"] (Argus adds lockfiles, vendored and minified files)
+house_rules: []               # repo-relative docs with team rules, e.g. [CONTRIBUTING.md]
+
+commands: {}                  # per-root overrides of detected commands, e.g. {".": {test: "make test"}}
+                              # prefer `/setup` (or detect-stack.py --set) so the profile records them
+
+qa:
+  auth: null                  # null → the overlay's qa/auth.md if any | none (public app) | path to sign-in notes
+  base_url: null              # overrides the UI root's dev URL (must be localhost or 127.0.0.1)
+
+review:                       # Argus-only settings
+  header: "Argus review"
+  max_findings: 0             # 0 = no cap
+  severity:
+    overrides: []             # e.g. [{category: ownership, max: consider}]
+    critical_triggers: []     # extra outcomes that are always critical here, in plain words
+  post:
+    inline: true              # with --post, add inline comments for new findings

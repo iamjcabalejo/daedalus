@@ -1,0 +1,28 @@
+name: check
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  hub:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Stack packs have the required sections
+        run: scripts/lint-packs.sh
+      - name: Public hub stays generic (AC-11)
+        run: scripts/check-generic.sh
+      - name: Generated plugins are up to date (AC-12)
+        run: scripts/build-plugin.sh --check
+      - name: Detector validation matrix (public and synthetic rows; private rows skip without matrix.local.json)
+        env:
+          WORKFLOW_MATRIX_CACHE: ${{ runner.temp }}/workflow-matrix
+        run: scripts/test-detector.sh

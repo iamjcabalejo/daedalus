@@ -1,0 +1,56 @@
+# Argus configuration. Every key is optional; missing keys use the defaults shown.
+#
+# Lookup: every file in this chain is read, nearest first, and merged key by key:
+#   1. <repo>/.workflow/config.yml, then legacy <repo>/.argus.yml
+#   2. <workspace root>/.workflow/config.yml, then <workspace root>/.argus.yml
+#   3. ~/.workflow/config.yml, then ~/.claude/argus.yml
+#   4. built-in defaults (this file)
+# The nearest file that sets a key wins; mappings (tickets, review, review.severity, review.post) merge
+# recursively; lists are replaced whole wherever they sit (ignore, house_rules, extra_stacks,
+# severity.overrides, severity.critical_triggers). null or empty falls through; an explicit `none` or [] wins (so a repo opts out
+# of a home-level domain with `domain: none`).
+# In .workflow/config.yml, severity and post go under `review:`; in .argus.yml they stay top-level
+# and are lifted under `review:` before merging, so both spellings merge as one key.
+
+# Which stack packs to load. "auto" loads the project profile's packs for the touched roots
+# (.workflow/profile.json) plus every pack whose detect.files globs match a changed path or root
+# manifest (globs alone when there is no profile). A list replaces auto-detection.
+stacks: auto                 # auto | [python, node-js, go, csharp-dotnet, web-frontend, sql-migrations, data-warehouse, iac, ci-cd, serverless-queues]
+extra_stacks: []             # always added, e.g. [serverless-queues] for a worker repo
+
+# Business invariants pack from domains/<name>.md. Keep domain packs out of public repos.
+domain: none
+
+tickets:
+  system: auto               # auto | linear | github | jira | none
+  key: '[A-Z][A-Z0-9]+-\d+'  # regex for ticket keys in the title, branch and body (linear/jira)
+  # github: "Closes #123" style refs in the PR body are resolved with `gh issue view`
+  # jira: needs a Jira MCP connected; otherwise treated as none
+
+# Paths never reviewed (globs).
+ignore:
+  - "**/*.lock"
+  - "**/package-lock.json"
+  - "**/pnpm-lock.yaml"
+  - "**/go.sum"
+  - "**/vendor/**"
+  - "**/node_modules/**"
+  - "**/dist/**"
+  - "**/build/**"
+  - "**/*.min.*"
+  - "**/__snapshots__/**"
+  - "**/generated/**"
+
+# Extra team rules, as repo-relative docs. They add checks; they never lower the gate.
+house_rules: []              # e.g. [docs/review-rules.md, CONTRIBUTING.md]
+
+severity:
+  overrides: []              # e.g. [{category: ownership, max: consider}, {family: FM-16, min: important}]
+  critical_triggers: []      # extra outcomes that are always critical here, in plain words
+
+review:
+  header: "Argus review"    # first line of the body; never impersonate another reviewer's name
+  max_findings: 0            # 0 = no cap; otherwise keep the N most severe and say how many were dropped
+
+post:
+  inline: true               # with --post, add inline comments for new findings on changed lines

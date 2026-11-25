@@ -1,0 +1,19 @@
+{
+  "name": "daedalus",
+  "owner": {
+    "name": "tb-jcabalejo"
+  },
+  "description": "The daedalus plug-and-play dev workflow and its browser-QA companion.",
+  "plugins": [
+    {
+      "name": "daedalus",
+      "source": "./plugins/daedalus",
+      "description": "Plug-and-play Plan → Code → Review → QA workflow: detects each project's stacks and commands into .workflow/profile.json, plans per layer, implements with stack packs, tests with safe commands, and reviews with Argus. Browser QA is the daedalus-qa companion."
+    },
+    {
+      "name": "daedalus-qa",
+      "source": "./plugins/daedalus-qa",
+      "description": "Browser QA companion for daedalus: the qa-tester role, the manual-qa skill and /manual-test, with the Playwright MCP server. Install only for projects with a UI."
+    }
+  ]
+}
