@@ -1,0 +1,133 @@
+{
+  "schema": "daedalus.probe-case/1",
+  "id": "J1",
+  "title": "Native worktree isolation",
+  "refs": [
+    "R-AC-1j",
+    "D21"
+  ],
+  "applies_to": {
+    "installs": [
+      "script",
+      "plugin"
+    ],
+    "hosts": [
+      "claude"
+    ]
+  },
+  "files": {
+    "script": [
+      {
+        "template": "script/settings.json",
+        "dest": "repo/.claude/settings.json"
+      },
+      {
+        "template": "script/agents/probe-worktree.md",
+        "dest": "repo/.claude/agents/probe-worktree.md"
+      }
+    ],
+    "plugin": [
+      {
+        "template": "plugin/plugin.json",
+        "dest": "probe-plugin/.claude-plugin/plugin.json"
+      },
+      {
+        "template": "plugin/hooks.json",
+        "dest": "probe-plugin/hooks/hooks.json"
+      },
+      {
+        "template": "plugin/project-settings.json",
+        "dest": "repo/.claude/settings.json"
+      },
+      {
+        "template": "script/agents/probe-worktree.md",
+        "dest": "probe-plugin/agents/probe-worktree.md"
+      }
+    ]
+  },
+  "ctrl": [],
+  "stimulus": {
+    "prompt": "Use the {{AGENT_PREFIX}}probe-worktree agent and let it follow its steps. Don't edit anything yourself. Reply with the agent's report."
+  },
+  "flags": {
+    "max_turns": 12,
+    "max_budget_usd": 0.3
+  },
+  "observations": [
+    {
+      "id": "spawned",
+      "kind": "event",
+      "role": "precondition",
+      "description": "The main thread asked for the agent (an Agent or Task PreToolUse was recorded).",
+      "event": "PreToolUse",
+      "where": [
+        {
+          "field": "tool_name",
+          "op": "in",
+          "value": [
+            "Agent",
+            "Task"
+          ]
+        }
+      ],
+      "expect": "present"
+    },
+    {
+      "id": "worktrees",
+      "kind": "git",
+      "role": "record",
+      "description": "Worktrees in the probe repo after the run (kept, since changed?).",
+      "check": "worktrees"
+    },
+    {
+      "id": "branches",
+      "kind": "git",
+      "role": "record",
+      "description": "Branches in the probe repo after the run.",
+      "check": "branches"
+    },
+    {
+      "id": "main-checkout",
+      "kind": "file",
+      "role": "record",
+      "description": "seed.txt in the main checkout (was the edit there blocked?).",
+      "path": "seed.txt"
+    },
+    {
+      "id": "edits",
+      "kind": "count",
+      "role": "record",
+      "description": "Edit calls the agent made.",
+      "event": "PreToolUse",
+      "where": [
+        {
+          "field": "tool_name",
+          "op": "in",
+          "value": [
+            "Edit",
+            "Write",
+            "MultiEdit"
+          ]
+        }
+      ],
+      "op": "ge",
+      "value": 0
+    },
+    {
+      "id": "branch-location",
+      "kind": "manual",
+      "role": "record",
+      "description": "Branch name and worktree location, from the agent's report."
+    }
+  ],
+  "status_rules": {
+    "evaluate": "manual",
+    "confirmed": "record branch, location, main-checkout behavior and cleanup in the findings (D21)",
+    "contradicted": "n/a"
+  },
+  "notes": [
+    "isolation: worktree is a [D] frontmatter key: verify in T0.",
+    "Cleanup reports a FAIL if a worktree was created outside the run workspace (it is not removed).",
+    "verify in T0: permission rule syntax in the templates (Bash(echo *), WebFetch(domain:...), mcp__...)"
+  ]
+}

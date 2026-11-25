@@ -1,0 +1,28 @@
+{
+  "schema": "daedalus.bench-task/1",
+  "id": "rv-clean-f-tag-test",
+  "set": "dev",
+  "category": "clean",
+  "kind": "review",
+  "description": "Clean test addition: real unit tests for getTags replace the test.todo placeholder.",
+  "repo": {
+    "url": "https://github.com/gothinkster/node-express-realworld-example-app.git",
+    "sha": "30b68e1e881462b2f4164ea09ab4c4f5699c7b0b",
+    "branch": "main"
+  },
+  "toolchain": [
+    "node"
+  ],
+  "ticket": "ticket.md",
+  "setup": [],
+  "hidden_tests": null,
+  "reference_patch": null,
+  "expected_scope": [],
+  "review": {
+    "patch": "change.patch",
+    "clean": true
+  },
+  "budget_usd": 2.0,
+  "timeout_min": 20,
+  "notes": "Clean diff: test-only change against the existing prisma mock. The asserted where-clause matches tag.service.ts exactly. Any critical or important finding is a false positive."
+}

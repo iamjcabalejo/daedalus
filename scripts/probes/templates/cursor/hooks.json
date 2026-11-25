@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "hooks": {
+    "preToolUse": [
+      {
+        "command": "{{HOOK_COMMAND}} --event preToolUse",
+        "failClosed": "{{FAIL_CLOSED}}"
+      }
+    ],
+    "beforeShellExecution": [
+      {
+        "command": "{{HOOK_COMMAND}} --event beforeShellExecution",
+        "failClosed": "{{FAIL_CLOSED}}"
+      }
+    ],
+    "subagentStart": [
+      {
+        "command": "{{HOOK_COMMAND}} --event subagentStart"
+      }
+    ]
+  }
+}

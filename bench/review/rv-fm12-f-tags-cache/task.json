@@ -1,0 +1,36 @@
+{
+  "schema": "daedalus.bench-task/1",
+  "id": "rv-fm12-f-tags-cache",
+  "set": "dev",
+  "category": "FM-12",
+  "kind": "review",
+  "description": "Popular-tags cache: one module-level slot ignores the caller's user id, so one user's personalized tag list is served to everyone for five minutes.",
+  "repo": {
+    "url": "https://github.com/gothinkster/node-express-realworld-example-app.git",
+    "sha": "30b68e1e881462b2f4164ea09ab4c4f5699c7b0b",
+    "branch": "main"
+  },
+  "toolchain": [
+    "node"
+  ],
+  "ticket": "ticket.md",
+  "setup": [],
+  "hidden_tests": null,
+  "reference_patch": null,
+  "expected_scope": [],
+  "review": {
+    "patch": "defect.patch",
+    "expected": [
+      {
+        "file": "src/app/routes/tag/tag.service.ts",
+        "line_start": 7,
+        "line_end": 12,
+        "fm": "FM-12",
+        "severity": "important"
+      }
+    ]
+  },
+  "budget_usd": 2.0,
+  "timeout_min": 20,
+  "notes": "FM-12 (caching and staleness). getTags(id) is personalized: it returns tags from demo authors OR the caller's own articles. The new cache is a single module-level slot keyed on nothing, so the first caller's list (including tags from their own non-demo articles, which other users can't see) is served to every user, signed in or not, until the TTL expires; the cache key is missing the `id` input. Severity important: FM-12 grades important (wrong data shown); the exposure is tag names only, not an exploit. Fix: key the cache by user id (or cache only the anonymous result and skip the cache when id is set). The TTL and tests are legitimate."
+}

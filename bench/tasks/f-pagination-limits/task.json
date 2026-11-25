@@ -1,0 +1,28 @@
+{
+  "schema": "daedalus.bench-task/1",
+  "id": "f-pagination-limits",
+  "set": "dev",
+  "category": "small",
+  "kind": "build",
+  "description": "Row F (Node/Express + Prisma): bound limit and offset on the article list and feed endpoints.",
+  "repo": {
+    "url": "https://github.com/gothinkster/node-express-realworld-example-app.git",
+    "sha": "30b68e1e881462b2f4164ea09ab4c4f5699c7b0b",
+    "branch": "master"
+  },
+  "toolchain": ["node"],
+  "ticket": "ticket.md",
+  "setup": [
+    "CHECKPOINT_DISABLE=1 PRISMA_HIDE_UPDATE_MESSAGE=1 npm ci --no-audit --no-fund",
+    "CHECKPOINT_DISABLE=1 PRISMA_HIDE_UPDATE_MESSAGE=1 ./node_modules/.bin/prisma generate"
+  ],
+  "hidden_tests": {
+    "path": "hidden",
+    "command": "CI=true ./node_modules/.bin/jest --config jest.config.ts --ci --runInBand src/tests/routes/article-pagination.test.ts"
+  },
+  "reference_patch": "reference.patch",
+  "expected_scope": ["src/app/**", "src/tests/**"],
+  "budget_usd": 2.0,
+  "timeout_min": 30,
+  "notes": "Hidden tests run Jest (the repo's framework, ts-jest with type checking) against the real Express routes on a loopback port, with Prisma mocked by the repo's own src/tests/prisma-mock.ts. They assert the take/skip the list and feed queries pass to prisma.article.findMany, so they accept any implementation that still pages with findMany (directly or inside $transaction, which the test passes through). On the pinned SHA, limit=500, negative offsets and fractional values reach findMany unchanged, so the run fails. Setup needs network for npm ci (Prisma downloads its engines in postinstall); scoring runs offline because the client is mocked. budget_usd is a placeholder sized for a small task."
+}

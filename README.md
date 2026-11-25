@@ -209,6 +209,8 @@ templates/                workflow-config.example.yml
 overlays/_template/       Overlay format and backup steps (real overlays are gitignored)
 addons/graphify/          Optional /graphify build skill
 scripts/                  Hub checks and builds: lint-packs, check-generic, test-detector, build-plugin
+scripts/probes/           Capability probes for the host CLI (maintainer tooling; never shipped in plugins)
+bench/                    Benchmark harness and task suite (maintainer tooling; never shipped in plugins)
 docs/                     Plans, validation results, reviews, guides, and the NRD Sight calibration corpus
 .github/workflows/        CI: pack lint, generic check, detector matrix, plugin build check
 ```

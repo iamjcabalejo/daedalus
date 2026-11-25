@@ -1,0 +1,104 @@
+{
+  "schema": "daedalus.probe-case/1",
+  "id": "G1",
+  "title": "Usage per subagent",
+  "refs": [
+    "R-AC-1g"
+  ],
+  "applies_to": {
+    "installs": [
+      "script",
+      "plugin"
+    ],
+    "hosts": [
+      "claude"
+    ]
+  },
+  "files": {
+    "script": [
+      {
+        "template": "script/settings.json",
+        "dest": "repo/.claude/settings.json"
+      },
+      {
+        "template": "script/agents/probe-reader.md",
+        "dest": "repo/.claude/agents/probe-reader.md"
+      }
+    ],
+    "plugin": [
+      {
+        "template": "plugin/plugin.json",
+        "dest": "probe-plugin/.claude-plugin/plugin.json"
+      },
+      {
+        "template": "plugin/hooks.json",
+        "dest": "probe-plugin/hooks/hooks.json"
+      },
+      {
+        "template": "plugin/project-settings.json",
+        "dest": "repo/.claude/settings.json"
+      },
+      {
+        "template": "script/agents/probe-reader.md",
+        "dest": "probe-plugin/agents/probe-reader.md"
+      }
+    ]
+  },
+  "ctrl": [],
+  "stimulus": {
+    "prompt": "Use the {{AGENT_PREFIX}}probe-reader agent to read seed.txt and README.md, then reply done."
+  },
+  "flags": {
+    "max_turns": 8,
+    "max_budget_usd": 0.25
+  },
+  "observations": [
+    {
+      "id": "subagent-stop",
+      "kind": "event",
+      "role": "precondition",
+      "description": "SubagentStop fired.",
+      "event": "SubagentStop",
+      "expect": "present"
+    },
+    {
+      "id": "transcript-path",
+      "kind": "field",
+      "role": "assert",
+      "description": "SubagentStop carries agent_transcript_path.",
+      "event": "SubagentStop",
+      "field": "agent_transcript_path",
+      "expect": "present",
+      "scope": "any"
+    },
+    {
+      "id": "transcript-usage",
+      "kind": "transcript-usage",
+      "role": "record",
+      "description": "Usage key names and totals parsed from the agent transcript."
+    },
+    {
+      "id": "stream-usage",
+      "kind": "stream",
+      "role": "record",
+      "description": "Usage key names in the stream's result event.",
+      "check": "usage-keys"
+    },
+    {
+      "id": "stream-result",
+      "kind": "stream",
+      "role": "record",
+      "description": "The stream's result event (has total_cost_usd?).",
+      "check": "result"
+    }
+  ],
+  "status_rules": {
+    "evaluate": "auto",
+    "confirmed": "agent_transcript_path is present and its usage can be parsed",
+    "contradicted": "SubagentStop lacks agent_transcript_path"
+  },
+  "notes": [
+    "Compare transcript totals with the stream totals in the findings; stream usage fields: verify in T0.",
+    "verify in T0: permission rule syntax in the templates (Bash(echo *), WebFetch(domain:...), mcp__...)"
+  ]
+}

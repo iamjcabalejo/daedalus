@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "probe-mcp": {
+      "command": "{{PYTHON}}",
+      "args": [
+        "{{MCP_SERVER}}"
+      ]
+    }
+  }
+}

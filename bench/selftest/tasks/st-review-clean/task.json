@@ -1,0 +1,18 @@
+{
+  "schema": "daedalus.bench-task/1",
+  "id": "st-review-clean",
+  "set": "selftest",
+  "category": "clean",
+  "kind": "review",
+  "description": "Selftest clean review: a documentation-only change; any critical or important finding is a false positive.",
+  "repo": {"url": "selftest:calc", "sha": "f8f272d050698b7a56fff3d89959f45e2ff21e64", "branch": "main"},
+  "toolchain": ["python"],
+  "ticket": "ticket.md",
+  "setup": [],
+  "hidden_tests": null,
+  "reference_patch": null,
+  "expected_scope": [],
+  "review": {"patch": "review.patch", "clean": true},
+  "budget_usd": 0.5,
+  "timeout_min": 5
+}

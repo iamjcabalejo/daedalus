@@ -1,0 +1,157 @@
+{
+  "schema": "daedalus.probe-case/1",
+  "id": "K2",
+  "title": "Codex hooks",
+  "refs": [
+    "R-AC-1k"
+  ],
+  "applies_to": {
+    "installs": [
+      "script"
+    ],
+    "hosts": [
+      "codex"
+    ]
+  },
+  "files": {
+    "script": [
+      {
+        "template": "codex/hooks.json",
+        "dest": "repo/.codex/hooks.json"
+      }
+    ]
+  },
+  "vars": {
+    "dialect": "codex"
+  },
+  "ctrl": [
+    {
+      "key": "PreToolUse",
+      "mode": "deny",
+      "reason": "probe K2: blocked"
+    }
+  ],
+  "stimulus": {
+    "prompt": "Run `touch marker-K2` in the shell, then reply done. If it is blocked, say so and don't retry."
+  },
+  "flags": {
+    "max_turns": 4,
+    "max_budget_usd": 0.25
+  },
+  "observations": [
+    {
+      "id": "hook-seen",
+      "kind": "event",
+      "role": "precondition",
+      "description": "PreToolUse fired for the touch.",
+      "event": "PreToolUse",
+      "expect": "present"
+    },
+    {
+      "id": "payload-keys",
+      "kind": "keys",
+      "role": "record",
+      "description": "PreToolUse payload keys (identity fields?).",
+      "event": "PreToolUse",
+      "field": ""
+    },
+    {
+      "id": "usage",
+      "kind": "stream",
+      "role": "record",
+      "description": "turn.completed.usage key names.",
+      "check": "codex-usage"
+    }
+  ],
+  "status_rules": {
+    "evaluate": "auto",
+    "confirmed": "deny works and the record shows identity fields, failure behavior and turn usage",
+    "contradicted": "a deny still let the command run"
+  },
+  "variants": [
+    {
+      "id": "deny",
+      "description": "PreToolUse deny",
+      "observations": [
+        {
+          "id": "hook-seen",
+          "kind": "event",
+          "role": "precondition",
+          "description": "PreToolUse fired for the touch.",
+          "event": "PreToolUse",
+          "expect": "present"
+        },
+        {
+          "id": "blocked",
+          "kind": "marker",
+          "role": "assert",
+          "description": "marker-K2 was not created.",
+          "path": "marker-K2",
+          "expect": false
+        },
+        {
+          "id": "payload-keys",
+          "kind": "keys",
+          "role": "record",
+          "description": "PreToolUse payload keys (identity fields?).",
+          "event": "PreToolUse",
+          "field": ""
+        },
+        {
+          "id": "usage",
+          "kind": "stream",
+          "role": "record",
+          "description": "turn.completed.usage key names.",
+          "check": "codex-usage"
+        }
+      ]
+    },
+    {
+      "id": "crash",
+      "description": "the hook crashes",
+      "ctrl": [
+        {
+          "key": "PreToolUse",
+          "mode": "crash"
+        }
+      ],
+      "observations": [
+        {
+          "id": "hook-seen",
+          "kind": "event",
+          "role": "precondition",
+          "description": "PreToolUse fired for the touch.",
+          "event": "PreToolUse",
+          "expect": "present"
+        },
+        {
+          "id": "marker",
+          "kind": "marker",
+          "role": "record",
+          "description": "marker-K2 after a crash.",
+          "path": "marker-K2"
+        },
+        {
+          "id": "payload-keys",
+          "kind": "keys",
+          "role": "record",
+          "description": "PreToolUse payload keys (identity fields?).",
+          "event": "PreToolUse",
+          "field": ""
+        },
+        {
+          "id": "usage",
+          "kind": "stream",
+          "role": "record",
+          "description": "turn.completed.usage key names.",
+          "check": "codex-usage"
+        }
+      ]
+    }
+  ],
+  "notes": [
+    "Runs only when the Codex CLI is installed and signed in; otherwise docs-only [D].",
+    "Codex must trust the project; the harness never writes ~/.codex, so the maintainer trusts the probe repo by hand or the case is inconclusive (verify in T0).",
+    "verify in T0: .codex/hooks.json format and `codex exec --json` events."
+  ]
+}

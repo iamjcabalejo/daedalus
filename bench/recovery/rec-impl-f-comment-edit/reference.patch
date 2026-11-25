@@ -1,0 +1,129 @@
+diff --git a/src/app/routes/article/article.controller.ts b/src/app/routes/article/article.controller.ts
+index ff03702..6671054 100644
+--- a/src/app/routes/article/article.controller.ts
++++ b/src/app/routes/article/article.controller.ts
+@@ -12,6 +12,7 @@ import {
+   getFeed,
+   unfavoriteArticle,
+   updateArticle,
++  updateComment,
+ } from './article.service';
+ 
+ const router = Router();
+@@ -180,6 +181,33 @@ router.post(
+   },
+ );
+ 
++/**
++ * Update comment
++ * @auth required
++ * @route {PUT} /articles/:slug/comments/:id
++ * @param slug slug of the article (based on the title)
++ * @param id id of the comment
++ * @bodyparam body new content of the comment
++ * @returns comment updated comment
++ */
++router.put(
++  '/articles/:slug/comments/:id',
++  auth.required,
++  async (req: Request, res: Response, next: NextFunction) => {
++    try {
++      const comment = await updateComment(
++        req.body?.comment?.body,
++        req.params.slug,
++        Number(req.params.id),
++        req.auth?.user?.id,
++      );
++      res.json({ comment });
++    } catch (error) {
++      next(error);
++    }
++  },
++);
++
+ /**
+  * Delete comment
+  * @auth required
+diff --git a/src/app/routes/article/article.service.ts b/src/app/routes/article/article.service.ts
+index c8fdc0c..bc8ea06 100644
+--- a/src/app/routes/article/article.service.ts
++++ b/src/app/routes/article/article.service.ts
+@@ -559,6 +559,78 @@ export const deleteComment = async (id: number, userId: number) => {
+   });
+ };
+ 
++export const updateComment = async (
++  body: unknown,
++  slug: string,
++  commentId: number,
++  userId: number,
++) => {
++  const text = typeof body === 'string' ? body.trim() : '';
++
++  if (!text) {
++    throw new HttpException(422, { errors: { body: ["can't be blank"] } });
++  }
++
++  if (!Number.isInteger(commentId)) {
++    throw new HttpException(404, { errors: { comment: ['not found'] } });
++  }
++
++  const comment = await prisma.comment.findFirst({
++    where: {
++      id: commentId,
++      article: {
++        slug,
++      },
++    },
++    select: {
++      authorId: true,
++    },
++  });
++
++  if (!comment) {
++    throw new HttpException(404, { errors: { comment: ['not found'] } });
++  }
++
++  if (comment.authorId !== userId) {
++    throw new HttpException(403, {
++      message: 'You are not authorized to edit this comment',
++    });
++  }
++
++  const updated = await prisma.comment.update({
++    where: {
++      id: commentId,
++    },
++    data: {
++      body: text,
++      updatedAt: new Date(),
++    },
++    include: {
++      author: {
++        select: {
++          username: true,
++          bio: true,
++          image: true,
++          followedBy: true,
++        },
++      },
++    },
++  });
++
++  return {
++    id: updated.id,
++    createdAt: updated.createdAt,
++    updatedAt: updated.updatedAt,
++    body: updated.body,
++    author: {
++      username: updated.author.username,
++      bio: updated.author.bio,
++      image: updated.author.image,
++      following: updated.author.followedBy.some((follow: any) => follow.id === userId),
++    },
++  };
++};
++
+ export const favoriteArticle = async (slugPayload: string, id: number) => {
+   const { _count, ...article } = await prisma.article.update({
+     where: {

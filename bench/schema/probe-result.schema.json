@@ -1,0 +1,50 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "daedalus.probe-result/1",
+  "title": "Probe results file (daedalus.probe-result/1)",
+  "description": "scripts/probes/results/<host>-<version>.json: one entry per (case, variant, install) run (AC-2). A re-run replaces the matching entry. observations[] holds {check, expected, actual}, plus the outcome and role the status was decided from; actual values are booleans, counts, key names or probe-owned names, never prompt or tool text. Stays inside the validator subset of .claude/scripts/validate-profile.py. Validate with: python3 .claude/scripts/validate-profile.py <file> --schema bench/schema/probe-result.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "host", "host_version", "generated_at", "entries"],
+  "properties": {
+    "schema": {"type": "string", "enum": ["daedalus.probe-result/1"]},
+    "host": {"type": "string", "enum": ["claude", "cursor", "codex"]},
+    "host_version": {"type": "string"},
+    "generated_at": {"type": "string", "description": "UTC, ISO 8601."},
+    "entries": {"type": "array", "items": {"$ref": "#/definitions/entry"}}
+  },
+  "definitions": {
+    "entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["case", "install", "host", "host_version", "os", "status", "observations", "fixture_ids", "cost_usd"],
+      "properties": {
+        "case": {"type": "string"},
+        "variant": {"type": ["string", "null"]},
+        "install": {"type": "string", "enum": ["script", "plugin"]},
+        "host": {"type": "string", "enum": ["claude", "cursor", "codex"]},
+        "host_version": {"type": "string"},
+        "os": {"type": "string", "description": "<system>-<release>, for example darwin-24.1.0."},
+        "status": {"type": "string", "enum": ["confirmed", "contradicted", "inconclusive", "docs-only"], "description": "docs-only: case K when the Cursor or Codex CLI is missing ([D] in the findings)."},
+        "observations": {"type": "array", "items": {"$ref": "#/definitions/observation"}},
+        "fixture_ids": {"type": "array", "items": {"type": "string"}, "description": "<host>-<version>/<case>[.<variant>]/<install>/<event>-<n>, relative to scripts/probes/fixtures/."},
+        "cost_usd": {"type": ["number", "null"], "description": "From the host's stream when it reports one."},
+        "plugins_enabled": {"type": ["array", "null"], "items": {"type": "string"}, "description": "daedalus* plugin names plus other:<count>; other plugin names are never recorded."},
+        "notes": {"type": "array", "items": {"type": "string"}},
+        "run_at": {"type": "string", "description": "UTC, ISO 8601."}
+      }
+    },
+    "observation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["check", "expected", "actual"],
+      "properties": {
+        "check": {"type": "string", "description": "The observation id from the case file."},
+        "expected": {},
+        "actual": {},
+        "outcome": {"type": "string", "enum": ["pass", "fail", "unknown", "recorded"]},
+        "role": {"type": "string", "enum": ["precondition", "assert", "record"]}
+      }
+    }
+  }
+}

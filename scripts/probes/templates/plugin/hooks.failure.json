@@ -1,0 +1,29 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "{{HOOK_COMMAND}} --event PreToolUse",
+            "timeout": "{{HOOK_TIMEOUT}}",
+            "onFailure": "{{ON_FAILURE}}"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "{{RECORD_COMMAND}} --event PostToolUse",
+            "timeout": "{{HOOK_TIMEOUT}}"
+          }
+        ]
+      }
+    ]
+  }
+}

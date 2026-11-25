@@ -1,0 +1,28 @@
+{
+  "schema": "daedalus.bench-task/1",
+  "id": "f-comment-edit",
+  "set": "dev",
+  "category": "medium",
+  "kind": "build",
+  "description": "Row F (Node/Express + Prisma): new PUT endpoint to edit a comment, author-only, with validation and article scoping.",
+  "repo": {
+    "url": "https://github.com/gothinkster/node-express-realworld-example-app.git",
+    "sha": "30b68e1e881462b2f4164ea09ab4c4f5699c7b0b",
+    "branch": "master"
+  },
+  "toolchain": ["node"],
+  "ticket": "ticket.md",
+  "setup": [
+    "CHECKPOINT_DISABLE=1 PRISMA_HIDE_UPDATE_MESSAGE=1 npm ci --no-audit --no-fund",
+    "CHECKPOINT_DISABLE=1 PRISMA_HIDE_UPDATE_MESSAGE=1 ./node_modules/.bin/prisma generate"
+  ],
+  "hidden_tests": {
+    "path": "hidden",
+    "command": "CI=true ./node_modules/.bin/jest --config jest.config.ts --ci --runInBand src/tests/routes/comment-update.test.ts"
+  },
+  "reference_patch": "reference.patch",
+  "expected_scope": ["src/app/**", "src/tests/**"],
+  "budget_usd": 4.0,
+  "timeout_min": 45,
+  "notes": "Hidden tests run Jest (ts-jest, type-checked) against the real Express routes on a loopback port, with the repo's Prisma mock. The mock keeps one comment in memory and answers comment/article/user lookups (findFirst, findUnique, the OrThrow variants, findMany) and writes (update, updateMany) by evaluating the where clause the implementation passes (equality, nested relation filters such as article: {slug} or author: {id}, AND/OR/NOT, equals, in, is), so both 'find then compare' and 'filter in the query' ownership checks work. Assertions are on HTTP status, the response body and the stored comment text. On the pinned SHA there is no PUT route (Express answers 404), so the 200, 401 and 422 cases fail. Not covered by the mock: raw SQL ($queryRaw) or upsert-based implementations. budget_usd is a placeholder sized for a medium task."
+}

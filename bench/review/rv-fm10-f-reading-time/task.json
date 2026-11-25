@@ -1,0 +1,43 @@
+{
+  "schema": "daedalus.bench-task/1",
+  "id": "rv-fm10-f-reading-time",
+  "set": "dev",
+  "category": "FM-10",
+  "kind": "review",
+  "description": "Reading time: the migration adds a NOT NULL column with no default to the existing, non-empty Article table, so `prisma migrate deploy` fails on deploy.",
+  "repo": {
+    "url": "https://github.com/gothinkster/node-express-realworld-example-app.git",
+    "sha": "30b68e1e881462b2f4164ea09ab4c4f5699c7b0b",
+    "branch": "main"
+  },
+  "toolchain": [
+    "node"
+  ],
+  "ticket": "ticket.md",
+  "setup": [],
+  "hidden_tests": null,
+  "reference_patch": null,
+  "expected_scope": [],
+  "review": {
+    "patch": "defect.patch",
+    "expected": [
+      {
+        "file": "src/prisma/migrations/20240110093000_article_reading_time/migration.sql",
+        "line_start": 2,
+        "line_end": 2,
+        "fm": "FM-10",
+        "severity": "critical",
+        "also": [
+          {
+            "file": "src/prisma/schema.prisma",
+            "line_start": 19,
+            "line_end": 19
+          }
+        ]
+      }
+    ]
+  },
+  "budget_usd": 2.0,
+  "timeout_min": 20,
+  "notes": "FM-10 (contract and schema evolution). The migration runs `ADD COLUMN \"readingTime\" INTEGER NOT NULL` with no default and no backfill; Postgres rejects it on the existing, non-empty Article table, so `prisma migrate deploy` fails and the release is blocked. Severity critical: Argus lists certain breakage on merge (invalid migration) as always critical, and FM-10 is critical when merging breaks the deploy. Fix: add the column with a default (or nullable), backfill from body, then set NOT NULL. The same root cause also shows as `readingTime Int` in schema.prisma; the migration line is the scored location, and schema.prisma:19 is an `also` location of the same defect (a finding on either matches; a second finding on the other is neutral, neither a true nor a false positive). The estimate helper, its tests and the mapper change are legitimate."
+}

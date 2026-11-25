@@ -1,0 +1,28 @@
+{
+  "schema": "daedalus.bench-task/1",
+  "id": "rv-clean-g-error-tests",
+  "set": "dev",
+  "category": "clean",
+  "kind": "review",
+  "description": "Clean test addition: unit tests for NewErrorMessage, MarkInvalidFields and errorFieldName.",
+  "repo": {
+    "url": "https://github.com/realworld-apps/golang-gin-realworld-example-app.git",
+    "sha": "de2be2ab883217c609a22b3872f200d9fad9cfb9",
+    "branch": "main"
+  },
+  "toolchain": [
+    "go"
+  ],
+  "ticket": "ticket.md",
+  "setup": [],
+  "hidden_tests": null,
+  "reference_patch": null,
+  "expected_scope": [],
+  "review": {
+    "patch": "change.patch",
+    "clean": true
+  },
+  "budget_usd": 2.0,
+  "timeout_min": 20,
+  "notes": "Clean diff: test-only change; each assertion matches the helper's current behavior in common/utils.go. Any critical or important finding is a false positive."
+}

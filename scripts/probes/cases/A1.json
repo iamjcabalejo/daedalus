@@ -1,0 +1,180 @@
+{
+  "schema": "daedalus.probe-case/1",
+  "id": "A1",
+  "title": "Identity on subagent tool calls",
+  "refs": [
+    "R-AC-1a"
+  ],
+  "applies_to": {
+    "installs": [
+      "script",
+      "plugin"
+    ],
+    "hosts": [
+      "claude"
+    ]
+  },
+  "files": {
+    "script": [
+      {
+        "template": "script/settings.json",
+        "dest": "repo/.claude/settings.json"
+      },
+      {
+        "template": "script/agents/probe-reader.md",
+        "dest": "repo/.claude/agents/probe-reader.md"
+      }
+    ],
+    "plugin": [
+      {
+        "template": "plugin/plugin.json",
+        "dest": "probe-plugin/.claude-plugin/plugin.json"
+      },
+      {
+        "template": "plugin/hooks.json",
+        "dest": "probe-plugin/hooks/hooks.json"
+      },
+      {
+        "template": "plugin/project-settings.json",
+        "dest": "repo/.claude/settings.json"
+      },
+      {
+        "template": "script/agents/probe-reader.md",
+        "dest": "probe-plugin/agents/probe-reader.md"
+      }
+    ]
+  },
+  "ctrl": [],
+  "stimulus": {
+    "prompt": "Use the {{AGENT_PREFIX}}probe-reader agent to read seed.txt and run `echo A1`. Don't read or run anything yourself. Reply done when it has finished."
+  },
+  "flags": {
+    "max_turns": 8,
+    "max_budget_usd": 0.25
+  },
+  "observations": [
+    {
+      "id": "bash-seen",
+      "kind": "event",
+      "role": "precondition",
+      "description": "The agent's `echo A1` reached PreToolUse.",
+      "event": "PreToolUse",
+      "where": [
+        {
+          "field": "tool_name",
+          "op": "equals",
+          "value": "Bash"
+        },
+        {
+          "field": "tool_input.command",
+          "op": "contains",
+          "value": "echo A1"
+        }
+      ],
+      "expect": "present"
+    },
+    {
+      "id": "agent-id",
+      "kind": "field",
+      "role": "assert",
+      "description": "agent_id is present on the agent's Bash call.",
+      "event": "PreToolUse",
+      "where": [
+        {
+          "field": "tool_name",
+          "op": "equals",
+          "value": "Bash"
+        },
+        {
+          "field": "tool_input.command",
+          "op": "contains",
+          "value": "echo A1"
+        }
+      ],
+      "field": "agent_id",
+      "expect": "present"
+    },
+    {
+      "id": "agent-type",
+      "kind": "field",
+      "role": "assert",
+      "description": "agent_type names the agent (probe-reader, or probe:probe-reader on plugin installs).",
+      "event": "PreToolUse",
+      "where": [
+        {
+          "field": "tool_name",
+          "op": "equals",
+          "value": "Bash"
+        },
+        {
+          "field": "tool_input.command",
+          "op": "contains",
+          "value": "echo A1"
+        }
+      ],
+      "field": "agent_type",
+      "expect": "equals",
+      "value_by_install": {
+        "script": "probe-reader",
+        "plugin": "probe:probe-reader"
+      }
+    },
+    {
+      "id": "agent-type-after",
+      "kind": "field",
+      "role": "assert",
+      "description": "agent_type names the agent on the PostToolUse of its `echo A1` too: C1 and C2 decide on the agent's PostToolUse (bash-not-run), so A1 must prove the host attributes the after-call event as well as the before-call one. No PostToolUse for it leaves A1 inconclusive.",
+      "event": "PostToolUse",
+      "where": [
+        {
+          "field": "tool_name",
+          "op": "equals",
+          "value": "Bash"
+        },
+        {
+          "field": "tool_input.command",
+          "op": "contains",
+          "value": "echo A1"
+        }
+      ],
+      "field": "agent_type",
+      "expect": "equals",
+      "value_by_install": {
+        "script": "probe-reader",
+        "plugin": "probe:probe-reader"
+      }
+    },
+    {
+      "id": "read-agent-type",
+      "kind": "field",
+      "role": "record",
+      "description": "agent_type on the Read of seed.txt.",
+      "event": "PreToolUse",
+      "where": [
+        {
+          "field": "tool_name",
+          "op": "equals",
+          "value": "Read"
+        },
+        {
+          "field": "tool_input.file_path",
+          "op": "endswith",
+          "value": "seed.txt"
+        }
+      ],
+      "field": "agent_type",
+      "expect": "value",
+      "scope": "any"
+    }
+  ],
+  "status_rules": {
+    "evaluate": "auto",
+    "confirmed": "agent_id and agent_type are present on the subagent's tool calls and agent_type names the agent, on both the PreToolUse and the PostToolUse of its `echo A1`",
+    "contradicted": "a subagent tool call lacks agent_id or agent_type, or agent_type names another agent, on either event",
+    "inconclusive": "the agent's `echo A1` reached no PreToolUse, or no PostToolUse was recorded for it"
+  },
+  "notes": [
+    "verify in T0: permission rule syntax in the templates (Bash(echo *), WebFetch(domain:...), mcp__...)",
+    "C1-C4, F3, F4 and I1 require A1. C3, C4, F3, F4 and I1 decide on the agent's PreToolUse (agent-type); C1 and C2 decide on the absence of its PostToolUse (bash-not-run), which a host that leaves agent_type off PostToolUse, or fires none inside subagents, would pass trivially. So A1 proves agent_type on both events (agent-type-after)."
+  ]
+}

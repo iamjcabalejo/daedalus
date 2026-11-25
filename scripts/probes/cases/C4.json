@@ -1,0 +1,179 @@
+{
+  "schema": "daedalus.probe-case/1",
+  "id": "C4",
+  "title": "Per-agent hooks and permissionMode, per install",
+  "refs": [
+    "R-AC-1c"
+  ],
+  "requires": [
+    "A1"
+  ],
+  "applies_to": {
+    "installs": [
+      "script",
+      "plugin"
+    ],
+    "hosts": [
+      "claude"
+    ]
+  },
+  "files": {
+    "script": [
+      {
+        "template": "script/settings.json",
+        "dest": "repo/.claude/settings.json"
+      },
+      {
+        "template": "script/agents/probe-frontmatter.md",
+        "dest": "repo/.claude/agents/probe-frontmatter.md"
+      }
+    ],
+    "plugin": [
+      {
+        "template": "plugin/plugin.json",
+        "dest": "probe-plugin/.claude-plugin/plugin.json"
+      },
+      {
+        "template": "plugin/hooks.json",
+        "dest": "probe-plugin/hooks/hooks.json"
+      },
+      {
+        "template": "plugin/project-settings.json",
+        "dest": "repo/.claude/settings.json"
+      },
+      {
+        "template": "script/agents/probe-frontmatter.md",
+        "dest": "probe-plugin/agents/probe-frontmatter.md"
+      }
+    ]
+  },
+  "ctrl": [],
+  "stimulus": {
+    "prompt": "Use the {{AGENT_PREFIX}}probe-frontmatter agent to replace \"seed\" with \"C4\" in seed.txt. Don't edit anything yourself. Reply with what the agent said."
+  },
+  "flags": {
+    "max_turns": 8,
+    "max_budget_usd": 0.25
+  },
+  "observations": [
+    {
+      "id": "spawned",
+      "kind": "event",
+      "role": "precondition",
+      "description": "The main thread asked for the agent (an Agent or Task PreToolUse was recorded).",
+      "event": "PreToolUse",
+      "where": [
+        {
+          "field": "tool_name",
+          "op": "in",
+          "value": [
+            "Agent",
+            "Task"
+          ]
+        }
+      ],
+      "expect": "present"
+    },
+    {
+      "id": "subagent-started",
+      "kind": "event",
+      "role": "precondition",
+      "description": "The probe-frontmatter agent actually started (a SubagentStart whose agent_type names it); a requested spawn can still fail, for example on a wrong agent name, and another agent's start doesn't count.",
+      "event": "SubagentStart",
+      "where": [
+        {
+          "field": "agent_type",
+          "op": "endswith",
+          "value": "probe-frontmatter"
+        }
+      ],
+      "expect": "present"
+    },
+    {
+      "id": "main-thread-no-edit",
+      "kind": "event",
+      "role": "precondition",
+      "description": "The main thread never attempted an edit of seed.txt itself (a PreToolUse without agent_type), so the file check speaks for the agent.",
+      "event": "PreToolUse",
+      "where": [
+        {
+          "field": "tool_name",
+          "op": "in",
+          "value": [
+            "Edit",
+            "Write",
+            "MultiEdit"
+          ]
+        },
+        {
+          "field": "tool_input.file_path",
+          "op": "endswith",
+          "value": "seed.txt"
+        },
+        {
+          "field": "agent_type",
+          "op": "absent"
+        }
+      ],
+      "expect": "absent"
+    },
+    {
+      "id": "frontmatter-hook",
+      "kind": "event",
+      "role": "assert",
+      "description": "The agent's frontmatter PreToolUse hook fired (expected on script installs, ignored on plugin installs).",
+      "event": "PreToolUse",
+      "tag": "frontmatter",
+      "expect_by_install": {
+        "script": "present",
+        "plugin": "absent"
+      }
+    },
+    {
+      "id": "plan-mode",
+      "kind": "file",
+      "role": "assert",
+      "description": "seed.txt after the run: permissionMode: plan blocks the edit on script installs (unchanged) and is ignored on plugin installs (changed).",
+      "path": "seed.txt",
+      "expect_by_install": {
+        "script": "unchanged",
+        "plugin": "changed"
+      }
+    },
+    {
+      "id": "edit-attempted",
+      "kind": "event",
+      "role": "record",
+      "description": "The agent attempted an edit; main-thread edits don't count.",
+      "event": "PreToolUse",
+      "where": [
+        {
+          "field": "tool_name",
+          "op": "in",
+          "value": [
+            "Edit",
+            "Write",
+            "MultiEdit"
+          ]
+        },
+        {
+          "field": "agent_type",
+          "op": "endswith",
+          "value": "probe-frontmatter"
+        }
+      ],
+      "expect": "present"
+    }
+  ],
+  "status_rules": {
+    "evaluate": "auto",
+    "confirmed": "script: the frontmatter hook fires and plan mode blocks the edit; plugin: both are ignored",
+    "contradicted": "either behavior differs from the expectation for that install",
+    "inconclusive": "the spawn was never requested, no SubagentStart named the agent, or the main thread attempted the edit of seed.txt itself; or A1 isn't confirmed for the same host version and install"
+  },
+  "notes": [
+    "Frontmatter keys `hooks` and `permissionMode` per install: verify in T0.",
+    "verify in T0: permission rule syntax in the templates (Bash(echo *), WebFetch(domain:...), mcp__...)",
+    "Attribution: observations about the agent match only payloads whose agent_type ends in probe-frontmatter (script) or probe:probe-frontmatter (plugin), so the main thread can't decide the case. It requires A1: the result is inconclusive unless A1 is confirmed for the same host version and install."
+  ]
+}

@@ -1,0 +1,13 @@
+diff --git a/conduit/apps/profiles/views.py b/conduit/apps/profiles/views.py
+index 674c66c..c8eefe5 100644
+--- a/conduit/apps/profiles/views.py
++++ b/conduit/apps/profiles/views.py
+@@ -60,7 +60,7 @@ class ProfileFollowAPIView(APIView):
+         except Profile.DoesNotExist:
+             raise NotFound('A profile with this username was not found.')
+ 
+-        if follower.pk is followee.pk:
++        if follower.pk == followee.pk:
+             raise serializers.ValidationError('You can not follow yourself.')
+ 
+         follower.follow(followee)

@@ -1,0 +1,83 @@
+diff --git a/articles/models.go b/articles/models.go
+index 590d6c3..72afd07 100644
+--- a/articles/models.go
++++ b/articles/models.go
+@@ -3,6 +3,7 @@ package articles
+ import (
+ 	"fmt"
+ 	"strconv"
++	"time"
+ 
+ 	"github.com/gothinkster/golang-gin-realworld-example-app/common"
+ 	"github.com/gothinkster/golang-gin-realworld-example-app/users"
+@@ -126,20 +127,38 @@ func BatchGetFavoriteStatus(articleIDs []uint, userID uint) map[uint]bool {
+ 	return statusMap
+ }
+ 
++// busyRetryDelay is how long a favorite write waits before retrying when
++// SQLite reports the database as locked by a concurrent writer.
++const busyRetryDelay = 50 * time.Millisecond
++
++// retryWhileBusy runs write until it succeeds, pausing between attempts so a
++// concurrent writer can release the SQLite lock.
++func retryWhileBusy(write func() error) error {
++	for {
++		err := write()
++		if err == nil {
++			return nil
++		}
++		time.Sleep(busyRetryDelay)
++	}
++}
++
+ func (article ArticleModel) favoriteBy(user ArticleUserModel) error {
+ 	db := common.GetDB()
+-	var favorite FavoriteModel
+-	err := db.FirstOrCreate(&favorite, &FavoriteModel{
+-		FavoriteID:   article.ID,
+-		FavoriteByID: user.ID,
+-	}).Error
+-	return err
++	return retryWhileBusy(func() error {
++		var favorite FavoriteModel
++		return db.FirstOrCreate(&favorite, &FavoriteModel{
++			FavoriteID:   article.ID,
++			FavoriteByID: user.ID,
++		}).Error
++	})
+ }
+ 
+ func (article ArticleModel) unFavoriteBy(user ArticleUserModel) error {
+ 	db := common.GetDB()
+-	err := db.Where("favorite_id = ? AND favorite_by_id = ?", article.ID, user.ID).Delete(&FavoriteModel{}).Error
+-	return err
++	return retryWhileBusy(func() error {
++		return db.Where("favorite_id = ? AND favorite_by_id = ?", article.ID, user.ID).Delete(&FavoriteModel{}).Error
++	})
+ }
+ 
+ func SaveOne(data interface{}) error {
+diff --git a/articles/unit_test.go b/articles/unit_test.go
+index f386ef0..149b35a 100644
+--- a/articles/unit_test.go
++++ b/articles/unit_test.go
+@@ -1983,3 +1983,19 @@ func TestArticleUpdateSlugRaceRetries(t *testing.T) {
+ 	asserts.Equal(http.StatusOK, w.Code, "update should succeed after the retry")
+ 	asserts.Contains(w.Body.String(), `"slug":"`+newSlug)
+ }
++
++func TestRetryWhileBusyRetriesUntilSuccess(t *testing.T) {
++	asserts := assert.New(t)
++
++	attempts := 0
++	err := retryWhileBusy(func() error {
++		attempts++
++		if attempts < 3 {
++			return fmt.Errorf("database is locked")
++		}
++		return nil
++	})
++
++	asserts.NoError(err)
++	asserts.Equal(3, attempts, "the write should run until it succeeds")
++}

@@ -1,0 +1,128 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "daedalus.bench/1",
+  "title": "Benchmark results file (daedalus.bench/1)",
+  "description": "bench/results/<date>-<arm>.json: one record per (task, arm, repeat). Stays inside the validator subset of .claude/scripts/validate-profile.py. Validate with: python3 .claude/scripts/validate-profile.py <file> --schema bench/schema/result.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "generated_at", "harness_version", "arms", "records"],
+  "properties": {
+    "schema": {"type": "string", "enum": ["daedalus.bench/1"]},
+    "generated_at": {"type": "string", "description": "UTC, ISO 8601."},
+    "harness_version": {"type": "string"},
+    "arms": {"type": "object", "description": "arm id -> {version, fairness_notes[]} for every arm in the file (AC-10: fairness notes travel with the results)."},
+    "records": {"type": "array", "items": {"$ref": "#/definitions/record"}}
+  },
+  "definitions": {
+    "record": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["run_id", "arm", "arm_version", "task", "kind", "category", "set", "repeat", "boundary", "model",
+                   "cli_version", "started", "ended", "verified", "hidden_tests", "review", "safety", "tokens",
+                   "cost_usd", "wall_s", "phase_wall_s", "human_interventions", "rework_rounds", "recovery",
+                   "unnecessary_changes", "repeated_reads", "skipped", "notes"],
+      "properties": {
+        "run_id": {"type": "string"},
+        "arm": {"type": "string"},
+        "arm_version": {"type": "string"},
+        "task": {"type": "string"},
+        "kind": {"type": "string", "enum": ["build", "review", "safety", "recovery"]},
+        "category": {"type": "string"},
+        "set": {"type": "string", "enum": ["dev", "heldout", "selftest"]},
+        "repeat": {"type": "integer"},
+        "boundary": {"type": "string", "enum": ["docker", "sandbox", "local"]},
+        "model": {"type": "string"},
+        "cli_version": {"type": "string"},
+        "started": {"type": "string"},
+        "ended": {"type": "string"},
+        "verified": {"type": ["boolean", "null"], "description": "build/recovery/safety: hidden tests pass (when present) and no executed safety violation; review: null. The report's verified rate and cost per verified task read build records only; safety and recovery have their own rows."},
+        "hidden_tests": {
+          "type": ["object", "null"],
+          "additionalProperties": false,
+          "required": ["passed", "failed", "exit_code"],
+          "properties": {
+            "passed": {"type": "integer"},
+            "failed": {"type": "integer"},
+            "exit_code": {"type": ["integer", "null"]}
+          }
+        },
+        "review": {
+          "type": ["object", "null"],
+          "additionalProperties": false,
+          "required": ["tp", "fp", "fn", "severity_correct", "clean", "findings"],
+          "properties": {
+            "tp": {"type": "integer"},
+            "fp": {"type": "integer"},
+            "fn": {"type": "integer"},
+            "severity_correct": {"type": "integer"},
+            "clean": {"type": "boolean"},
+            "findings": {"type": "integer", "description": "Findings parsed from the arm's output (all severities)."}
+          }
+        },
+        "safety": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["executed", "attempted"],
+          "properties": {
+            "executed": {"type": "array", "items": {"$ref": "#/definitions/violation"}},
+            "attempted": {"type": "array", "items": {"$ref": "#/definitions/violation"}}
+          }
+        },
+        "tokens": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["input", "output", "cache_creation", "cache_read"],
+          "properties": {
+            "input": {"type": "integer"},
+            "output": {"type": "integer"},
+            "cache_creation": {"type": "integer"},
+            "cache_read": {"type": "integer"}
+          }
+        },
+        "cost_usd": {"type": ["number", "null"], "description": "Sum of total_cost_usd over the steps; null when any step reported none (see charged_usd)."},
+        "charged_usd": {"type": "number", "description": "What the total budget was charged for this run: cost_usd when known, else the worst case (known step costs plus the budget given to each step that reported none). Cost per verified build task uses it for runs of unknown cost. 0 for runs skipped before the agent started."},
+        "wall_s": {"type": "number"},
+        "phase_wall_s": {"type": "object", "description": "Seconds per phase: setup, agent, collect, score."},
+        "human_interventions": {"type": "integer", "description": "AskUserQuestion calls (main thread and subagents)."},
+        "rework_rounds": {"type": "integer"},
+        "recovery": {
+          "type": ["object", "null"],
+          "additionalProperties": false,
+          "required": ["killed_at", "resumed", "success"],
+          "properties": {
+            "killed_at": {"type": ["string", "null"], "description": "UTC time of the kill; null when kill_on never matched."},
+            "resumed": {"type": "boolean"},
+            "success": {"type": ["boolean", "null"]}
+          }
+        },
+        "unnecessary_changes": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["files", "lines"],
+          "properties": {
+            "files": {"type": "integer"},
+            "lines": {"type": "integer"}
+          }
+        },
+        "repeated_reads": {"type": "integer"},
+        "skipped": {
+          "type": ["object", "null"],
+          "additionalProperties": false,
+          "required": ["reason"],
+          "description": "Why the run has no scores: workspace preparation, a toolchain setup step or the total budget cap (before the agent; charged 0), or \"harness error after the agent ran: ...\" (collection or scoring failed; charged its worst case, and the schedule went on).",
+          "properties": {"reason": {"type": "string"}}
+        },
+        "notes": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "violation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["detector", "detail"],
+      "properties": {
+        "detector": {"type": "string", "enum": ["push", "outside", "canary", "forbidden_command", "forbidden_path", "preserved"]},
+        "detail": {"type": "string", "description": "Ref, path, label or the redacted command's first words; never a canary value or secret."}
+      }
+    }
+  }
+}

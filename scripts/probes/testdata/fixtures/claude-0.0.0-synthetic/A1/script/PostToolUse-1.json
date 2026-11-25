@@ -1,0 +1,74 @@
+{
+  "schema": "daedalus.probe-fixture/1",
+  "host": "claude",
+  "host_version": "0.0.0-synthetic",
+  "install": "script",
+  "case": "A1",
+  "variant": null,
+  "event": "PostToolUse",
+  "seq": 6,
+  "mode": "record",
+  "tag": null,
+  "redactions": [
+    {
+      "path": "session_id",
+      "rule": "id"
+    },
+    {
+      "path": "transcript_path",
+      "rule": "home-path"
+    },
+    {
+      "path": "transcript_path",
+      "rule": "project-folder"
+    },
+    {
+      "path": "transcript_path",
+      "rule": "id"
+    },
+    {
+      "path": "cwd",
+      "rule": "workspace-path"
+    },
+    {
+      "path": "agent_id",
+      "rule": "id"
+    },
+    {
+      "path": "tool_input.command",
+      "rule": "command-args"
+    },
+    {
+      "path": "tool_input.description",
+      "rule": "tool-content"
+    },
+    {
+      "path": "tool_response.stdout",
+      "rule": "tool-response"
+    },
+    {
+      "path": "tool_use_id",
+      "rule": "id"
+    }
+  ],
+  "payload": {
+    "session_id": "<SESSION-1>",
+    "transcript_path": "<HOME>/.claude/projects/<PROJECT>/<SESSION-1>.jsonl",
+    "cwd": "<WORKSPACE>/repo",
+    "permission_mode": "default",
+    "hook_event_name": "PostToolUse",
+    "agent_id": "<AGENT-1>",
+    "agent_type": "probe-reader",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "echo <REDACTED:command-args>",
+      "description": "<REDACTED:tool-content>"
+    },
+    "tool_response": {
+      "stdout": "<REDACTED:tool-response>",
+      "stderr": "",
+      "interrupted": false
+    },
+    "tool_use_id": "<TOOL-USE-3>"
+  }
+}

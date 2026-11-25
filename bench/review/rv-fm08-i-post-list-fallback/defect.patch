@@ -1,0 +1,29 @@
+diff --git a/packages/api/src/router/post.ts b/packages/api/src/router/post.ts
+index f37156f..e443a25 100644
+--- a/packages/api/src/router/post.ts
++++ b/packages/api/src/router/post.ts
+@@ -6,12 +6,19 @@ import { CreatePostSchema, Post } from "@acme/db/schema";
+ 
+ import { protectedProcedure, publicProcedure } from "../trpc";
+ 
++const RECENT_POSTS_LIMIT = 10;
++
+ export const postRouter = {
+-  all: publicProcedure.query(({ ctx }) => {
+-    return ctx.db.query.Post.findMany({
+-      orderBy: desc(Post.id),
+-      limit: 10,
+-    });
++  all: publicProcedure.query(async ({ ctx }) => {
++    try {
++      return await ctx.db.query.Post.findMany({
++        orderBy: desc(Post.id),
++        limit: RECENT_POSTS_LIMIT,
++      });
++    } catch {
++      // Keep the home page usable while the database is unavailable.
++      return [];
++    }
+   }),
+ 
+   byId: publicProcedure

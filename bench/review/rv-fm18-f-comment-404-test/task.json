@@ -1,0 +1,43 @@
+{
+  "schema": "daedalus.bench-task/1",
+  "id": "rv-fm18-f-comment-404-test",
+  "set": "dev",
+  "category": "FM-18",
+  "kind": "review",
+  "description": "Comment 404 and blank-body fix: the blank-body check matches a single whitespace character only, and the regression test that claims to cover whitespace-only bodies passes for the wrong reason (its fixture makes the article missing, so a 404 satisfies `rejects.toThrowError()`), so whitespace-only comments are still stored.",
+  "repo": {
+    "url": "https://github.com/gothinkster/node-express-realworld-example-app.git",
+    "sha": "30b68e1e881462b2f4164ea09ab4c4f5699c7b0b",
+    "branch": "main"
+  },
+  "toolchain": [
+    "node"
+  ],
+  "ticket": "ticket.md",
+  "setup": [],
+  "hidden_tests": null,
+  "reference_patch": null,
+  "expected_scope": [],
+  "review": {
+    "patch": "defect.patch",
+    "expected": [
+      {
+        "file": "src/tests/services/article.service.test.ts",
+        "line_start": 26,
+        "line_end": 39,
+        "fm": "FM-18",
+        "severity": "important",
+        "also": [
+          {
+            "file": "src/app/routes/article/article.service.ts",
+            "line_start": 474,
+            "line_end": 477
+          }
+        ]
+      }
+    ]
+  },
+  "budget_usd": 2.0,
+  "timeout_min": 20,
+  "notes": "FM-18 (verification that verifies), re-seeded (RW-15) so the weak test hides a live wrong outcome. The blank-body check is `/^\\s$/` (article.service.ts:474-477), which matches exactly one whitespace character, so a body such as `\"  \\n  \"` passes validation and is stored as a blank comment on a real article. The `addComment` tests claim to prove the 422 for that body (`test.each(['', ' ', '  \\n  '])`, test file 37-39), but the describe block's `beforeEach` mocks `article.findUnique` to null (26-28) and the 422 cases assert only `rejects.toThrowError()`, so the `'  \\n  '` case passes on the new 404 instead of a 422. Severity important: wrong data persists under normal use (an unmet AC that changes data), and the test plan would make an approver sign off on behavior that isn't there; FM-18 is important when a test gives false confidence on the change's main risk. Fix: give the 422 cases an existing article and assert `rejects.toHaveProperty('errorCode', 422)`, and make the check `!body.trim()` (or `/^\\s*$/`). Scored location: the test block (26-39); the regex line in the service (474-477) is an `also` location of the same defect, so a finding on either matches and a second finding on the other is neutral, neither a true nor a false positive: a reviewer who names both fixable defects keeps precision 1. The 404 for a missing article is correct and its test asserts the status."
+}

@@ -1,0 +1,37 @@
+{
+  "schema": "daedalus.bench-task/1",
+  "id": "rv-fm02-i-moderation",
+  "set": "dev",
+  "category": "FM-02",
+  "kind": "review",
+  "description": "Post moderation: any moderation-service response other than 429 (a 5xx or an auth error body) parses to flagged undefined and is treated as approved, so posts publish unmoderated.",
+  "repo": {
+    "url": "https://github.com/t3-oss/create-t3-turbo.git",
+    "sha": "8f945b7bb3bfb3ca8358d48b1ff0214079bc11ee",
+    "branch": "main"
+  },
+  "toolchain": [
+    "node",
+    "pnpm"
+  ],
+  "ticket": "ticket.md",
+  "setup": [],
+  "hidden_tests": null,
+  "reference_patch": null,
+  "expected_scope": [],
+  "review": {
+    "patch": "defect.patch",
+    "expected": [
+      {
+        "file": "packages/api/src/moderation.ts",
+        "line_start": 29,
+        "line_end": 37,
+        "fm": "FM-02",
+        "severity": "important"
+      }
+    ]
+  },
+  "budget_usd": 2.0,
+  "timeout_min": 20,
+  "notes": "FM-02 (unknown outcome of external calls). isFlagged() special-cases only 429. Any other non-2xx response (a 500/503 or 401 with a JSON error body such as {\"error\": \"...\"}) parses fine, `verdict.flagged` is undefined, and the function returns false: an unknown outcome treated as \"approved\", so posts are published unmoderated whenever the service is degraded or misconfigured. Severity important: FM-02 is important, and critical only on money or inventory paths. Fix: check response.ok and fail closed (throw) on any other status, and validate the body (flagged must be a boolean). The timeout, env wiring and router change are legitimate."
+}

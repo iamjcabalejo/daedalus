@@ -1,0 +1,234 @@
+{
+  "schema": "daedalus.probe-case/1",
+  "id": "E2",
+  "title": "Failure semantics: timeout",
+  "refs": [
+    "R-AC-1e",
+    "D9"
+  ],
+  "applies_to": {
+    "installs": [
+      "script",
+      "plugin"
+    ],
+    "hosts": [
+      "claude"
+    ]
+  },
+  "files": {
+    "script": [
+      {
+        "template": "script/settings.failure.json",
+        "dest": "repo/.claude/settings.json"
+      }
+    ],
+    "plugin": [
+      {
+        "template": "plugin/plugin.json",
+        "dest": "probe-plugin/.claude-plugin/plugin.json"
+      },
+      {
+        "template": "plugin/hooks.failure.json",
+        "dest": "probe-plugin/hooks/hooks.json"
+      },
+      {
+        "template": "plugin/project-settings.json",
+        "dest": "repo/.claude/settings.json"
+      }
+    ]
+  },
+  "vars": {
+    "hook_timeout": 3
+  },
+  "ctrl": [
+    {
+      "key": "PreToolUse:Bash",
+      "mode": "timeout",
+      "sleep_s": 10
+    }
+  ],
+  "stimulus": {
+    "prompt": "Run `touch marker-E2` with the Bash tool, then reply done. If it is blocked, say so and don't retry."
+  },
+  "flags": {
+    "max_turns": 4,
+    "max_budget_usd": 0.1
+  },
+  "observations": [
+    {
+      "id": "marker",
+      "kind": "marker",
+      "role": "assert",
+      "description": "marker-E2 exists (fail-open) or not (blocked).",
+      "path": "marker-E2",
+      "expect": true
+    },
+    {
+      "id": "bash-ran",
+      "kind": "event",
+      "role": "record",
+      "description": "PostToolUse for the touch (the command ran).",
+      "event": "PostToolUse",
+      "where": [
+        {
+          "field": "tool_name",
+          "op": "equals",
+          "value": "Bash"
+        },
+        {
+          "field": "tool_input.command",
+          "op": "contains",
+          "value": "marker-E2"
+        }
+      ],
+      "expect": "present"
+    },
+    {
+      "id": "hook-ran",
+      "kind": "event",
+      "role": "precondition",
+      "description": "The recorder saw the PreToolUse for the touch: the probed call was attempted (else inconclusive).",
+      "event": "PreToolUse",
+      "where": [
+        {
+          "field": "tool_name",
+          "op": "equals",
+          "value": "Bash"
+        },
+        {
+          "field": "tool_input.command",
+          "op": "contains",
+          "value": "marker-E2"
+        }
+      ],
+      "expect": "present"
+    }
+  ],
+  "status_rules": {
+    "evaluate": "auto",
+    "confirmed": "each variant's marker matches the documented behavior (without onFailure: fail-open; with onFailure: block: blocked)",
+    "contradicted": "a variant's marker contradicts the documented behavior",
+    "inconclusive": "the host didn't run or timed out, or no PreToolUse for the touch was recorded (the call was never attempted)"
+  },
+  "variants": [
+    {
+      "id": "default",
+      "description": "the hook sleeps past its 3 s timeout; no onFailure key",
+      "vars": {
+        "on_failure": null
+      },
+      "observations": [
+        {
+          "id": "marker",
+          "kind": "marker",
+          "role": "assert",
+          "description": "marker-E2 exists (fail-open) or not (blocked).",
+          "path": "marker-E2",
+          "expect": true
+        },
+        {
+          "id": "bash-ran",
+          "kind": "event",
+          "role": "record",
+          "description": "PostToolUse for the touch (the command ran).",
+          "event": "PostToolUse",
+          "where": [
+            {
+              "field": "tool_name",
+              "op": "equals",
+              "value": "Bash"
+            },
+            {
+              "field": "tool_input.command",
+              "op": "contains",
+              "value": "marker-E2"
+            }
+          ],
+          "expect": "present"
+        },
+        {
+          "id": "hook-ran",
+          "kind": "event",
+          "role": "precondition",
+          "description": "The recorder saw the PreToolUse for the touch: the probed call was attempted (else inconclusive).",
+          "event": "PreToolUse",
+          "where": [
+            {
+              "field": "tool_name",
+              "op": "equals",
+              "value": "Bash"
+            },
+            {
+              "field": "tool_input.command",
+              "op": "contains",
+              "value": "marker-E2"
+            }
+          ],
+          "expect": "present"
+        }
+      ]
+    },
+    {
+      "id": "on-failure-block",
+      "description": "the hook sleeps past its 3 s timeout; onFailure: \"block\"",
+      "vars": {
+        "on_failure": "block"
+      },
+      "observations": [
+        {
+          "id": "marker",
+          "kind": "marker",
+          "role": "assert",
+          "description": "marker-E2 exists (fail-open) or not (blocked).",
+          "path": "marker-E2",
+          "expect": false
+        },
+        {
+          "id": "bash-ran",
+          "kind": "event",
+          "role": "record",
+          "description": "PostToolUse for the touch (the command ran).",
+          "event": "PostToolUse",
+          "where": [
+            {
+              "field": "tool_name",
+              "op": "equals",
+              "value": "Bash"
+            },
+            {
+              "field": "tool_input.command",
+              "op": "contains",
+              "value": "marker-E2"
+            }
+          ],
+          "expect": "present"
+        },
+        {
+          "id": "hook-ran",
+          "kind": "event",
+          "role": "precondition",
+          "description": "The recorder saw the PreToolUse for the touch: the probed call was attempted (else inconclusive).",
+          "event": "PreToolUse",
+          "where": [
+            {
+              "field": "tool_name",
+              "op": "equals",
+              "value": "Bash"
+            },
+            {
+              "field": "tool_input.command",
+              "op": "contains",
+              "value": "marker-E2"
+            }
+          ],
+          "expect": "present"
+        }
+      ]
+    }
+  ],
+  "notes": [
+    "Record the host version with every E result (D9: minimum version for onFailure).",
+    "The onFailure hook key is [D]: verify in T0.",
+    "verify in T0: permission rule syntax in the templates (Bash(echo *), WebFetch(domain:...), mcp__...)"
+  ]
+}

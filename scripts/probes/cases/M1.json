@@ -1,0 +1,107 @@
+{
+  "schema": "daedalus.probe-case/1",
+  "id": "M1",
+  "title": "WebFetch matcher",
+  "refs": [
+    "R-AC-67"
+  ],
+  "applies_to": {
+    "installs": [
+      "script",
+      "plugin"
+    ],
+    "hosts": [
+      "claude"
+    ]
+  },
+  "files": {
+    "script": [
+      {
+        "template": "script/settings.json",
+        "dest": "repo/.claude/settings.json"
+      }
+    ],
+    "plugin": [
+      {
+        "template": "plugin/plugin.json",
+        "dest": "probe-plugin/.claude-plugin/plugin.json"
+      },
+      {
+        "template": "plugin/hooks.json",
+        "dest": "probe-plugin/hooks/hooks.json"
+      },
+      {
+        "template": "plugin/project-settings.json",
+        "dest": "repo/.claude/settings.json"
+      }
+    ]
+  },
+  "ctrl": [
+    {
+      "key": "PreToolUse:WebFetch",
+      "mode": "deny",
+      "reason": "probe M1: fetches are blocked"
+    }
+  ],
+  "stimulus": {
+    "prompt": "Use the WebFetch tool to fetch https://example.com and tell me the page title. Don't use Bash or any other tool, and don't retry if the fetch is denied."
+  },
+  "flags": {
+    "max_turns": 4,
+    "max_budget_usd": 0.1
+  },
+  "observations": [
+    {
+      "id": "fetch-attempted",
+      "kind": "event",
+      "role": "precondition",
+      "description": "WebFetch reached PreToolUse.",
+      "event": "PreToolUse",
+      "where": [
+        {
+          "field": "tool_name",
+          "op": "equals",
+          "value": "WebFetch"
+        }
+      ],
+      "expect": "present"
+    },
+    {
+      "id": "no-content",
+      "kind": "event",
+      "role": "assert",
+      "description": "No WebFetch PostToolUse (the fetch was denied, no content came back).",
+      "event": "PostToolUse",
+      "where": [
+        {
+          "field": "tool_name",
+          "op": "equals",
+          "value": "WebFetch"
+        }
+      ],
+      "expect": "absent"
+    },
+    {
+      "id": "denials",
+      "kind": "stream",
+      "role": "record",
+      "description": "permission_denials reported by the stream.",
+      "check": "permission-denials"
+    },
+    {
+      "id": "result",
+      "kind": "stream",
+      "role": "record",
+      "description": "The stream's result event.",
+      "check": "result"
+    }
+  ],
+  "status_rules": {
+    "evaluate": "auto",
+    "confirmed": "the WebFetch call is denied and returns no content",
+    "contradicted": "the fetch returned content despite the deny"
+  },
+  "notes": [
+    "verify in T0: permission rule syntax in the templates (Bash(echo *), WebFetch(domain:...), mcp__...)"
+  ]
+}

@@ -1,0 +1,87 @@
+diff --git a/src/app/routes/article/article.service.ts b/src/app/routes/article/article.service.ts
+index c8fdc0c..25a6937 100644
+--- a/src/app/routes/article/article.service.ts
++++ b/src/app/routes/article/article.service.ts
+@@ -383,7 +383,7 @@ export const updateArticle = async (article: any, slug: string, id: number) => {
+ };
+ 
+ export const deleteArticle = async (slug: string, id: number) => {
+-  const existingArticle = await await prisma.article.findFirst({
++  const existingArticle = await prisma.article.findFirst({
+     where: {
+       slug,
+     },
+@@ -406,11 +406,24 @@ export const deleteArticle = async (slug: string, id: number) => {
+       message: 'You are not authorized to delete this article',
+     });
+   }
+-  await prisma.article.delete({
+-    where: {
+-      slug,
+-    },
+-  });
++
++  // Remove the article's tags with it, so deleted articles don't leave orphaned tags behind.
++  await prisma.$transaction([
++    prisma.tag.deleteMany({
++      where: {
++        articles: {
++          some: {
++            slug,
++          },
++        },
++      },
++    }),
++    prisma.article.delete({
++      where: {
++        slug,
++      },
++    }),
++  ]);
+ };
+ 
+ export const getCommentsByArticle = async (slug: string, id?: number) => {
+diff --git a/src/tests/services/article.service.test.ts b/src/tests/services/article.service.test.ts
+index 4f39562..cad0177 100644
+--- a/src/tests/services/article.service.test.ts
++++ b/src/tests/services/article.service.test.ts
+@@ -1,5 +1,6 @@
+ import prismaMock from '../prisma-mock';
+ import {
++  deleteArticle,
+   deleteComment,
+   favoriteArticle,
+   unfavoriteArticle,
+@@ -21,6 +22,32 @@ describe('ArticleService', () => {
+     });
+   });
+ 
++  describe('deleteArticle', () => {
++    test('should throw a 404 when the article does not exist', async () => {
++      // Given
++      const slug = 'missing-article';
++
++      // When
++      prismaMock.article.findFirst.mockResolvedValue(null);
++
++      // Then
++      await expect(deleteArticle(slug, 123)).rejects.toHaveProperty('errorCode', 404);
++    });
++
++    test('should throw a 403 when the user is not the author', async () => {
++      // Given
++      const slug = 'How-to-train-your-dragon';
++
++      // When
++      // @ts-ignore
++      prismaMock.article.findFirst.mockResolvedValue({ author: { id: 456, username: 'RealWorld' } });
++
++      // Then
++      await expect(deleteArticle(slug, 123)).rejects.toHaveProperty('errorCode', 403);
++      expect(prismaMock.$transaction).not.toHaveBeenCalled();
++    });
++  });
++
+   describe('favoriteArticle', () => {
+     test('should return the favorited article', async () => {
+       // Given

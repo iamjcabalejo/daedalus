@@ -1,0 +1,27 @@
+diff --git a/apps/nextjs/src/app/_components/posts.tsx b/apps/nextjs/src/app/_components/posts.tsx
+index 5a4bbeb..3718482 100644
+--- a/apps/nextjs/src/app/_components/posts.tsx
++++ b/apps/nextjs/src/app/_components/posts.tsx
+@@ -29,10 +29,6 @@ export function CreatePostForm() {
+   const queryClient = useQueryClient();
+   const createPost = useMutation(
+     trpc.post.create.mutationOptions({
+-      onSuccess: async () => {
+-        form.reset();
+-        await queryClient.invalidateQueries(trpc.post.pathFilter());
+-      },
+       onError: (err) => {
+         toast.error(
+           err.data?.code === "UNAUTHORIZED"
+@@ -40,6 +36,11 @@ export function CreatePostForm() {
+             : "Failed to create post",
+         );
+       },
++      onSettled: async () => {
++        form.reset();
++        toast.success("Post created");
++        await queryClient.invalidateQueries(trpc.post.pathFilter());
++      },
+     }),
+   );
+ 

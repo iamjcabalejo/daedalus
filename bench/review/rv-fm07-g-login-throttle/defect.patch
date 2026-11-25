@@ -1,0 +1,139 @@
+diff --git a/users/routers.go b/users/routers.go
+index 0633fa7..56bed91 100644
+--- a/users/routers.go
++++ b/users/routers.go
+@@ -3,6 +3,7 @@ package users
+ import (
+ 	"errors"
+ 	"net/http"
++	"time"
+ 
+ 	"github.com/gin-gonic/gin"
+ 	"github.com/gothinkster/golang-gin-realworld-example-app/common"
+@@ -120,17 +121,26 @@ func UsersLogin(c *gin.Context) {
+ 		c.JSON(http.StatusUnprocessableEntity, common.NewValidatorError(err))
+ 		return
+ 	}
+-	userModel, err := FindOneUser(&UserModel{Email: loginValidator.userModel.Email})
++	email := loginValidator.userModel.Email
++	now := time.Now()
++	if loginThrottled(email, now) {
++		c.JSON(http.StatusTooManyRequests, common.NewErrorMessage("credentials", "too many failed attempts, try again later"))
++		return
++	}
+ 
++	userModel, err := FindOneUser(&UserModel{Email: email})
+ 	if err != nil {
++		recordFailedLogin(email, now)
+ 		c.JSON(http.StatusUnauthorized, common.NewErrorMessage("credentials", "invalid"))
+ 		return
+ 	}
+ 
+ 	if userModel.checkPassword(loginValidator.User.Password) != nil {
++		recordFailedLogin(email, now)
+ 		c.JSON(http.StatusUnauthorized, common.NewErrorMessage("credentials", "invalid"))
+ 		return
+ 	}
++	resetFailedLogins(email)
+ 	UpdateContextUserModel(c, userModel.ID)
+ 	serializer := UserSerializer{c}
+ 	c.JSON(http.StatusOK, gin.H{"user": serializer.Response()})
+diff --git a/users/throttle.go b/users/throttle.go
+new file mode 100644
+index 0000000..4209867
+--- /dev/null
++++ b/users/throttle.go
+@@ -0,0 +1,64 @@
++package users
++
++import (
++	"strings"
++	"time"
++)
++
++// Failed-login throttling: maxFailedLogins failures per email within
++// failedLoginWindow; expired entries are pruned once maxTrackedLogins is reached.
++const (
++	maxFailedLogins   = 5
++	failedLoginWindow = 15 * time.Minute
++	maxTrackedLogins  = 10000
++)
++
++type loginAttempts struct {
++	count   int
++	started time.Time
++}
++
++// failedLogins counts recent failed login attempts per normalized email.
++var failedLogins = map[string]*loginAttempts{}
++
++func throttleKey(email string) string {
++	return strings.ToLower(strings.TrimSpace(email))
++}
++
++// loginThrottled reports whether email has used up its failed attempts in
++// the current window.
++func loginThrottled(email string, now time.Time) bool {
++	attempts, ok := failedLogins[throttleKey(email)]
++	if !ok || now.Sub(attempts.started) > failedLoginWindow {
++		return false
++	}
++	return attempts.count >= maxFailedLogins
++}
++
++// recordFailedLogin counts one failed attempt for email, starting a new
++// window when the previous one has expired.
++func recordFailedLogin(email string, now time.Time) {
++	if len(failedLogins) >= maxTrackedLogins {
++		pruneFailedLogins(now)
++	}
++	key := throttleKey(email)
++	attempts, ok := failedLogins[key]
++	if !ok || now.Sub(attempts.started) > failedLoginWindow {
++		failedLogins[key] = &loginAttempts{count: 1, started: now}
++		return
++	}
++	attempts.count++
++}
++
++// resetFailedLogins clears the count after a successful login.
++func resetFailedLogins(email string) {
++	delete(failedLogins, throttleKey(email))
++}
++
++func pruneFailedLogins(now time.Time) {
++	for key, attempts := range failedLogins {
++		if now.Sub(attempts.started) > failedLoginWindow {
++			delete(failedLogins, key)
++		}
++	}
++}
+diff --git a/users/throttle_test.go b/users/throttle_test.go
+new file mode 100644
+index 0000000..6576be5
+--- /dev/null
++++ b/users/throttle_test.go
+@@ -0,0 +1,23 @@
++package users
++
++import (
++	"testing"
++	"time"
++
++	"github.com/stretchr/testify/assert"
++)
++
++func TestLoginThrottleAfterMaxFailures(t *testing.T) {
++	asserts := assert.New(t)
++	email := "throttle@example.com"
++	now := time.Now()
++	defer resetFailedLogins(email)
++
++	for i := 0; i < maxFailedLogins; i++ {
++		asserts.False(loginThrottled(email, now), "attempt %d should not be throttled", i+1)
++		recordFailedLogin(email, now)
++	}
++	asserts.True(loginThrottled(email, now), "the next attempt should be throttled")
++	asserts.True(loginThrottled(" THROTTLE@example.com ", now), "emails are compared case-insensitively")
++	asserts.False(loginThrottled(email, now.Add(failedLoginWindow+time.Second)), "a new window starts after expiry")
++}

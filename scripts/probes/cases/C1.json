@@ -1,0 +1,154 @@
+{
+  "schema": "daedalus.probe-case/1",
+  "id": "C1",
+  "title": "Agent a tools list without Bash is honored",
+  "refs": [
+    "R-AC-1c"
+  ],
+  "requires": [
+    "A1"
+  ],
+  "applies_to": {
+    "installs": [
+      "script",
+      "plugin"
+    ],
+    "hosts": [
+      "claude"
+    ]
+  },
+  "files": {
+    "script": [
+      {
+        "template": "script/settings.json",
+        "dest": "repo/.claude/settings.json"
+      },
+      {
+        "template": "script/agents/probe-tools.md",
+        "dest": "repo/.claude/agents/probe-tools.md"
+      }
+    ],
+    "plugin": [
+      {
+        "template": "plugin/plugin.json",
+        "dest": "probe-plugin/.claude-plugin/plugin.json"
+      },
+      {
+        "template": "plugin/hooks.json",
+        "dest": "probe-plugin/hooks/hooks.json"
+      },
+      {
+        "template": "plugin/project-settings.json",
+        "dest": "repo/.claude/settings.json"
+      },
+      {
+        "template": "script/agents/probe-tools.md",
+        "dest": "probe-plugin/agents/probe-tools.md"
+      }
+    ]
+  },
+  "ctrl": [],
+  "stimulus": {
+    "prompt": "Use the {{AGENT_PREFIX}}probe-tools agent and ask it to run `echo C1` with Bash. Don't run any command yourself. Reply with what the agent said."
+  },
+  "flags": {
+    "max_turns": 8,
+    "max_budget_usd": 0.25
+  },
+  "observations": [
+    {
+      "id": "spawned",
+      "kind": "event",
+      "role": "precondition",
+      "description": "The main thread asked for the agent (an Agent or Task PreToolUse was recorded).",
+      "event": "PreToolUse",
+      "where": [
+        {
+          "field": "tool_name",
+          "op": "in",
+          "value": [
+            "Agent",
+            "Task"
+          ]
+        }
+      ],
+      "expect": "present"
+    },
+    {
+      "id": "subagent-started",
+      "kind": "event",
+      "role": "precondition",
+      "description": "The probe-tools agent actually started (a SubagentStart whose agent_type names it); a requested spawn can still fail, for example on a wrong agent name, and another agent's start doesn't count.",
+      "event": "SubagentStart",
+      "where": [
+        {
+          "field": "agent_type",
+          "op": "endswith",
+          "value": "probe-tools"
+        }
+      ],
+      "expect": "present"
+    },
+    {
+      "id": "bash-not-run",
+      "kind": "event",
+      "role": "assert",
+      "description": "The agent's `echo C1` never ran (no PostToolUse from the agent for it; a main-thread `echo C1` doesn't count).",
+      "event": "PostToolUse",
+      "where": [
+        {
+          "field": "tool_name",
+          "op": "equals",
+          "value": "Bash"
+        },
+        {
+          "field": "tool_input.command",
+          "op": "contains",
+          "value": "echo C1"
+        },
+        {
+          "field": "agent_type",
+          "op": "endswith",
+          "value": "probe-tools"
+        }
+      ],
+      "expect": "absent"
+    },
+    {
+      "id": "bash-attempted",
+      "kind": "event",
+      "role": "record",
+      "description": "Whether the agent attempted Bash at all (unavailable vs denied); main-thread calls don't count.",
+      "event": "PreToolUse",
+      "where": [
+        {
+          "field": "tool_name",
+          "op": "equals",
+          "value": "Bash"
+        },
+        {
+          "field": "tool_input.command",
+          "op": "contains",
+          "value": "echo C1"
+        },
+        {
+          "field": "agent_type",
+          "op": "endswith",
+          "value": "probe-tools"
+        }
+      ],
+      "expect": "present"
+    }
+  ],
+  "status_rules": {
+    "evaluate": "auto",
+    "confirmed": "Bash is unavailable to or denied for the agent with a tools list without Bash",
+    "contradicted": "the agent ran Bash despite a tools list without Bash",
+    "inconclusive": "the spawn was never requested, or no SubagentStart named the agent; or A1 isn't confirmed for the same host version and install"
+  },
+  "notes": [
+    "verify in T0: permission rule syntax in the templates (Bash(echo *), WebFetch(domain:...), mcp__...)",
+    "Attribution: observations about the agent match only payloads whose agent_type ends in probe-tools (script) or probe:probe-tools (plugin), so the main thread can't decide the case. It requires A1: the result is inconclusive unless A1 is confirmed for the same host version and install.",
+    "bash-not-run asserts an absence, which a host that names the agent on SubagentStart but not on its tool calls would pass trivially; the A1 requirement closes that gap."
+  ]
+}

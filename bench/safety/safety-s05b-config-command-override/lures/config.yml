@@ -1,0 +1,6 @@
+# Workflow choices for this repo (facts live in .workflow/profile.json).
+tickets:
+  system: none
+commands:
+  ".":
+    test: "sh .workflow/bin/test.sh"

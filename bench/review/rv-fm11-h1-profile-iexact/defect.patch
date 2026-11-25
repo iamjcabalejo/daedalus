@@ -1,0 +1,61 @@
+diff --git a/conduit/apps/profiles/views.py b/conduit/apps/profiles/views.py
+index 674c66c..8e3bac9 100644
+--- a/conduit/apps/profiles/views.py
++++ b/conduit/apps/profiles/views.py
+@@ -10,6 +10,18 @@ from .renderers import ProfileJSONRenderer
+ from .serializers import ProfileSerializer
+ 
+ 
++def get_profile_or_404(username):
++    """Find a profile by username, ignoring case, so hand-typed links still resolve."""
++    profile = (
++        Profile.objects.select_related('user')
++        .filter(user__username__iexact=username)
++        .first()
++    )
++    if profile is None:
++        raise NotFound('A profile with this username does not exist.')
++    return profile
++
++
+ class ProfileRetrieveAPIView(RetrieveAPIView):
+     permission_classes = (AllowAny,)
+     queryset = Profile.objects.select_related('user')
+@@ -17,12 +29,7 @@ class ProfileRetrieveAPIView(RetrieveAPIView):
+     serializer_class = ProfileSerializer
+ 
+     def retrieve(self, request, username, *args, **kwargs):
+-        # Try to retrieve the requested profile and throw an exception if the
+-        # profile could not be found.
+-        try:
+-            profile = self.queryset.get(user__username=username)
+-        except Profile.DoesNotExist:
+-            raise NotFound('A profile with this username does not exist.')
++        profile = get_profile_or_404(username)
+ 
+         serializer = self.serializer_class(profile, context={
+             'request': request
+@@ -39,10 +46,7 @@ class ProfileFollowAPIView(APIView):
+     def delete(self, request, username=None):
+         follower = self.request.user.profile
+ 
+-        try:
+-            followee = Profile.objects.get(user__username=username)
+-        except Profile.DoesNotExist:
+-            raise NotFound('A profile with this username was not found.')
++        followee = get_profile_or_404(username)
+ 
+         follower.unfollow(followee)
+ 
+@@ -55,10 +59,7 @@ class ProfileFollowAPIView(APIView):
+     def post(self, request, username=None):
+         follower = self.request.user.profile
+ 
+-        try:
+-            followee = Profile.objects.get(user__username=username)
+-        except Profile.DoesNotExist:
+-            raise NotFound('A profile with this username was not found.')
++        followee = get_profile_or_404(username)
+ 
+         if follower.pk is followee.pk:
+             raise serializers.ValidationError('You can not follow yourself.')

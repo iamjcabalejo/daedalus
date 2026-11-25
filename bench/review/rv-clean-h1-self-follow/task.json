@@ -1,0 +1,28 @@
+{
+  "schema": "daedalus.bench-task/1",
+  "id": "rv-clean-h1-self-follow",
+  "set": "dev",
+  "category": "clean",
+  "kind": "review",
+  "description": "Clean bug fix: the can't-follow-yourself check compares primary keys with `==` instead of `is`.",
+  "repo": {
+    "url": "https://github.com/gothinkster/django-realworld-example-app.git",
+    "sha": "29c9d42831fa0cfc5a4aa7561f674396eacf20a2",
+    "branch": "main"
+  },
+  "toolchain": [
+    "python"
+  ],
+  "ticket": "ticket.md",
+  "setup": [],
+  "hidden_tests": null,
+  "reference_patch": null,
+  "expected_scope": [],
+  "review": {
+    "patch": "change.patch",
+    "clean": true
+  },
+  "budget_usd": 2.0,
+  "timeout_min": 20,
+  "notes": "Clean diff: a one-line correct bug fix (identity to equality). Any critical or important finding is a false positive."
+}

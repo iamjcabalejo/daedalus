@@ -1,0 +1,72 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "{{HOOK_COMMAND}} --event PreToolUse",
+            "timeout": "{{HOOK_TIMEOUT}}"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "{{HOOK_COMMAND}} --event PostToolUse",
+            "timeout": "{{HOOK_TIMEOUT}}"
+          }
+        ]
+      }
+    ],
+    "SubagentStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "{{HOOK_COMMAND}} --event SubagentStart",
+            "timeout": "{{HOOK_TIMEOUT}}"
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "{{HOOK_COMMAND}} --event SubagentStop",
+            "timeout": "{{HOOK_TIMEOUT}}"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "{{HOOK_COMMAND}} --event UserPromptSubmit",
+            "timeout": "{{HOOK_TIMEOUT}}"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "{{HOOK_COMMAND}} --event Stop",
+            "timeout": "{{HOOK_TIMEOUT}}"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,82 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "daedalus.bench-arm/1",
+  "title": "Benchmark arm (daedalus.bench-arm/1)",
+  "description": "One arm file under bench/arms/. Stays inside the validator subset of .claude/scripts/validate-profile.py. bench/run.py validate also checks that every real arm shares the same model, effort, permission, auto-approver, instruction and base CLI arguments (AC-10).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "id", "version", "driver", "setup", "steps", "model", "effort", "permission", "auto_approver",
+               "instruction", "exclude_from_scoring", "fairness_notes"],
+  "properties": {
+    "schema": {"type": "string", "enum": ["daedalus.bench-arm/1"]},
+    "id": {"type": "string"},
+    "version": {"type": "string"},
+    "driver": {"type": "string", "enum": ["claude", "fake"], "description": "claude: steps call the Claude Code CLI (a model, so money); fake: bench/lib/fake_agent.py, no model."},
+    "description": {"type": "string"},
+    "setup": {"type": "array", "items": {"$ref": "#/definitions/setup_step"}},
+    "steps": {"type": "array", "items": {"$ref": "#/definitions/step"}},
+    "model": {"type": "string", "description": "Model id, or the shared placeholder $BENCH_MODEL resolved from --model or the environment."},
+    "effort": {"type": "string", "description": "Effort level, or the shared placeholder $BENCH_EFFORT."},
+    "permission": {"type": "string", "description": "Permission mode passed to the CLI. Broad modes are allowed only because the container is the boundary."},
+    "auto_approver": {"type": "string", "enum": ["first-option"], "description": "How AskUserQuestion is answered: always the first option, identically for every arm. Each call counts as a human intervention."},
+    "instruction": {"type": "string", "description": "The non-interactive instruction appended to every prompt (§3.8)."},
+    "max_turns": {"type": "integer", "description": "Per-step --max-turns cap, passed through the {max_turns} argv token. Shared by every real arm (validate checks it); the value is a placeholder until the pilot sizes it. --max-budget-usd is a client-side estimate that can overshoot, so a claude arm must pass both."},
+    "cli": {"$ref": "#/definitions/cli"},
+    "review_output": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["from"],
+      "properties": {
+        "from": {"type": "string", "enum": ["result_text", "file"]},
+        "glob": {"type": "string", "description": "With from=file: workspace glob of the file holding the findings JSON (a findings.json block inside Markdown is accepted)."}
+      }
+    },
+    "review_patch": {"type": "string", "enum": ["uncommitted", "branch"], "description": "How review tasks present the defect patch: uncommitted (default, §3.8) or committed on a neutral feature/<name> review branch with origin/<branch> at the base (what a merge-base..HEAD reviewer such as argus --local sees)."},
+    "resume_hint": {"type": "string", "description": "Text a recovery task's resume steps can insert with {resume_hint}. Tokens: {ticket_path}, {slug}, {branch}."},
+    "exclude_from_scoring": {"type": "array", "items": {"type": "string"}, "description": "Globs of the arm's own artifacts (plans, reviews, findings), excluded from unnecessary-change scoring."},
+    "fairness_notes": {"type": "array", "items": {"type": "string"}},
+    "fake": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "cost_usd": {"type": "number"},
+        "input_tokens": {"type": "integer"},
+        "output_tokens": {"type": "integer"},
+        "pause_s": {"type": "number", "description": "Seconds the fake agent waits between its tool_use event and the edit (recovery tests)."}
+      }
+    }
+  },
+  "definitions": {
+    "setup_step": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["action"],
+      "properties": {
+        "action": {"type": "string", "enum": ["build_plugins"], "description": "build_plugins: export the hub at `ref` (git archive) into a temporary folder outside <arm_dir>, run its scripts/build-plugin.sh there, copy only plugins/<name> to <arm_dir>/plugins/<name>, and write <arm_dir>/BUILD.json. Nothing else reaches <arm_dir>, which every step mounts at /arm."},
+        "ref": {"type": "string"},
+        "plugins": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "step": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["prompt_template", "fresh_process"],
+      "properties": {
+        "prompt_template": {"type": "string", "description": "Tokens: {ticket_path} (the run's copy of the ticket file: the ticket is delivered as data, never inline; {ticket} is rejected here), {instruction}, {slug} (the task's neutral plan slug), {branch}, {resume_hint}. There is no {task_id}: nothing an agent sees names the task. Other braces stay literal."},
+        "fresh_process": {"type": "boolean", "description": "true: a new process (the /clear equivalent); false: continue the previous session with cli.continue_args."},
+        "kinds": {"type": "array", "items": {"type": "string", "enum": ["build", "review", "safety", "recovery"]}, "description": "Task kinds this step runs for (default: all)."}
+      }
+    },
+    "cli": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["argv"],
+      "properties": {
+        "argv": {"type": "array", "items": {"type": "string"}, "description": "Command template. Tokens: {prompt}, {model}, {effort}, {permission}, {step_budget_usd}, {max_turns}, {settings}, {arm_dir}, {tools_dir}, {home}. A claude arm must pass --max-turns {max_turns}."},
+        "continue_args": {"type": "array", "items": {"type": "string"}},
+        "version_argv": {"type": "array", "items": {"type": "string"}},
+        "verify_in_t0": {"type": "array", "items": {"type": "string"}, "description": "Flags not yet confirmed on the pinned CLI (P0b T0). A live run refuses to start while this is non-empty unless --t0-verified is passed."}
+      }
+    }
+  }
+}
