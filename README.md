@@ -42,6 +42,18 @@ Projects with a UI also install the browser-QA companion, which carries the Play
 /plugin install daedalus-qa@daedalus
 ```
 
+**`/plugin` isn't available** in some environments, such as the Claude desktop app's Code tab. There, install from a terminal with the `claude` CLI; new sessions in the app pick the plugin up:
+
+```bash
+claude plugin marketplace add iamjcabalejo/daedalus
+```
+
+```bash
+claude plugin install daedalus@daedalus
+```
+
+Add `daedalus-qa@daedalus` the same way for UI projects. The desktop app bundles the CLI at `~/Library/Application Support/Claude/claude-code/<version>/…/claude.app/Contents/MacOS/claude` if `claude` isn't on your PATH.
+
 In a plugin install, commands and roles are prefixed: `/daedalus:feature-plan`, `/daedalus:project-manager`, `daedalus:implementer`, and `/daedalus-qa:manual-test`. Plugins can't ship always-on rules, so the session-start hook names the prefixes and points Claude at the `daedalus:workflow-contract` skill, which carries the rules.
 
 ### B. Script install
@@ -79,6 +91,49 @@ Script installs keep bare names (`/feature-plan`, `implementer`) and load the ru
 2. Run `/setup` (`/daedalus:setup` for the plugin). It shows the profile, fills gaps from the repo's docs with citations, asks you to confirm guessed commands and the ticket system, and writes `.workflow/config.yml` only for choices you make. Commit `.workflow/` so the team shares it.
 3. Plan a change: `/feature-plan <slug>`, or `/apply-ticket <id>` from a ticket.
 4. Run `/clear`, then `/project-manager docs/plans/<slug>.md`. It runs the implementers, the test runner, the Argus review and (with a UI) browser QA, and loops through rework until the change is production ready or blocked on something only you can fix.
+
+## How it works
+
+The plugin names are shown below; a script install works the same way with bare names (`/setup`, `implementer`, `/manual-test`).
+
+### Installing the plugin and starting a session
+
+```mermaid
+flowchart TD
+    A["/plugin marketplace add iamjcabalejo/daedalus"] --> B["/plugin install daedalus@daedalus"]
+    B --> C{"Does the project have a UI?"}
+    C -->|yes| D["/plugin install daedalus-qa@daedalus<br/>adds qa-tester and the Playwright MCP server"]
+    C -->|no| E
+    D --> E["Open a project and start a session"]
+    E --> F["SessionStart hook runs session-init.sh"]
+    F --> G{"Is .workflow/profile.json<br/>missing or stale?"}
+    G -->|yes| H["detect-stack.py, read-only:<br/>roots, layers, stack packs, commands,<br/>UI, ticket system, code host"]
+    H --> I
+    G -->|no| I["Session context gets the daedalus: prefixes,<br/>the workflow-contract skill and a profile summary<br/>(plus the overlay's line, if one is installed)"]
+    I --> J["/daedalus:setup confirms guessed commands<br/>and the ticket system"]
+    J --> K["Commit .workflow/ so the team shares it"]
+```
+
+### Running a change through the workflow
+
+```mermaid
+flowchart TD
+    P["/daedalus:feature-plan my-feature<br/>or /daedalus:apply-ticket ENG-42"] --> PL["Plan: docs/plans/my-feature.md<br/>one task block per layer, plus a mockup if the UI changes"]
+    PL --> PM["/clear, then /daedalus:project-manager docs/plans/my-feature.md"]
+    PM --> IM["daedalus:implementer, once per layer<br/>data, then api and worker, then ui, then infra"]
+    IM --> TR["daedalus:test-runner<br/>runs only safe profile commands, edits test files only"]
+    TR --> AR["Argus review of the diff<br/>critical and important findings count as Critical"]
+    AR --> GA{"Critical findings,<br/>or a gate failed?"}
+    GA -->|yes| RW["Rework plan<br/>docs/plans/my-feature-rework-N.md"]
+    RW --> IM
+    GA -->|"checks couldn't run"| BL["BLOCKED (env): says what to install or confirm,<br/>then reruns the tests and the review"]
+    GA -->|no| UI{"Does the profile show a UI?"}
+    UI -->|no| OK["Production ready"]
+    UI -->|yes| QA["daedalus-qa:qa-tester<br/>checks each acceptance criterion in Chrome, with screenshots"]
+    QA -->|FAIL| RW
+    QA -->|BLOCKED| BQ["Asks you to sign in, start the server or provide test data"]
+    QA -->|PASS| OK
+```
 
 ## Commands
 
