@@ -21,8 +21,8 @@ from pathlib import Path
 hub = Path(os.environ["HUB"])
 MAIN, QA = "daedalus", "daedalus-qa"
 VERSION = "0.4.0"
-REPO_URL = "https://github.com/tb-jcabalejo/tb-claude-custom-workflow"
-OWNER = "tb-jcabalejo"
+REPO_URL = "https://github.com/iamjcabalejo/daedalus"
+OWNER = "iamjcabalejo"
 QA_COMMANDS = {"manual-test"}
 QA_AGENTS = {"qa-tester"}
 QA_SKILLS = {"manual-qa"}

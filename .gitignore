@@ -14,3 +14,6 @@ docs/validation/matrix.local.json
 # Overlays hold org-specific content (domain packs, ticket keys, sign-in notes). Only the template is public.
 overlays/*
 !overlays/_template/
+
+# macOS Finder metadata
+.DS_Store

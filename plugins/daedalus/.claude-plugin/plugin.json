@@ -3,9 +3,9 @@
   "version": "0.4.0",
   "description": "Plug-and-play Plan → Code → Review → QA workflow: detects each project's stacks and commands into .workflow/profile.json, plans per layer, implements with stack packs, tests with safe commands, and reviews with Argus. Browser QA is the daedalus-qa companion.",
   "author": {
-    "name": "tb-jcabalejo"
+    "name": "iamjcabalejo"
   },
-  "repository": "https://github.com/tb-jcabalejo/tb-claude-custom-workflow",
+  "repository": "https://github.com/iamjcabalejo/daedalus",
   "keywords": [
     "workflow",
     "planning",

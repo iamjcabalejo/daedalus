@@ -3,9 +3,9 @@
   "version": "0.4.0",
   "description": "Browser QA companion for daedalus: the qa-tester role, the manual-qa skill and /manual-test, with the Playwright MCP server. Install only for projects with a UI.",
   "author": {
-    "name": "tb-jcabalejo"
+    "name": "iamjcabalejo"
   },
-  "repository": "https://github.com/tb-jcabalejo/tb-claude-custom-workflow",
+  "repository": "https://github.com/iamjcabalejo/daedalus",
   "keywords": [
     "qa",
     "playwright",

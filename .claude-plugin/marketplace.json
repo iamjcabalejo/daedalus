@@ -1,7 +1,7 @@
 {
   "name": "daedalus",
   "owner": {
-    "name": "tb-jcabalejo"
+    "name": "iamjcabalejo"
   },
   "description": "The daedalus plug-and-play dev workflow and its browser-QA companion.",
   "plugins": [

@@ -32,7 +32,7 @@ Two ways, same workflow. Both read and write the same `.workflow/` files in your
 ### A. Claude Code plugin (recommended)
 
 ```
-/plugin marketplace add tb-jcabalejo/tb-claude-custom-workflow
+/plugin marketplace add iamjcabalejo/daedalus
 /plugin install daedalus@daedalus
 ```
 
@@ -47,7 +47,7 @@ In a plugin install, commands and roles are prefixed: `/daedalus:feature-plan`, 
 ### B. Script install
 
 ```bash
-git clone https://github.com/tb-jcabalejo/tb-claude-custom-workflow.git && cd tb-claude-custom-workflow
+git clone https://github.com/iamjcabalejo/daedalus.git && cd daedalus
 ```
 
 ```bash

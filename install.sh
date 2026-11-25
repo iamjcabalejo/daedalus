@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Script install of the daedalus workflow (plug-and-play Phase 4, AC-12b). Claude Code plugin users don't need this:
-#   /plugin install daedalus --marketplace tb-jcabalejo/tb-claude-custom-workflow
+#   /plugin install daedalus --marketplace iamjcabalejo/daedalus
 #
 #   ./install.sh --user                     install into ~/.claude (every project)
 #   ./install.sh --project <path>           install into <path>/.claude (one project or workspace)
