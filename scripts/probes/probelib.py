@@ -2,7 +2,8 @@
 
 scripts/probes/run-probes.sh is the CLI (argparse and the top-level flow live in its heredoc). This module holds the
 logic, so scripts/test-probes.sh can exercise everything except the model call: the only action that starts a
-host CLI is `host`, and the live preflight (`host_version`, `cli_flags`, `plugin_list_text`) runs only from run_live.
+host CLI is `host`, and the live preflight (`host_version`, `preflight_flags` with its parse check, `plugin_list_text`)
+runs only from run_live.
 
 Layout of one run (never inside the hub):
   $TMPDIR/daedalus-probes/<UTC-ts>/<case>[.<variant>]/<install>/
@@ -52,14 +53,42 @@ DEFAULT_TIMEOUT_S = 300
 PREFLIGHT_TIMEOUT_S = 30
 PLUGIN_NAME = "probe"
 DEFAULT_VARS = {"interpreter": None, "hook_timeout": 10, "on_failure": None, "fail_closed": None, "dialect": None}
-# Flags the claude preflight looks for in `claude --help` (verify in T0). A missing required flag blocks the run;
-# a missing optional one is dropped and its fallback is noted on every affected result.
+# Flags the claude preflight needs (verify in T0). A flag `claude --help` doesn't list gets a parse check
+# (flag_accepted) before it counts as missing: 2.1.325 accepts --max-turns but leaves it out of --help. A missing
+# required flag blocks the run; a missing optional one is dropped and its fallback is noted on every affected result.
 REQUIRED_FLAGS = {"claude": ("--max-turns", "--model", "--output-format")}
+ALLOWED_TOOLS_FLAG = "--allowedTools"
+ALLOWED_TOOLS_FLAGS = (ALLOWED_TOOLS_FLAG, "--allowed-tools")  # both spellings parse on 2.1.325
 OPTIONAL_FLAGS = {"claude": {
     "--max-budget-usd": "fallback: --max-turns plus the run total (--budget-usd)",
     "--plugin-dir": "fallback: project-scope local marketplace install, removed after (manual; verify in T0)",
     "--permission-mode": "fallback: none; the case is inconclusive",
+    ALLOWED_TOOLS_FLAG: "fallback: none; the project allow rules apply only in a trusted folder, and a run in an "
+                        "untrusted one is inconclusive",
 }}
+UNKNOWN_FLAG = "--zz-daedalus-unknown-flag"  # an option no CLI defines; the parse check passes it last
+PARSE_CHECK_TIMEOUT_S = 10
+# A valid value for each checked flag, so a flag that takes one can't swallow UNKNOWN_FLAG as its value. None means
+# the check's own empty temp directory (a path that exists). A flag without an entry can't be checked: missing.
+FLAG_PLACEHOLDERS = {"--max-turns": "1", "--max-budget-usd": "0.01", "--model": MODEL, "--output-format": "text",
+                     "--permission-mode": "default", "--plugin-dir": None, ALLOWED_TOOLS_FLAG: "Read"}
+# T0 (2.1.325): in -p mode the CLI ignores a project's permissions.allow in a folder nobody has trusted, and says so on
+# stderr ("Ignoring 15 permissions.allow entries from .claude/settings.json: this workspace has not been trusted").
+# The runner never trusts a folder (that writes ~/.claude.json); it passes the same rules with --allowedTools instead.
+SETTINGS_DESTS = ("repo/.claude/settings.json", "repo/.claude/settings.local.json")
+UNTRUSTED_TEXT = "has not been trusted"
+UNTRUSTED_NOTE = "untrusted workspace: project allow rules ignored"
+UNTRUSTED_COVERED_NOTE = UNTRUSTED_NOTE + " (recorded only: the same rules were passed with --allowedTools)"
+PERMISSION_DENIAL_NOTE = "permission denial, not the probed mechanism"
+UNATTRIBUTED_DENIAL_NOTE = "unattributed denial"  # an `unknown`-source denial of the probed call
+NOT_RUN_NOTE_PREFIX = "not run: "  # not_run_entry: the budget couldn't cover the run
+HOST_NOT_RUN_NOTE = "host not run; inconclusive"  # host_gap: the host call was skipped (no --plugin-dir)
+EXPECTED_DENIAL_NOTE = "permission denial on the probed call, expected by the case (expects_permission_denial)"
+# Recorder texts a hook-sourced denial carries (kept equal to recorder.py by scripts/test-probes.sh), plus the
+# recorder's command, which the host quotes when a hook fails under onFailure: block (E2, E4).
+RECORDER_DEFAULT_REASON = "daedalus probe recorder"  # recorder.DEFAULT_REASON
+RECORDER_CRASH_MESSAGE = "daedalus probe recorder: simulated crash"  # recorder.CRASH_MESSAGE
+RECORDER_COMMAND_MARKER = "/bin/recorder.py"  # every probe hook runs <workspace>/bin/recorder.py
 SEED_FILES = {
     "seed.txt": "seed\n",
     "README.md": "# probe workspace\n\nThrowaway repository created by daedalus run-probes.sh.\n",
@@ -410,6 +439,34 @@ def stimulus(run: Run) -> str:
     return substitute(run.case["stimulus"]["prompt"], template_vars(run), f"{run.case_id}.stimulus")
 
 
+def allow_rules(run: Run) -> list:
+    """`permissions.allow` of the project settings file(s) this run renders, in order, without repeats."""
+    rules: list = []
+    values = template_vars(run)
+    for entry in run.files:
+        if entry["dest"] not in SETTINGS_DESTS:
+            continue
+        settings = json.loads(render_template(entry["template"], values))
+        allow = (settings.get("permissions") or {}).get("allow") or []
+        rules += [rule for rule in allow if isinstance(rule, str) and rule not in rules]
+    return rules
+
+
+def cli_allowed_tools(argv: list) -> list:
+    """The values passed with --allowedTools / --allowed-tools (space-separated after the flag, or `=a,b`)."""
+    values, collecting = [], False
+    for arg in argv:
+        name, eq, inline = arg.partition("=")
+        if name in ALLOWED_TOOLS_FLAGS:
+            collecting = not eq
+            values += [v for v in inline.split(",") if v] if eq else []
+        elif arg.startswith("-"):
+            collecting = False
+        elif collecting:
+            values.append(arg)
+    return values
+
+
 def host_command(run: Run, dropped: frozenset = frozenset()) -> list:
     """The host CLI call for one run. Flags marked in the README as "verify in T0" are confirmed in P0b's T0."""
     prompt, flags = stimulus(run), run.flags
@@ -426,6 +483,10 @@ def host_command(run: Run, dropped: frozenset = frozenset()) -> list:
         argv += ["--plugin-dir", str(run.workspace / "probe-plugin")]
     if flags["permission_mode"]:
         argv += ["--permission-mode", flags["permission_mode"]]
+    rules = allow_rules(run)
+    if rules and ALLOWED_TOOLS_FLAG not in dropped:
+        # Last, one rule per argument: the option is variadic, so nothing positional may follow it.
+        argv += [ALLOWED_TOOLS_FLAG, *rules]
     return argv
 
 
@@ -477,6 +538,7 @@ class RunState:
     cost_usd: Optional[float] = None
     failures: list = field(default_factory=list)
     cleaned: bool = False
+    host_argv: list = field(default_factory=list)  # the host call as run (the trust check reads its --allowedTools)
 
 
 def git(repo: Path, *args: str) -> str:
@@ -503,6 +565,7 @@ def write_file(path: Path, content: str) -> None:
 def run_host(run: Run, action: Action, state: RunState) -> None:
     out_dir = run.workspace / "out"
     env = dict(os.environ, PROBE_CTRL=str(run.workspace / "ctrl.json"), PROBE_OUT=str(out_dir / "raw"))
+    state.host_argv = list(action.params["argv"])
     with (out_dir / "stream.jsonl").open("w", encoding="utf-8") as stdout, \
             (out_dir / "stderr.txt").open("w", encoding="utf-8") as stderr:
         try:
@@ -530,10 +593,54 @@ def read_stream(path: Path) -> list:
 def host_gap(state: RunState) -> Optional[str]:
     """Why this run's capture can't confirm or contradict anything, or None when the host ran to the end."""
     if not state.host_ran:
-        return "host not run; inconclusive"
+        return HOST_NOT_RUN_NOTE
     if state.timed_out:
         return "host timed out; inconclusive"
     return None
+
+
+def read_stderr(run: Run) -> str:
+    path = run.workspace / "out" / "stderr.txt"
+    return path.read_text(encoding="utf-8", errors="replace") if path.is_file() else ""
+
+
+def check_trust(run: Run, state: RunState) -> None:
+    """An untrusted folder drops the project allow rules: inconclusive unless the host call passed them itself."""
+    if UNTRUSTED_TEXT not in read_stderr(run):
+        return
+    passed = cli_allowed_tools(state.host_argv)
+    rules = allow_rules(run)
+    if passed and all(rule in passed for rule in rules):
+        state.notes.append(UNTRUSTED_COVERED_NOTE)
+        return
+    state.status = "inconclusive"
+    state.notes.append(UNTRUSTED_NOTE)
+
+
+def hook_markers(run: Run) -> tuple:
+    """Texts that only a probe hook puts in a denial: this run's control reasons and the recorder's own texts."""
+    reasons = [str(rule.get("reason") or RECORDER_DEFAULT_REASON) for rule in run.ctrl_rules]
+    return tuple(dict.fromkeys(reasons + [RECORDER_DEFAULT_REASON, RECORDER_CRASH_MESSAGE, RECORDER_COMMAND_MARKER]))
+
+
+def check_denials(run: Run, state: RunState, records: list, stream: list) -> None:
+    """Record every denial's source. A permission denial of the probed call makes the run inconclusive, and so does
+    an unknown one (a host that rewords its denials must not let one pass as the mechanism's), unless the case tests
+    the permission layer itself (expects_permission_denial)."""
+    denials = observe.classify_denials(stream, hook_markers(run))
+    probed = [observe.hits_probed_call(d, run.observations, records) for d in denials]
+    state.evaluated.append(observe.denial_sources_record(denials, probed))
+    hits = {source: sorted({d.tool_name or "?" for d, p in zip(denials, probed) if p and d.source == source})
+            for source in (observe.PERMISSION, observe.UNKNOWN)}
+    if not any(hits.values()):
+        return
+    if run.case.get("expects_permission_denial", False):
+        state.notes.append(EXPECTED_DENIAL_NOTE)
+        return
+    state.status = "inconclusive"
+    for source, note in ((observe.PERMISSION, PERMISSION_DENIAL_NOTE), (observe.UNKNOWN, UNATTRIBUTED_DENIAL_NOTE)):
+        if hits[source]:
+            state.notes.append(f"{note} ({', '.join(hits[source])})")
 
 
 def observe_run(run: Run, state: RunState) -> None:
@@ -549,6 +656,8 @@ def observe_run(run: Run, state: RunState) -> None:
     if gap:  # the capture can't speak for the host, whatever the checks say (§3.10)
         state.status = "inconclusive"
         state.notes.append(gap)
+    check_trust(run, state)
+    check_denials(run, state, records, stream)
     result = observe.last_result(stream)
     cost = (result or {}).get("total_cost_usd")
     state.cost_usd = float(cost) if isinstance(cost, (int, float)) and not isinstance(cost, bool) else None
@@ -649,8 +758,15 @@ def docs_only_entry(run: Run, reason: str) -> dict:
 
 
 def not_run_entry(run: Run, host_version: str, reason: str) -> dict:
-    state = RunState(host_version=host_version, notes=[f"not run: {reason}"])
+    state = RunState(host_version=host_version, notes=[f"{NOT_RUN_NOTE_PREFIX}{reason}"])
     return result_entry(run, state, None)
+
+
+def is_not_run(entry: dict) -> bool:
+    """A staged entry whose run never reached the host: the budget ran out, or the host call was skipped. It carries
+    no evidence, so publishing never lets it replace an earlier entry or that entry's fixtures."""
+    notes = entry.get("notes") or []
+    return any(str(note).startswith(NOT_RUN_NOTE_PREFIX) or note == HOST_NOT_RUN_NOTE for note in notes)
 
 
 def case_requirements() -> dict:
@@ -697,7 +813,8 @@ def gate_requirements(entries: list, requires: dict) -> list:
 
 def result_document(host: str, version: str, entries: list, existing: Optional[dict] = None,
                     requires: Optional[dict] = None) -> dict:
-    """Merge entries into a results file; a re-run replaces the same (case, variant, install).
+    """Merge entries into a results file; a re-run replaces the same (case, variant, install), except that a not-run
+    entry (is_not_run) only fills a key the file doesn't have yet.
 
     Then gate `requires` over the result: staging gates one run's entries alone (a required case missing from the
     run leaves its dependents inconclusive), and publishing gates the merged file again, so a later re-run of the
@@ -705,7 +822,7 @@ def result_document(host: str, version: str, entries: list, existing: Optional[d
     """
     key = lambda e: (e["case"], e.get("variant") or "", e["install"])  # noqa: E731
     merged = {key(e): e for e in (existing or {}).get("entries", [])}
-    merged.update({key(e): e for e in entries})
+    merged.update({key(e): e for e in entries if not (is_not_run(e) and key(e) in merged)})
     gated = gate_requirements([merged[k] for k in sorted(merged)],
                               case_requirements() if requires is None else requires)
     return {"schema": RESULT_SCHEMA, "host": host, "host_version": version, "generated_at": utc_now(),
@@ -738,11 +855,102 @@ def host_version(binary: str) -> str:
     return match.group(0) if match else "unknown"
 
 
-def dropped_flags(host: str, help_text: str) -> frozenset:
-    missing = [flag for flag in REQUIRED_FLAGS.get(host, ()) if flag not in help_text]
+@dataclass(frozen=True)
+class FlagSupport:
+    """The flag preflight's answer. `dropped`: optional flags the CLI lacks (left out of host_command, fallback noted).
+    `hidden`: flags the parser accepts although `--help` doesn't list them (confirmed by the parse check)."""
+    dropped: frozenset = frozenset()
+    hidden: frozenset = frozenset()
+
+
+def parse_check_argv(binary: str, flag: str, workdir: Path) -> Optional[list]:
+    """`<binary> -p <flag> <placeholder> --zz-daedalus-unknown-flag`; None when the flag has no placeholder."""
+    if flag not in FLAG_PLACEHOLDERS:
+        return None
+    value = FLAG_PLACEHOLDERS[flag]
+    return [binary, "-p", flag, str(workdir) if value is None else value, UNKNOWN_FLAG]
+
+
+def names_flag(flag: str, text: str) -> bool:
+    """True when `text` names the flag, as `--max-turns` or bare `max-turns` (some parsers drop the dashes)."""
+    return re.search(rf"(?<![\w-])(?:--)?{re.escape(flag.lstrip('-'))}(?![\w-])", text) is not None
+
+
+def run_parse_check(argv: list, workdir: Path) -> Optional[tuple]:
+    """(exit code, stdout + stderr), or None when the CLI couldn't start or ran past the timeout (it is killed)."""
+    try:
+        done = subprocess.run(argv, cwd=str(workdir), stdin=subprocess.DEVNULL, capture_output=True,
+                              encoding="utf-8", errors="replace", timeout=PARSE_CHECK_TIMEOUT_S)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    return done.returncode, done.stdout + done.stderr
+
+
+def parse_check_accepts(flag: str, outcome: Optional[tuple]) -> bool:
+    """Accepted only when the parser failed on the fake flag and never named the flag under test. A timeout, a clean
+    exit, or output naming neither or both counts as missing (fail safe)."""
+    if outcome is None:
+        return False
+    code, output = outcome
+    return code != 0 and names_flag(UNKNOWN_FLAG, output) and not names_flag(flag, output)
+
+
+def flag_accepted(binary: str, flag: str) -> bool:
+    """Confirm a flag `--help` doesn't list by asking the CLI's option parser, without a model call.
+
+    Why this can't reach a model:
+    - UNKNOWN_FLAG comes last, after the flag under test and its value. claude's option parser rejects an unknown
+      option before any command action runs (T0, 2.1.325: `error: unknown option '--zz-…'`), and a model call only
+      ever happens inside the action. If the flag under test is unknown, the parser stops on it, which is as early.
+    - Even a parser that ignored unknown options would have nothing to send: there is no prompt argument and stdin
+      is /dev/null, so `-p` has no input.
+    - The cwd is a fresh, empty temp directory (no project settings, hooks or CLAUDE.md), and PARSE_CHECK_TIMEOUT_S
+      kills anything that gets past the parser; a timeout or a clean exit counts as missing.
+    """
+    with tempfile.TemporaryDirectory(prefix="daedalus-flag-check-") as tmp:
+        workdir = Path(tmp)
+        argv = parse_check_argv(binary, flag, workdir)
+        return argv is not None and parse_check_accepts(flag, run_parse_check(argv, workdir))
+
+
+def check_flags(host: str, help_text: str) -> FlagSupport:
+    """Each required and optional flag: listed in `--help`, or accepted by the parse check (recorded as hidden)."""
+    binary, hidden = HOST_BINARIES[host], set()
+
+    def supported(flag: str) -> bool:
+        if flag in help_text:
+            return True
+        if flag_accepted(binary, flag):
+            hidden.add(flag)
+            return True
+        return False
+
+    missing = [flag for flag in REQUIRED_FLAGS.get(host, ()) if not supported(flag)]
     if missing:
-        raise GuardError(f"BLOCKED (env): `{HOST_BINARIES[host]} --help` lacks {', '.join(missing)}")
-    return frozenset(flag for flag in OPTIONAL_FLAGS.get(host, {}) if flag not in help_text)
+        raise GuardError(f"BLOCKED (env): `{binary}` lacks {', '.join(missing)} (not in `{binary} --help`, and the "
+                         "parse check didn't accept it)")
+    dropped = frozenset(flag for flag in OPTIONAL_FLAGS.get(host, {}) if not supported(flag))
+    return FlagSupport(dropped=dropped, hidden=frozenset(hidden))
+
+
+def preflight_flags(host: str, say: Callable) -> FlagSupport:
+    """The claude flag preflight (other hosts: verify in T0). Raises GuardError when a required flag is missing."""
+    if host != "claude":
+        return FlagSupport()
+    binary = HOST_BINARIES[host]
+    support = check_flags(host, preflight_output([binary, "--help"]) or "")
+    for flag in sorted(support.hidden):
+        say(f"preflight: {flag} is accepted but hidden from `{binary} --help` (verified by a parse check)")
+    return support
+
+
+def hidden_flags_note(host: str, actions: list, hidden: frozenset) -> list:
+    """One note naming the hidden flags this run's host call passes, so its result says how they were verified."""
+    argv = next((action.params["argv"] for action in actions if action.kind == "host"), [])
+    used = [flag for flag in sorted(hidden) if flag in argv]
+    if not used:
+        return []
+    return [f"accepted but hidden from `{HOST_BINARIES[host]} --help` (verified by a parse check): {', '.join(used)}"]
 
 
 def plugin_list_text(host: str) -> Optional[str]:
@@ -751,27 +959,92 @@ def plugin_list_text(host: str) -> Optional[str]:
     return preflight_output([HOST_BINARIES["claude"], "plugin", "list"])  # verify in T0
 
 
-def publish(staging: Path, host: str, version: str) -> list:
-    """Copy staged fixtures and results into the hub (only after the isolation check and the leak scan)."""
-    written = []
-    prefix = f"{host}-{safe_version(version)}"
-    src_root = staging / "fixtures" / prefix
-    for src in sorted(p for p in src_root.glob("*/*") if p.is_dir()):
-        dest = FIXTURES_DIR / prefix / src.relative_to(src_root)
-        if not isolation.is_within(dest, FIXTURES_DIR):
-            raise HarnessError(f"refusing to publish outside fixtures/: {dest}")
+def fixture_key(entry: dict) -> Path:
+    """<case>[.<variant>]/<install>: one (case, variant, install) folder under fixtures/<host>-<version>/."""
+    segment = f"{entry['case']}.{entry['variant']}" if entry.get("variant") else entry["case"]
+    return Path(segment) / entry["install"]
+
+
+def published_keys(src_root: Path, entries: list) -> list:
+    """Every key this run replaces: each staged entry's, and each staged fixture folder's, except a not-run entry's
+    (its earlier fixtures stay; a skipped host call can still leave an empty staged folder)."""
+    staged = {p.relative_to(src_root) for p in src_root.glob("*/*") if p.is_dir()}
+    not_run = {fixture_key(entry) for entry in entries if is_not_run(entry)}
+    return sorted((staged - not_run) | {fixture_key(entry) for entry in entries if not is_not_run(entry)})
+
+
+def build_fixture_tree(src_root: Path, current: Path, keys: list, work: Path) -> Optional[Path]:
+    """A copy of fixtures/<prefix>/ where each key's folder is the staged one, or gone when this run staged none
+    (a rerun never keeps an earlier run's files for its keys). None when nothing is left."""
+    new = work / "new"
+    if current.is_dir():
+        shutil.copytree(str(current), str(new))
+    else:
+        new.mkdir(parents=True)
+    for rel in keys:
+        dest = new / rel
+        if not isolation.is_within(dest, new):
+            raise HarnessError(f"refusing to publish outside fixtures/: {rel}")
         if dest.exists():
             shutil.rmtree(dest)
-        shutil.copytree(str(src), str(dest))
-        written.append(str(dest))
-    staged_results = staging / "results" / f"{prefix}.json"
-    if staged_results.is_file():
-        target = RESULTS_DIR / f"{prefix}.json"
-        existing = read_json(target) if target.is_file() else None
-        doc = result_document(host, version, read_json(staged_results)["entries"], existing)
-        write_file(target, json.dumps(doc, indent=2) + "\n")
-        written.append(str(target))
-    return written
+        if (src_root / rel).is_dir():
+            shutil.copytree(str(src_root / rel), str(dest))
+        elif dest.parent != new and dest.parent.is_dir() and not any(dest.parent.iterdir()):
+            dest.parent.rmdir()
+    return new if any(new.iterdir()) else None
+
+
+def swap_in(new_tree: Optional[Path], current: Path, results: Optional[tuple], work: Path) -> None:
+    """Two renames, then one replace (each atomic on one filesystem); a failed results replace undoes the swap."""
+    old, had_current = work / "old", current.exists()
+    if had_current:
+        os.rename(str(current), str(old))
+    try:
+        if new_tree is not None:
+            os.rename(str(new_tree), str(current))
+        if results is not None:
+            os.replace(str(results[0]), str(results[1]))
+    except OSError:
+        if new_tree is not None and current.exists():
+            os.rename(str(current), str(work / "failed"))
+        if had_current:
+            os.rename(str(old), str(current))
+        raise
+
+
+def publish(staging: Path, host: str, version: str) -> list:
+    """Replace this run's (case, variant, install) fixtures and result entries in the hub, all or nothing.
+
+    Called only after the isolation check and the leak scan. The new fixtures/<host>-<version>/ tree and results file
+    are built in hidden work paths inside fixtures/ and results/ (the hub's filesystem, so the swap is a rename); an
+    error before the swap leaves the hub as it was. Entries for keys this run didn't stage are kept.
+    """
+    prefix = f"{host}-{safe_version(version)}"
+    src_root, staged_results = staging / "fixtures" / prefix, staging / "results" / f"{prefix}.json"
+    entries = read_json(staged_results)["entries"] if staged_results.is_file() else []
+    keys = published_keys(src_root, entries)
+    if not keys and not staged_results.is_file():
+        return []
+    current, target = FIXTURES_DIR / prefix, RESULTS_DIR / f"{prefix}.json"
+    work, results_tmp = FIXTURES_DIR / f".publish-{prefix}", RESULTS_DIR / f".publish-{prefix}.json.tmp"
+    for path in (current, work, target, results_tmp):
+        root = path.parent
+        if root.resolve() not in (FIXTURES_DIR.resolve(), RESULTS_DIR.resolve()) or not isolation.is_within(path, root):
+            raise HarnessError(f"refusing to publish outside fixtures/ and results/: {path}")
+    shutil.rmtree(str(work), ignore_errors=True)  # a crashed publish's work folder
+    try:
+        new_tree = build_fixture_tree(src_root, current, keys, work)
+        results = None
+        if staged_results.is_file():
+            existing = read_json(target) if target.is_file() else None
+            write_file(results_tmp, json.dumps(result_document(host, version, entries, existing), indent=2) + "\n")
+            results = (results_tmp, target)
+        swap_in(new_tree, current, results, work)
+    finally:
+        shutil.rmtree(str(work), ignore_errors=True)
+        results_tmp.unlink(missing_ok=True)
+    written = [str(current / rel) for rel in keys if (current / rel).is_dir()]
+    return written + ([str(target)] if staged_results.is_file() else [])
 
 
 def stage_results(staging: Path, host: str, version: str, entries: list) -> Path:
@@ -808,7 +1081,7 @@ def run_live(runs: list, host: str, budget: float, run_root: Path, say: Callable
         return finish(staging, host, "not-installed", entries, None, [], say)
     version = host_version(binary)
     try:
-        dropped = dropped_flags(host, preflight_output([binary, "--help"]) or "") if host == "claude" else frozenset()
+        flags = preflight_flags(host, say)
     except GuardError as err:
         say(str(err))
         return 2
@@ -818,7 +1091,8 @@ def run_live(runs: list, host: str, budget: float, run_root: Path, say: Callable
     failures: list = []
     finished = False
     try:
-        run_all(runs, version, dropped, budget, staging, enabled_plugins(plugin_list), entries, failures, say)
+        run_all(runs, version, flags.dropped, budget, staging, enabled_plugins(plugin_list), entries, failures, say,
+                flags.hidden)
         finished = True
     except KeyboardInterrupt:
         failures.append("interrupted by the user; the remaining runs were skipped")
@@ -831,8 +1105,11 @@ def run_live(runs: list, host: str, budget: float, run_root: Path, say: Callable
 
 
 def run_all(runs: list, version: str, dropped: frozenset, budget: float, staging: Path, plugins: Optional[list],
-            entries: list, failures: list, say: Callable) -> None:
-    """The live loop; appends to entries and failures so the caller keeps them even if a run raises."""
+            entries: list, failures: list, say: Callable, hidden: frozenset = frozenset()) -> None:
+    """The live loop; appends to entries and failures so the caller keeps them even if a run raises.
+
+    `dropped` and `hidden` come from preflight_flags: a dropped flag's fallback is noted on every run, and a run whose
+    host call passes a hidden flag notes it once."""
     spent = 0.0
     for run in runs:
         cap = float(run.flags["max_budget_usd"])
@@ -848,6 +1125,8 @@ def run_all(runs: list, version: str, dropped: frozenset, budget: float, staging
         except CaseError as err:
             failures.append(f"{run.label}: {err}")
             continue
+        if "host" not in skip:  # a skipped host call passes no flags
+            state.notes += hidden_flags_note(run.host, actions, hidden)
         execute_run(run, actions, probe_root(), state, skip)
         spent += state.cost_usd if state.cost_usd is not None else cap
         failures += state.failures

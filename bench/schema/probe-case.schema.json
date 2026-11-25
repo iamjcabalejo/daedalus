@@ -12,6 +12,7 @@
     "title": {"type": "string"},
     "refs": {"type": "array", "items": {"type": "string"}, "description": "Roadmap ACs and decisions this case informs."},
     "requires": {"type": "array", "items": {"type": "string"}, "description": "Case ids this case's verdict depends on (for example A1, agent_type on subagent payloads). When results are finalized, an entry whose required case isn't confirmed for the same host version and install becomes inconclusive. probelib.validate_case checks that each id names another case."},
+    "expects_permission_denial": {"type": "boolean", "description": "Default false. True only for a case that tests the permission layer itself (F1-F4: a hook's ask under -p): a permission-sourced denial of the probed call is then the expected outcome. Otherwise such a denial makes the run inconclusive (permission denial, not the probed mechanism)."},
     "applies_to": {"$ref": "#/definitions/applies_to"},
     "files": {"$ref": "#/definitions/files"},
     "vars": {"$ref": "#/definitions/vars"},

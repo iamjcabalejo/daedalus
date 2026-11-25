@@ -23,10 +23,19 @@ Roles: precondition (must pass, else inconclusive), assert (decides confirmed / 
 An asserted absence (no marker, no PostToolUse, fewer than n calls) needs a precondition proving the probed call was
 attempted, or a run where nothing happened would pass it.
 `actual` values are booleans, counts, key names or values of SAFE_VALUE_FIELDS, never prompt or tool text.
+
+Denials (T0, 2.1.325): every `result` event's `permission_denials` entry is matched to its `tool_result` by tool_use_id
+and classified from that text: `hook` (it carries one of the run's recorder markers: a control reason, the recorder's
+default or crash text, or the recorder's hook command, which the host quotes when a hook fails under onFailure: block),
+`permission` (host wording: "needs approval", "permission", "haven't granted"), else `unknown`. A denial hits the
+probed call when it matches one of the case's call selectors (CALL_KINDS on TOOL_EVENTS with `where`, or a stream
+`tool-use`); the `where` clauses run on the call's recorded PreToolUse payload, joined on tool_use_id.
 """
 from __future__ import annotations
 
 import json
+import os
+import re
 import subprocess
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -38,6 +47,15 @@ SAFE_VALUE_FIELDS = ("agent_type", "command_name", "hook_event_name", "permissio
 COUNT_OPS = {"lt": lambda a, b: a < b, "le": lambda a, b: a <= b, "eq": lambda a, b: a == b,
              "ge": lambda a, b: a >= b, "gt": lambda a, b: a > b}
 MISSING = object()
+HOOK, PERMISSION = "hook", "permission"  # denial sources; the third is UNKNOWN
+DENIAL_SOURCES = (HOOK, PERMISSION, UNKNOWN)
+# Host wording of a permission-layer denial (T0, 2.1.325): "… needs approval", "Claude requested permissions to use
+# …, but you haven't granted it yet", "Permission to use Bash has been denied".
+PERMISSION_TEXT_RE = re.compile(r"needs approval|requires approval|permission|haven'?t granted|not (?:been )?granted",
+                                re.IGNORECASE)
+TOOL_EVENTS = ("PreToolUse", "PostToolUse", "PostToolUseFailure", "PermissionRequest")
+CALL_KINDS = ("event", "field", "count", "identity-echo")
+DENIAL_FIELDS = ("tool_name", "tool_input")  # the parts of a call a permission_denials entry carries itself
 
 
 @dataclass
@@ -266,10 +284,138 @@ def eval_stream(obs: dict, ctx: Context) -> tuple:
     if check == "result":
         return RECORDED, {"subtype": result.get("subtype"), "is_error": result.get("is_error"),
                           "num_turns": result.get("num_turns"), "has_cost": "total_cost_usd" in result}
-    if check == "permission-denials":  # result.permission_denials: verify in T0
-        denials = result.get("permission_denials")
-        return RECORDED, len(denials) if isinstance(denials, list) else None
+    if check == "permission-denials":  # every result event's permission_denials (T0, 2.1.325: one per turn)
+        return RECORDED, len(permission_denials(ctx.stream))
     return RECORDED, sorted((result.get("usage") or {}).keys())
+
+
+# ---- denials: which layer denied a call, and was it the probed one --------------------------------------------
+
+@dataclass
+class Denial:
+    tool_use_id: Optional[str]
+    tool_name: Optional[str]
+    tool_input: dict
+    source: str
+    block: Optional[dict] = None  # the assistant's tool_use block, when the stream has it
+
+
+def permission_denials(stream: list) -> list:
+    """`permission_denials` from every result event, first entry per tool_use_id.
+
+    T0 (2.1.325): a run with a background agent emits one result per turn, and the last one can be empty while an
+    earlier one holds the denial, so reading only the last result undercounts.
+    """
+    found, seen = [], set()
+    for event in stream:
+        if not isinstance(event, dict) or event.get("type") != "result":
+            continue
+        for entry in event.get("permission_denials") or []:
+            key = entry.get("tool_use_id") if isinstance(entry, dict) else None
+            if isinstance(entry, dict) and (key is None or key not in seen):
+                seen.add(key)
+                found.append(entry)
+    return found
+
+
+def result_text(content: object) -> str:
+    if isinstance(content, str):
+        return content
+    if isinstance(content, list):
+        return "\n".join(str(b.get("text", "")) for b in content if isinstance(b, dict))
+    return ""
+
+
+def tool_results(stream: list) -> dict:
+    """tool_use_id -> the text of its tool_result block (from the stream's `user` events)."""
+    texts = {}
+    for event in stream:
+        if not isinstance(event, dict) or event.get("type") != "user":
+            continue
+        content = (event.get("message") or {}).get("content")
+        if not isinstance(content, list):
+            continue
+        for block in content:
+            if isinstance(block, dict) and block.get("type") == "tool_result" and block.get("tool_use_id"):
+                texts.setdefault(block["tool_use_id"], result_text(block.get("content")))
+    return texts
+
+
+def classify_denial(text: str, hook_markers: tuple) -> str:
+    """`hook` when the text carries one of the run's recorder markers, `permission` for the host's own wording."""
+    if any(marker and marker in text for marker in hook_markers):
+        return HOOK
+    return PERMISSION if PERMISSION_TEXT_RE.search(text) else UNKNOWN
+
+
+def classify_denials(stream: list, hook_markers: tuple) -> list:
+    texts = tool_results(stream)
+    blocks = {b.get("id"): b for b in tool_uses(stream) if b.get("id")}
+    denials = []
+    for entry in permission_denials(stream):
+        tool_use_id = entry.get("tool_use_id")
+        tool_input = entry.get("tool_input") if isinstance(entry.get("tool_input"), dict) else {}
+        source = classify_denial(texts.get(tool_use_id, ""), hook_markers)
+        denials.append(Denial(tool_use_id, entry.get("tool_name"), tool_input, source, blocks.get(tool_use_id)))
+    return denials
+
+
+def call_selectors(observations: list) -> list:
+    """The precondition and assert observations that name a tool call: the calls a verdict depends on."""
+    selectors = []
+    for obs in observations:
+        if obs.get("role", "assert") == "record":
+            continue
+        if obs["kind"] in CALL_KINDS and obs.get("event") in TOOL_EVENTS and obs.get("where"):
+            selectors.append(obs)
+        elif obs["kind"] == "stream" and obs.get("check") == "tool-use":
+            selectors.append(obs)
+    return selectors
+
+
+def denied_call_payload(denial: Denial, records: list) -> tuple:
+    """(payload, joined): the call's recorded PreToolUse payload, else one built from the denial entry."""
+    if denial.tool_use_id:
+        for record in records:
+            payload = record.get("payload") or {}
+            if record.get("event") == "PreToolUse" and payload.get("tool_use_id") == denial.tool_use_id:
+                return payload, True
+    return {"tool_name": denial.tool_name, "tool_input": denial.tool_input}, False
+
+
+def selector_hit(denial: Denial, obs: dict, records: list) -> bool:
+    if obs["kind"] == "stream":
+        block = denial.block or {"name": denial.tool_name, "input": denial.tool_input}
+        return block.get("name") in obs["names"] and all(where_ok(block, c) for c in obs.get("where", []))
+    payload, joined = denied_call_payload(denial, records)
+    # Without the recorded payload, a clause on another field (agent_type) can't be checked: count it as a match,
+    # so an unattributable denial errs towards inconclusive.
+    return all(where_ok(payload, c) for c in obs["where"]
+               if joined or c["field"].split(".", 1)[0] in DENIAL_FIELDS)
+
+
+def hits_probed_call(denial: Denial, observations: list, records: list) -> bool:
+    return any(selector_hit(denial, obs, records) for obs in call_selectors(observations))
+
+
+def command_head(tool_input: dict) -> Optional[str]:
+    """The command's first word (its basename, so no path is ever recorded); None for tools without a command."""
+    command = tool_input.get("command")
+    words = command.split(None, 1) if isinstance(command, str) else []
+    return os.path.basename(words[0]) if words else None
+
+
+def denial_sources_record(denials: list, probed: list) -> dict:
+    """The `denial-sources` record added to every run: counts per source, tool names and command heads only."""
+    actual: dict = {source: sum(1 for d in denials if d.source == source) for source in DENIAL_SOURCES}
+    listed = []
+    for denial, is_probed in zip(denials, probed):
+        item = {"tool": denial.tool_name, "source": denial.source, "probed_call": is_probed}
+        head = command_head(denial.tool_input)
+        listed.append(dict(item, command=head) if head else item)
+    actual["denials"] = listed
+    return {"check": "denial-sources", "expected": "recorded", "actual": actual, "outcome": RECORDED,
+            "role": "record"}
 
 
 def eval_git(obs: dict, ctx: Context) -> tuple:

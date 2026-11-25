@@ -5,14 +5,18 @@
   redact.py capture --raw-dir DIR --dest DIR --host H --host-version V --case C --install I
                     [--variant X] [--workspace DIR]   one capture's out/raw/*.jsonl -> <dest>/<event>-<n>.json
   redact.py scan PATH...                              leak scan; exit 1 with one line per finding
+  redact.py rescan [--fix] PATH...                    re-apply the path rules to published fixtures and results;
+                                                      lists the files that change, and rewrites them with --fix
 
 Rules (applied at any depth, key order kept):
   - prompt text, assistant messages and tool contents (TEXT_RULES keys, e.g. prompt, last_assistant_message,
     tool_input.content / new_string / old_string) -> "<REDACTED:<rule>>";
   - every string under tool_response (and similar output keys) -> "<REDACTED:tool-response>", shape kept;
   - command text after its first word -> "<first word> <REDACTED:command-args>";
-  - the workspace path -> <WORKSPACE>, home directories -> <HOME>, macOS temp roots -> <TMP>,
-    encoded project folders (.claude/projects/<x>) -> <PROJECT>, emails -> <EMAIL>;
+  - the workspace path -> <WORKSPACE>, home directories -> <HOME>, macOS temp roots and the host's per-user temp
+    root (/private/tmp/claude-<uid>) -> <TMP>, encoded project folders (.claude/projects/<x>, and any dash-encoded
+    home, temp or workspace path such as -Users-<name>-… or -private-var-folders-…-T-…) -> <PROJECT>,
+    emails -> <EMAIL>;
   - session, conversation, agent (and other) ids -> stable placeholders such as <SESSION-1>, <AGENT-2>. One
     Redactor serves a whole capture, so equal ids stay equal across events (A2's concurrency check still works),
     and an id embedded in a path gets the same placeholder. Any other UUID becomes <ID-n>.
@@ -50,16 +54,30 @@ HOME_RE = re.compile(r"(?:/Users|/home)/[^/\s\"'<>:]+")
 WINDOWS_HOME_RE = re.compile(r"[A-Za-z]:\\Users\\[^\\\s\"'<>]+")
 TMP_RE = re.compile(r"/(?:private/)?var/folders/[^/\s]+/[^/\s]+/T")
 PROJECT_SEGMENT_RE = re.compile(r"(\.(?:claude|cursor|codex)/projects/)[^/\s\"'<>]+")
+# 2.1.325 sends scratchpad_dir = /private/tmp/claude-<uid>/<encoded cwd>/<session>/scratchpad. The whole path up to
+# the uid folder (whatever temp root holds it) becomes <TMP>; the lookahead leaves claude-<version>/ names alone.
+CLAUDE_TMP_ROOT_RE = re.compile(r"[^\s\"'=]*/claude-\d+(?![\w.-])")
+# Hosts name a folder after a path by turning every non-alphanumeric character into "-", so /Users/<name>/x becomes
+# -Users-<name>-x. A user name can itself hold "-", so the rest of the segment goes too.
+ENCODED_PATH_RE = re.compile(r"-(?:(?:private-)?var-folders-|Users-|home-|(?:private-)?tmp-claude-\d+(?![\d.]))"
+                             r"[^/\s\"'<>:]*")
+ENCODED_SEGMENT_TAIL = r"[^/\s\"'<>:]*"
+MIN_ENCODED_COMPONENTS = 2  # an encoded one-component path (-root) is too likely to occur in ordinary text
 UUID_RE = re.compile(r"\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\b")
 EMAIL_RE = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}")
 MARKER_RE = re.compile(r"^<REDACTED:[a-z-]+>$")
 PLACEHOLDER_RE = re.compile(r"^<[A-Z][A-Z-]*-\d+>$")
 COMMAND_MARKER = "<REDACTED:command-args>"
+# Order matters: .claude/projects/<x> keeps its own rule, and the uid root goes after the slash-form temp root it
+# may sit in. The rule ids stay inside the fixture schema's enum: the uid root is a temp path, an encoded folder a
+# project folder.
 SCRUB_PATTERNS = (
     (TMP_RE, "<TMP>", "temp-path"),
     (HOME_RE, "<HOME>", "home-path"),
     (WINDOWS_HOME_RE, "<HOME>", "home-path"),
     (PROJECT_SEGMENT_RE, r"\1<PROJECT>", "project-folder"),
+    (CLAUDE_TMP_ROOT_RE, "<TMP>", "temp-path"),
+    (ENCODED_PATH_RE, "<PROJECT>", "project-folder"),
 )
 REDACTED_COMMAND_RE = re.compile(r"^\S*(?: " + re.escape(COMMAND_MARKER) + r")?$")
 
@@ -68,9 +86,12 @@ LEAK_PATTERNS = (
     ("encoded-home", re.compile(r"-Users-|-home-")),
     ("windows-home", re.compile(r"[A-Za-z]:\\Users\\")),
     ("temp-path", re.compile(r"/var/folders/")),
+    ("encoded-temp-path", re.compile(r"-var-folders-")),
+    ("claude-temp-root", re.compile(r"/claude-\d+(?![\w.-])")),
     ("email", EMAIL_RE),
     ("uuid", UUID_RE),
 )
+RESCAN_SCHEMAS = (FIXTURE_SCHEMA, "daedalus.probe-result/1")  # probelib.RESULT_SCHEMA
 
 
 class RedactionError(ValueError):
@@ -87,6 +108,20 @@ def join_path(base: str, key: object) -> str:
     return f"{base}.{key}" if base else str(key)
 
 
+def encode_path(path: str) -> str:
+    """A path as hosts encode it into a folder name: every non-alphanumeric character becomes "-"."""
+    return re.sub(r"[^A-Za-z0-9]", "-", path)
+
+
+def encoded_literal_patterns(paths: Iterable) -> list:
+    """For each known path deep enough to be specific, a pattern for its encoded form and the rest of that segment."""
+    patterns = []
+    for path in sorted({p for p in paths if p}, key=len, reverse=True):
+        if len([part for part in path.split("/") if part]) >= MIN_ENCODED_COMPONENTS:
+            patterns.append(re.compile(re.escape(encode_path(path)) + ENCODED_SEGMENT_TAIL))
+    return patterns
+
+
 class Redactor:
     """Redacts the payloads of one capture; placeholders are stable for the Redactor's lifetime."""
 
@@ -101,6 +136,9 @@ class Redactor:
         if home and len(home) > 1:
             literals.append((home.rstrip("/"), "<HOME>"))
         self.literals = sorted(literals, key=lambda item: len(item[0]), reverse=True)
+        # Encoded workspace and home (Linux /tmp/daedalus-probes/…, a home outside /Users and /home): ENCODED_PATH_RE
+        # can't know them, so the known paths are matched in their encoded form too.
+        self.encoded_literals = encoded_literal_patterns(path for path, _ in self.literals)
 
     def placeholder(self, value: str, label: str) -> str:
         if value not in self.ids:
@@ -120,8 +158,8 @@ class Redactor:
             for item in node:
                 self.register_ids(item)
 
-    def scrub(self, text: str, path: str, log: list) -> str:
-        """Replace paths, ids and emails inside free text that is otherwise kept."""
+    def scrub_paths(self, text: str, path: str, log: list) -> str:
+        """Replace the workspace, home, temp and project paths (slash and dash-encoded forms) inside free text."""
         for literal, replacement in self.literals:
             if literal in text:
                 text = text.replace(literal, replacement)
@@ -130,6 +168,15 @@ class Redactor:
             text, count = pattern.subn(replacement, text)
             if count:
                 log.append((path, rule))
+        for pattern in self.encoded_literals:
+            text, count = pattern.subn("<PROJECT>", text)
+            if count:
+                log.append((path, "project-folder"))
+        return text
+
+    def scrub(self, text: str, path: str, log: list) -> str:
+        """Replace paths, ids and emails inside free text that is otherwise kept."""
+        text = self.scrub_paths(text, path, log)
         for value, holder in sorted(self.ids.items(), key=lambda item: len(item[0]), reverse=True):
             if len(value) >= MIN_KNOWN_ID_LENGTH and value in text:
                 text = text.replace(value, holder)
@@ -340,14 +387,68 @@ def scan_file(file: Path) -> list:
     return findings
 
 
-def scan_paths(paths: Iterable) -> list:
-    findings = []
+def data_files(paths: Iterable, suffixes: tuple = (".json", ".jsonl")) -> list:
+    files = []
     for root in paths:
         root = Path(root)
-        files = [root] if root.is_file() else sorted(p for p in root.rglob("*") if p.suffix in (".json", ".jsonl"))
-        for file in files:
-            findings.extend(scan_file(file))
+        files += [root] if root.is_file() else sorted(p for p in root.rglob("*") if p.suffix in suffixes)
+    return files
+
+
+def scan_paths(paths: Iterable) -> list:
+    findings = []
+    for file in data_files(paths):
+        findings.extend(scan_file(file))
     return findings
+
+
+# ---- rescan: the current path rules over already-published files ------------------------------------------------
+
+def rescan_strings(node: object, redactor: Redactor, path: str, log: list) -> object:
+    if isinstance(node, dict):
+        return {key: rescan_strings(value, redactor, join_path(path, key), log) for key, value in node.items()}
+    if isinstance(node, list):
+        return [rescan_strings(item, redactor, join_path(path, i), log) for i, item in enumerate(node)]
+    if isinstance(node, str):
+        return redactor.scrub_paths(node, path, log)
+    return node
+
+
+def rescan_document(doc: dict, redactor: Redactor) -> dict:
+    """The document with the current path rules applied to every string value; keys, placeholders, markers, `seq` and
+    key order are kept. A fixture's new replacements are appended to its `redactions`, each (path, rule) once.
+
+    Only path rules run: ids are already placeholders, and numbering a stray UUID here could reuse a placeholder the
+    capture gave another id (the leak scan still flags one)."""
+    if doc.get("schema") != FIXTURE_SCHEMA:
+        return rescan_strings(doc, redactor, "", [])
+    log: list = []
+    payload = rescan_strings(doc.get("payload"), redactor, "", log)
+    redactions = list(doc.get("redactions") or [])
+    seen = {(item.get("path"), item.get("rule")) for item in redactions}
+    for item in log:
+        if item not in seen:
+            seen.add(item)
+            redactions.append({"path": item[0], "rule": item[1]})
+    return dict(doc, redactions=redactions, payload=payload)
+
+
+def dump_document(doc: dict) -> str:
+    """The format each file was published in: fixtures as write_fixtures writes them, results as probelib does."""
+    return json.dumps(doc, indent=2, ensure_ascii=doc.get("schema") != FIXTURE_SCHEMA) + "\n"
+
+
+def rescan_file(file: Path, redactor: Redactor, fix: bool) -> bool:
+    """True when the file changes under the current rules; with fix, rewrite it in place (replace, never partial)."""
+    doc = json.loads(file.read_text(encoding="utf-8"))
+    new_doc = rescan_document(doc, redactor)
+    if new_doc == doc:
+        return False
+    if fix:
+        tmp = file.with_name(f".{file.name}.rescan.tmp")
+        tmp.write_text(dump_document(new_doc), encoding="utf-8")
+        os.replace(str(tmp), str(file))
+    return True
 
 
 # ---- CLI ---------------------------------------------------------------------------------------------------
@@ -390,6 +491,31 @@ def cmd_scan(args: argparse.Namespace) -> int:
     return 1 if findings else 0
 
 
+def cmd_rescan(args: argparse.Namespace) -> int:
+    """Only fixture and result files under the given paths are read, and only those that change are written."""
+    redactor, changed, skipped = Redactor(), [], 0
+    for file in data_files(args.paths, (".json",)):
+        try:
+            schema = json.loads(file.read_text(encoding="utf-8")).get("schema")
+            if schema not in RESCAN_SCHEMAS:
+                skipped += 1
+                continue
+            if rescan_file(file, redactor, args.fix):
+                changed.append(file)
+        except (OSError, ValueError, AttributeError) as err:
+            print(f"rescan failed on {file}: {type(err).__name__}", file=sys.stderr)
+            return 1
+    for file in changed:
+        print(f"{'rewrote' if args.fix else 'would rewrite'} {file}")
+    print(f"{len(changed)} file(s) {'rewritten' if args.fix else 'to rewrite'}; {skipped} other JSON file(s) skipped")
+    if not args.fix:
+        return 1 if changed else 0
+    leaks = scan_paths(args.paths)
+    for where, kind in leaks:
+        print(f"LEAK {where} ({kind})")
+    return 1 if leaks else 0
+
+
 def main(argv: list) -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest="command", required=True)
@@ -406,8 +532,11 @@ def main(argv: list) -> int:
     c.add_argument("--workspace")
     s = sub.add_parser("scan", help="leak-scan fixture files or folders")
     s.add_argument("paths", nargs="+")
+    r = sub.add_parser("rescan", help="re-apply the path rules to published fixtures and results")
+    r.add_argument("--fix", action="store_true", help="rewrite the files that change, then leak-scan the paths")
+    r.add_argument("paths", nargs="+")
     args = ap.parse_args(argv)
-    return {"payload": cmd_payload, "capture": cmd_capture, "scan": cmd_scan}[args.command](args)
+    return {"payload": cmd_payload, "capture": cmd_capture, "scan": cmd_scan, "rescan": cmd_rescan}[args.command](args)
 
 
 if __name__ == "__main__":

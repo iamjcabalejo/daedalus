@@ -5,6 +5,7 @@
   "refs": [
     "R-AC-1f"
   ],
+  "expects_permission_denial": true,
   "applies_to": {
     "installs": [
       "script",
@@ -101,6 +102,7 @@
   },
   "notes": [
     "F5 (interactive ask) is in the operational QA checklist (AC-13), not a case file.",
-    "verify in T0: permission rule syntax in the templates (Bash(echo *), WebFetch(domain:...), mcp__...)"
+    "verify in T0: permission rule syntax in the templates (Bash(echo *), WebFetch(domain:...), mcp__...)",
+    "expects_permission_denial: the case tests how the permission layer resolves a hook's ask under -p; a denial of the touch by the host is the expected outcome, whatever its wording. The runner passes Bash(touch *) with --allowedTools, so only the ask can stop it."
   ]
 }

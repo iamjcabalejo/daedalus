@@ -94,7 +94,8 @@ def dry_run(runs: list, args: argparse.Namespace, run_root) -> int:
     print("isolation: would compare a fresh snapshot with the first one; any difference is a FAIL")
     print(f"leak scan: would scan {staging} with redact.py before anything is published")
     print(f"publish: would copy {staging}/fixtures/{args.host}-{version}/ into scripts/probes/fixtures/ and merge "
-          f"results into scripts/probes/results/{args.host}-{version}.json")
+          f"results into scripts/probes/results/{args.host}-{version}.json, replacing every earlier fixture folder "
+          "and entry of each run's (case, variant, install), all or nothing")
     print("[dry-run] done: no model calls were made")
     return 0
 

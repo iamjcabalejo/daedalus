@@ -1,0 +1,89 @@
+{
+  "schema": "daedalus.probe-fixture/1",
+  "host": "claude",
+  "host_version": "2.1.325",
+  "install": "plugin",
+  "case": "I1",
+  "variant": null,
+  "event": "SubagentStop",
+  "seq": 6,
+  "mode": "record",
+  "tag": null,
+  "redactions": [
+    {
+      "path": "session_id",
+      "rule": "id"
+    },
+    {
+      "path": "transcript_path",
+      "rule": "home-path"
+    },
+    {
+      "path": "transcript_path",
+      "rule": "project-folder"
+    },
+    {
+      "path": "transcript_path",
+      "rule": "id"
+    },
+    {
+      "path": "cwd",
+      "rule": "workspace-path"
+    },
+    {
+      "path": "scratchpad_dir",
+      "rule": "id"
+    },
+    {
+      "path": "prompt_id",
+      "rule": "id"
+    },
+    {
+      "path": "agent_id",
+      "rule": "id"
+    },
+    {
+      "path": "agent_transcript_path",
+      "rule": "home-path"
+    },
+    {
+      "path": "agent_transcript_path",
+      "rule": "project-folder"
+    },
+    {
+      "path": "agent_transcript_path",
+      "rule": "id"
+    },
+    {
+      "path": "last_assistant_message",
+      "rule": "assistant-message"
+    },
+    {
+      "path": "scratchpad_dir",
+      "rule": "temp-path"
+    },
+    {
+      "path": "scratchpad_dir",
+      "rule": "project-folder"
+    }
+  ],
+  "payload": {
+    "session_id": "<SESSION-1>",
+    "transcript_path": "<HOME>/.claude/projects/<PROJECT>/<SESSION-1>.jsonl",
+    "cwd": "<WORKSPACE>/repo",
+    "scratchpad_dir": "<TMP>/<PROJECT>/<SESSION-1>/scratchpad",
+    "prompt_id": "<PROMPT-1>",
+    "permission_mode": "default",
+    "agent_id": "<AGENT-1>",
+    "agent_type": "probe:probe-reader",
+    "effort": {
+      "level": "medium"
+    },
+    "hook_event_name": "SubagentStop",
+    "stop_hook_active": false,
+    "agent_transcript_path": "<HOME>/.claude/projects/<PROJECT>/<SESSION-1>/subagents/agent-<AGENT-1>.jsonl",
+    "last_assistant_message": "<REDACTED:assistant-message>",
+    "background_tasks": [],
+    "session_crons": []
+  }
+}

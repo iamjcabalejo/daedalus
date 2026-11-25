@@ -8,7 +8,8 @@ Nothing here ships in a plugin: `scripts/build-plugin.sh` reads only `.claude/`.
 
 - **Isolation.** Every run happens in a fresh throwaway git repository under `$TMPDIR/daedalus-probes/<UTC-ts>/<case>[.<variant>]/<install>/`. The runner never writes to `~/.claude`, `~/.cursor`, `~/.codex`, user-scope settings or the hub's own `.claude/`. Templates live under `templates/script/…` rather than a literal `.claude/` folder, so the hub's own sessions never discover probe agents, commands or hooks.
 - **Cleanup and post-run check.** After each run the runner removes everything it installed: `repo/.claude`, `repo/.cursor`, `repo/.codex`, `repo/.mcp.json`, `probe-plugin/`, `bin/` and `ctrl.json`. It then confirms nothing is left. After the last run it compares the hub's `git status --porcelain` and SHA-256 digests of `~/.claude/settings.json`, the user plugin registries and the Cursor and Codex user hook files (plus `claude plugin list`) with a snapshot taken before the first run. Any difference is a FAIL.
-- **Publishing.** Fixtures and results are staged in `$TMPDIR` first. They're copied into `fixtures/` and `results/` only when the isolation check and the leak scan are both clean.
+- **Publishing.** Fixtures and results are staged in `$TMPDIR` first. They're copied into `fixtures/` and `results/` only when the isolation check and the leak scan are both clean. A rerun **replaces** the earlier fixtures folder and result entry of each `(host, version, case, variant, install)` it ran, including removing old fixtures when the rerun staged none for that key; keys it didn't run are kept. A key whose staged entry says it never reached the host (`not run: budget exhausted`, or `host not run; inconclusive` when the host call was skipped) counts as not run: its earlier entry and fixtures stay, and the not-run entry is published only for a key the results file doesn't have yet. The new `fixtures/<host>-<version>/` tree and results file are built in hidden work paths inside `fixtures/` and `results/`, then swapped in by rename, so publishing is all or nothing and writes nowhere else.
+- **Permissions without trusting the folder.** The runner never writes `~/.claude.json` to trust a probe folder. It passes the rendered project settings' `permissions.allow` rules on the command line instead (`--allowedTools <rule> …`, last on the argv, one rule per argument), and keeps them in the project settings too, which still carry the hooks and document the intent. See the T0 finding below.
 - **Cost.**
   - Live runs refuse to start without `--budget-usd`. They print the run count and the estimated ceiling (the sum of the cases' per-run caps) and refuse when the ceiling exceeds the budget.
   - Every `claude` call gets `--model haiku`, `--max-budget-usd <case cap>` and `--max-turns <case cap>`.
@@ -50,7 +51,7 @@ A missing `claude` CLI is BLOCKED (env). A missing `agent` (Cursor) or `codex` C
 | `observe.py` | Evaluates a case's observations against one capture and decides its status |
 | `isolation.py` | Snapshot and compare (hub and user scope), guarded `safe_remove`, leftover check |
 | `recorder.py` | The hook command used inside probe projects |
-| `redact.py` | Redaction library and CLI (`payload`, `capture`, `scan`) |
+| `redact.py` | Redaction library and CLI (`payload`, `capture`, `scan`, `rescan`) |
 | `cases/<id>.json` | 30 case definitions (`daedalus.probe-case/1`, `bench/schema/probe-case.schema.json`) |
 | `templates/{script,plugin,cursor,codex}/…` | Settings and hook files, probe agents, the probe command, and the `probe-mcp` server |
 | `fixtures/` | Redacted fixtures from live runs (P0b) |
@@ -80,7 +81,7 @@ S = script install (project `.claude/`), P = plugin install (generated `probe-pl
 
 **Case format:**
 - **Required keys:** `schema`, `id`, `title`, `refs`, `applies_to` (`installs`, `hosts`, optional `os`), `files` (per install: `{template, dest}`), `ctrl`, `stimulus.prompt`, `flags` (`max_turns`, `max_budget_usd`, optional `permission_mode`, `timeout_s`), `observations[]` and `status_rules`.
-- **Optional keys:** `vars`, `variants`, `notes` and `requires` (case ids the verdict depends on; see Attribution).
+- **Optional keys:** `vars`, `variants`, `notes`, `requires` (case ids the verdict depends on; see Attribution) and `expects_permission_denial` (default `false`; see Status).
 - **Template destinations** stay under `repo/` or `probe-plugin/`.
 - **Template variables** (`{{NAME}}`):
   - `HOOK_COMMAND` (the recorder, with the case's interpreter and dialect) and `RECORD_COMMAND` (always the real interpreter);
@@ -93,7 +94,15 @@ S = script install (project `.claude/`), P = plugin install (generated `probe-pl
   - any failed assertion means `contradicted` (a finding, not a failure);
   - all assertions passing means `confirmed`;
   - `evaluate: manual` records the facts and leaves the verdict to the findings document;
-  - a `confirmed` or `contradicted` entry of a case with `requires` becomes `inconclusive`, with the note `requires <id> confirmed (<id> <status>)`, unless each required case is `confirmed` for the same host version and install (see Attribution).
+  - a `confirmed` or `contradicted` entry of a case with `requires` becomes `inconclusive`, with the note `requires <id> confirmed (<id> <status>)`, unless each required case is `confirmed` for the same host version and install (see Attribution);
+  - **untrusted workspace:** when the host's stderr says the workspace `has not been trusted` and the host call didn't pass every project allow rule with `--allowedTools`, the run is `inconclusive` (`untrusted workspace: project allow rules ignored`). When it did pass them, the same note is kept as a recorded fact, without a downgrade;
+  - **permission or unattributed denial of the probed call:** when a `permission`-sourced denial (see Denials) hits a call the verdict depends on, the run is `inconclusive` (`permission denial, not the probed mechanism (<tool>)`); an `unknown`-sourced one does the same (`unattributed denial (<tool>)`), so a host release that rewords its permission denials can't leave a fail-closed check `confirmed` (the safe direction: until the markers are updated, a reworded hook denial is `inconclusive` too). Both are exempt when the case sets `expects_permission_denial: true`. Only F1–F4 set it: they test how the permission layer resolves a hook's `ask` under `-p`, so a host denial of the touch is the expected outcome (and with `Bash(touch *)` passed on the command line, only the ask can stop it). Every other case leaves it `false`: a permission denial there means the host blocked the call before the mechanism under test (a hook's crash, timeout or deny, the sandbox, a matcher) was exercised.
+- **Denials.** Every run gets a `denial-sources` record in its observations: `{hook, permission, unknown, denials[{tool, source, probed_call, command}]}`, with tool names and at most the command's first word (its basename), never its arguments. Each `permission_denials` entry of every `result` event (2.1.325 emits one result per turn; the last can be empty) is matched to its `tool_result` by `tool_use_id` and classified from that text:
+  - `hook`: it carries one of the run's recorder markers: a control rule's `reason`, the recorder's default or crash text, or the recorder's command (`…/bin/recorder.py`), which the host quotes when a hook fails under `onFailure: "block"` (E2, E4);
+  - `permission`: the host's own wording (`needs approval`, `permission`, `haven't granted`);
+  - `unknown`: anything else, including a denial with no `tool_result`.
+
+  The calls a verdict depends on are the ones the case's preconditions and assertions name: an `event`, `field`, `count` or `identity-echo` observation on `PreToolUse`/`PostToolUse` with `where` clauses, or a `stream` `tool-use` check. The clauses run on the denied call's recorded `PreToolUse` payload, joined on `tool_use_id`; without that record, a clause on a field the denial doesn't carry (`agent_type`) counts as a match, so an unattributable denial errs towards `inconclusive`. A case whose observations name no call (D1, G1, H2) can't be hit; its denials are still recorded. C4's permissionMode check is decided by `seed.txt`, and the agent's edit isn't one of its call selectors, so a permission denial of that edit is recorded, not acted on.
 - **Preconditions prove the attempt.** An asserted absence (no marker, no PostToolUse, fewer than n calls) also passes when nothing happened. So a case that asserts one also has a precondition showing the probed call was made: a hook record of the call, `SubagentStart`, or a `tool_use` in the stream. Without it, a run that never tried the call is `inconclusive`, not `confirmed` or `contradicted`.
 - **Attribution depends on A1.** In C1–C4, F3, F4 and I1, a helpful main thread could otherwise decide the case by doing the agent's work itself. So:
   - the observations about the probe agent (its `SubagentStart`, its tool calls, its `SubagentStop`) match only payloads whose `agent_type` ends in the agent's name (`probe-tools`, or `probe:probe-tools` on plugin installs; `{"field": "agent_type", "op": "endswith", "value": "<agent>"}`);
@@ -146,12 +155,18 @@ It appends every call to `out/raw/<event>.jsonl` as `{seq, received_at, event, t
 | Every string under `tool_response` | `<REDACTED:tool-response>` (shape kept) |
 | Command text after its first word | `<first word> <REDACTED:command-args>` |
 | The run workspace, home directories, macOS temp roots, encoded project folders and emails | `<WORKSPACE>`, `<HOME>`, `<TMP>`, `<PROJECT>`, `<EMAIL>` |
+| The host's per-user temp root (`/private/tmp/claude-<uid>`, in any temp folder) | `<TMP>` (rule `temp-path`) |
+| A dash-encoded path, the form hosts give folders named after a path (`-Users-<name>-…`, `-home-<name>-…`, `-private-var-folders-…-T-…`, the encoded run workspace or home), to the end of its path segment | `<PROJECT>` (rule `project-folder`) |
 | Session, conversation, agent, tool-use and similar ids, and any other UUID | Stable placeholders (`<SESSION-1>`, `<AGENT-2>`, `<ID-1>`) |
 
 Placeholders are stable across one capture, so equal ids stay equal (A2's consistency check still works), and an id inside a path gets the same placeholder. Each fixture lists its redactions as `{path, rule}`.
 
-The leak scan (`redact.py scan`, run by `scripts/test-probes.sh` over `fixtures/` and `testdata/`) flags:
-- home paths (plain and encoded), macOS temp paths, emails and UUIDs;
+**T0 (2.1.325): `scratchpad_dir`.** 2.1.325 adds `scratchpad_dir` to every hook payload: `/private/tmp/claude-<uid>/<encoded cwd>/<session>/scratchpad`, where the encoded cwd spells out the operator's per-user temp folder. It's redacted to `<TMP>/<PROJECT>/<SESSION-n>/scratchpad`. The 474 fixtures of the first 2.1.325 rerun were published before that rule and re-redacted in place with `redact.py rescan --fix` (only `scratchpad_dir` changed, with `temp-path` and `project-folder` appended to `redactions`; `seq` and every placeholder are unchanged).
+
+**Re-redacting published files.** `redact.py rescan PATH...` applies the current path rules to the fixture and result files under the paths and lists the ones that would change (exit 1 when any would). `--fix` rewrites only those files, each by an atomic replace, then leak-scans the paths. Only path rules run, so ids, placeholders, markers, `seq` and key order are kept, and a fixture's new replacements are appended to its `redactions`. Other JSON files are skipped, and a second run changes nothing. `scripts/test-probes.sh` fails when a committed file still needs a rescan.
+
+The leak scan (`redact.py scan`, run by `scripts/test-probes.sh` over `fixtures/`, `results/` and `testdata/`, and by the runner over the staged files) flags:
+- home paths (plain and encoded), macOS temp paths (plain and encoded: `-var-folders-`), the host's per-user temp root (`/claude-<uid>/`), emails and UUIDs;
 - prompt or message text without a marker, command text past the first word, and ids that aren't placeholders;
 - any raw `.jsonl` file.
 
@@ -164,7 +179,7 @@ Findings report the location and kind, never the matched text.
 
 **Result (`daedalus.probe-result/1`):**
 - **Path:** `results/<host>-<version>.json` = `{schema, host, host_version, generated_at, entries[]}`.
-- **Each entry:** `{case, variant, install, host, host_version, os, status, observations[{check, expected, actual, outcome, role}], fixture_ids, cost_usd, plugins_enabled, notes, run_at}`.
+- **Each entry:** `{case, variant, install, host, host_version, os, status, observations[{check, expected, actual, outcome, role}], fixture_ids, cost_usd, plugins_enabled, notes, run_at}`. The runner adds the `denial-sources` record (role `record`) to every run's observations.
 - **`status`:** `confirmed`, `contradicted`, `inconclusive` or `docs-only`.
 - **`plugins_enabled`:** lists `daedalus*` names plus `other:<count>`, never other plugin names.
 
@@ -179,6 +194,16 @@ The P0a code assumes these host behaviors. T0 confirms them on the installed CLI
   - `--output-format stream-json` with `--verbose`;
   - the stream's `result` fields (`total_cost_usd`, `usage`, `permission_denials`);
   - the assistant events' `tool_use` blocks (`{"type": "assistant", "message": {"content": [{"type": "tool_use", "name", "input"}]}}`), read by the `stream` check `tool-use`.
+- **Flags hidden from `--help`.** **T0 (2.1.325): `--max-turns` works but isn't listed in `claude --help`; the parse check verifies it.** The preflight looks for each required and optional flag in `claude --help`, and gives a flag it doesn't find a parse check before it counts as missing:
+  - **argv:** `claude -p <flag> <placeholder> --zz-daedalus-unknown-flag`, with no prompt, stdin from `/dev/null`, a fresh empty temp directory as the cwd, and a 10-second timeout. The placeholders are `1` (`--max-turns`), `0.01` (`--max-budget-usd`), `haiku` (`--model`), `text` (`--output-format`), `default` (`--permission-mode`) and the temp directory (`--plugin-dir`).
+  - **Accepted** only when the CLI exits non-zero with an error that names the fake flag and not the flag under test. Anything else (the flag under test named, a clean exit, other output, a timeout) means missing: a required flag blocks the run, and an optional one is dropped with its fallback.
+  - **Recorded:** the preflight prints each accepted-but-hidden flag, and each result whose host call passes one notes it once (``accepted but hidden from `claude --help` (verified by a parse check): --max-turns``).
+  - **No model call:** the parser rejects the unknown option before any action runs, and even a parser that ignored it would have no prompt to send.
+- **Project allow rules in an untrusted folder.** **T0 (2.1.325, first live run, 65 runs): in `-p` mode the CLI ignores a project's `permissions.allow` in a folder nobody has trusted.** Every run's stderr said `Ignoring 15 permissions.allow entries from .claude/settings.json: this workspace has not been trusted`, and calls the rules should have allowed were denied by the host before the case's mechanism mattered (`touch … needs approval`; `… but you haven't granted it yet`; a background agent's `Permission prompts are not available in this context`). E1–E4 `default`, E3 `on-failure-block`, H2, I1, J1, C4's plugin edit and M2's first MCP call were confounded that way; B2, H1, L1, M2's second call, E1/E2/E4 `on-failure-block` and both E5 variants were denied by the probe hook itself, and F1–F4 by the hook's `ask` (the denial text is the ask's reason). That run's published files are superseded by the rerun. The harness now:
+  - passes the same rules with `--allowedTools` (an optional preflight flag; when the CLI lacks it, runs in an untrusted folder are `inconclusive`);
+  - marks a run `inconclusive` when the warning appears and the rules weren't passed (Status);
+  - classifies every denial by source (Denials).
+- **Security observation (2.1.325): project hooks run in an untrusted folder.** In the same untrusted runs, the project's `.claude/settings.json` hooks still ran, and their decisions were enforced: on script installs (hooks in the project settings) the recorder captured `PreToolUse`, `PostToolUse`, `SubagentStart`, `SubagentStop`, `UserPromptSubmit`, `UserPromptExpansion` and `Stop`, the hook's denies blocked calls (B2, L1) and `onFailure: "block"` blocked them too (E1, E2), while the same file's `permissions.allow` was ignored. A repository's hook commands therefore execute in `-p` mode before anyone has accepted the trust dialog: trust gates the allow rules, not hook execution. Recorded for the findings document.
 - **`claude plugin list`:** used for the isolation digest and `plugins_enabled`. The names of the user plugin registry files are `installed_plugins.json` and `known_marketplaces.json`.
 - **Hook and settings keys:**
   - `onFailure`, `UserPromptExpansion` and `SubagentStart`;
@@ -194,13 +219,17 @@ The P0a code assumes these host behaviors. T0 confirms them on the installed CLI
 
 `bash scripts/test-probes.sh` runs offline (no credentials, no model calls). It covers:
 - every recorder mode and control option, including concurrency;
-- redaction rules and placeholder equality;
-- the leak scan over `fixtures/` and `testdata/`, and fixture and result schema validation;
+- redaction rules and placeholder equality, including 2.1.325's dash-encoded `scratchpad_dir` and the `/claude-<uid>/` temp root;
+- the leak scan over `fixtures/`, `results/` and `testdata/` (the form 39cf56d published fails it), fixture and result schema validation, and `redact.py rescan --fix` (re-redacts in place, appends the rules, idempotent; the committed files need no rescan);
 - validation of every case file, including variant ids that would leave the workspace;
 - the status guards: a run without the host, a timed-out run, or a run that never attempted the probed call is `inconclusive`;
 - attribution: a main-thread call can't decide C1–C4, F3, F4 or I1 (another agent's `SubagentStart` or one without `agent_type` doesn't count either);
 - the `requires` gate: a dependent is decided only when A1 is `confirmed` for the same host version and install, in the run and in the merged results file; A1 needs `agent_type` on the agent's PostToolUse as well as its PreToolUse, so a C1 that would read `confirmed` on a host that attributes only PreToolUse ends `inconclusive`;
 - the `probe-mcp` JSON-RPC handshake and echo;
-- the `--dry-run` action list with no host calls;
+- the `--dry-run` action list with no host calls, including `--allowedTools` with the template's allow rules on every `claude` call;
+- the `claude` flag preflight against a fake `claude` on PATH: a flag in `--help` needs no parse check; a hidden flag the parser accepts is recorded and noted once on the results that pass it; a flag the parser names, a clean exit, other output or a timeout is missing (a required flag blocks, an optional one is dropped);
+- the trust check: the untrusted warning without the rules on the command line is `inconclusive`; with them it's a recorded note;
+- denial classification (`hook`, `permission`, `unknown`) on synthetic streams, the `denial-sources` record, and the probed-call rule: a permission or `unknown` denial of the probed call is `inconclusive`, a hook denial or a denial of another call keeps the verdict, and F1–F4 expect one;
+- publishing a rerun: it replaces the same keys' entries and fixtures (old fixture files removed), keeps other keys, keeps a not-run key's earlier entry and fixtures (budget exhausted or host skipped), writes only inside `fixtures/` and `results/`, and a failure leaves both unchanged;
 - the isolation and cleanup logic on a fake hub, home and workspace;
 - the offline pipeline (workspace → recorder → observe → redact → cleanup) on a synthetic capture.

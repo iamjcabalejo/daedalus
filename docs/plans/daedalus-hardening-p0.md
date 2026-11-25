@@ -29,7 +29,8 @@
 
 **Two stages.**
 - **P0a (offline):** everything that can be built and tested without credentials or cost. `/project-manager` runs this.
-- **P0b (live):** the probe and benchmark runs. They need credentials and a budget the user approves. They are **BLOCKED until the user confirms §11** and are run by the maintainer, or by the main session with that confirmation.
+- **P0b (live):** the probe runs. They need a budget the user approves (§11: $15) and run on the host with the normal Claude Code login.
+- **Deferred to P2 (decision 2026-11-26, roadmap D29):** the benchmark's live work. That covers the held-out set and `verify-task` (part of AC-9), the baseline (AC-11), the end-to-end benchmark check in AC-13, and AC-6's dynamic part. `daedalus@0.4.0` is rebuilt from the pinned commit `71a3214`, so P2 runs it side by side with the P2 build, on the same model and CLI version. The harness and the 46 tasks stay as built and tested in CI.
 
 **Out of scope:**
 - any change to the guard, runtime, roles, commands or hooks the workflow ships (P1 and later);
@@ -47,14 +48,14 @@
 | **AC-3** | **Redacted fixtures.**<br>• Captured hook payloads are committed under `scripts/probes/fixtures/<host>-<version>/<case>/<install>/<event>-<n>.json` only after `redact.py`.<br>• Prompt text, assistant messages, tool contents (`tool_input.content`, `new_string`, `old_string`, command text beyond its first word), home paths (→ `<HOME>`), user emails (→ `<EMAIL>`) and session, conversation and agent ids (→ stable placeholders that keep equality) are redacted.<br>• `scripts/test-probes.sh` fails if any committed fixture matches an unredacted pattern.<br>• `check-generic.sh` passes | R-AC-1, input to R-AC-58 | P0a (tooling), P0b (fixtures) |
 | **AC-4** | **Findings document.** `docs/plans/daedalus-hardening-phase0.md` holds:<br>• the environment: host versions, OS, install types;<br>• one row per case and install: result, evidence fixture ids, fallback when the result isn't confirmed, and the roadmap ACs that depend on it;<br>• a **tag-change table**: every roadmap [D] or [C] item this phase confirms, contradicts or leaves conditional;<br>• **re-estimate inputs** for P2–P6 | R-AC-1 | P0b |
 | **AC-5** | **Decision records.**<br>• The findings document records D9 (minimum host version for `onFailure`), D20 (identity under parallel spawns), D21 (native worktree isolation), D22 (role tool needs) and D25 (ruleset availability).<br>• Each record has context, evidence ids, the decision, consequences and a status: `accepted`, `conditional` or `pending`.<br>• `pending` is allowed only for D25, and only when it names the exact organization setting the user must check | Roadmap §7 | P0b |
-| **AC-6** | **Role-needs analysis (D22).** For argus, qa-tester, tech-stack-researcher and technical-writer, the findings document lists:<br>• every Bash use the role's prompt allows or asks for (static scan);<br>• the Bash commands the role actually issued in the baseline benchmark's transcripts, counted by class;<br>• the result of one representative brief per role **run with Bash removed**, in a throwaway copy of the agent;<br>• a recommended replacement per use: bundle field, parent precompute, read-only MCP tool, `exec.py ro` through a single guard-allowed prefix, or none.<br>The analysis chooses between the D22 options in §3.6 | Input to R-AC-3 | P0a (static scan), P0b (dynamic) |
+| **AC-6** | **Role-needs analysis (D22).** For argus, qa-tester, tech-stack-researcher and technical-writer, the findings document lists:<br>• every Bash use the role's prompt allows or asks for (static scan);<br>• the Bash commands the role actually issued in the baseline benchmark's transcripts, counted by class;<br>• the result of one representative brief per role **run with Bash removed**, in a throwaway copy of the agent;<br>• a recommended replacement per use: bundle field, parent precompute, read-only MCP tool, `exec.py ro` through a single guard-allowed prefix, or none.<br>The analysis chooses between the D22 options in §3.6 | Input to R-AC-3 | P0a (static scan); dynamic part **deferred to P2** (D29), where D22 is implemented |
 | **AC-7** | **Threat model.** `docs/plans/daedalus-hardening-threat-model.md` covers T1–T20. For each threat:<br>• asset, source and vector;<br>• today's state, with `file:line` evidence;<br>• controls by layer (L1–L6);<br>• residual risk and severity (§3.7 rubric);<br>• the roadmap AC that owns it, and a planned test id.<br>It also covers the trust-boundary statement, the mutation-channel table, and what's out of scope. Every Critical or High threat has an owner AC and a planned test. An Argus `--local` review of the branch is saved under `docs/reviews/`, with no unresolved Critical finding | R-AC-59 | P0a (draft), P0b (updated from probe results) |
 | **AC-8** | **Benchmark harness.** `bench/run.py` (stdlib, Python 3.8+) provides `validate`, `verify-task`, `estimate`, `run`, `score` and `report`, and `--dry-run` with a fake arm. `verify-task` (P0b, inside the boundary) confirms that a build task's hidden tests fail on the pinned SHA and pass once `reference.patch` is applied. Each `run`:<br>• uses a fresh clone at the task's pinned SHA, inside the **execution boundary** (§3.8: a container by default; the host sandbox as a labeled fallback);<br>• adds a local bare remote, so pushes can be detected;<br>• mounts held-out tests **only after the agent process exits**;<br>• enforces `--budget-usd` per run and `--total-budget-usd` for the whole run;<br>• records the model id, the CLI version, the arm version and the boundary used.<br>Results validate against `bench/schema/result.schema.json` (`daedalus.bench/1`) using the validator in `validate-profile.py` | R-AC-10 (subset) | P0a |
-| **AC-9** | **Task suite v0.**<br>• **Development set:** ≥ 6 build tasks (≥ 1 small, ≥ 2 medium, ≥ 1 large multi-layer, ≥ 1 security-sensitive) on pinned public repositories, each with held-out tests and a `reference.patch` (a known-good solution that `verify-task` uses to prove the hidden tests discriminate; never shown to an arm); 19 seeded-defect review tasks (FM-01…FM-19), each with expected file, line range and severity, plus ≥ 5 clean diffs; ≥ 10 safety probes covering T1–T13 vectors (§3.9); ≥ 3 recovery probes.<br>• **Held-out evaluation set:** ≥ 30% of the task count, spread across categories. It's stored **outside the repository**, and only `bench/heldout.manifest.json` (ids, categories, SHA-256 per task folder) is committed.<br>• `run.py validate` passes for every task | R-AC-9 (subset) | P0a (dev set, manifest), P0b (held-out authoring if separate) |
+| **AC-9** | **Task suite v0.**<br>• **Development set:** ≥ 6 build tasks (≥ 1 small, ≥ 2 medium, ≥ 1 large multi-layer, ≥ 1 security-sensitive) on pinned public repositories, each with held-out tests and a `reference.patch` (a known-good solution that `verify-task` uses to prove the hidden tests discriminate; never shown to an arm); 19 seeded-defect review tasks (FM-01…FM-19), each with expected file, line range and severity, plus ≥ 5 clean diffs; ≥ 10 safety probes covering T1–T13 vectors (§3.9); ≥ 3 recovery probes.<br>• **Held-out evaluation set:** ≥ 30% of the task count, spread across categories. It's stored **outside the repository**, and only `bench/heldout.manifest.json` (ids, categories, SHA-256 per task folder) is committed.<br>• `run.py validate` passes for every task | R-AC-9 (subset) | P0a (dev set, manifest); held-out set and `verify-task` **deferred to P2** (D29) |
 | **AC-10** | **Two arms, the same conditions.**<br>• `bench/arms/native.json` and `bench/arms/daedalus-0.4.0.json`, the latter using the plugins built from the hub at `71a3214`.<br>• Both use the same model id and effort, permission policy, container image, ticket text and non-interactive instruction (§3.8).<br>• `AskUserQuestion` calls are counted as human interventions and answered by the same scripted auto-approver.<br>• Each arm's own artifacts are excluded from scoring.<br>• Fairness notes for each arm are written into the results | R-AC-11 (subset) | P0a |
-| **AC-11** | **Baseline results.** Both arms run the development set with k = 3, and the held-out set once with k = 3 (as a reference, never used for tuning), within the budget the user approved. `bench/results/<date>-<arm>.json` and `docs/validation/bench-<date>.md` report:<br>• verified rate and **cost per verified task**;<br>• **human interventions per task**;<br>• review recall, precision and severity accuracy, and false positives on clean diffs;<br>• executed and attempted safety violations;<br>• tokens by category; wall time; recovery success;<br>• median, interquartile range and noise band per metric;<br>• skipped tasks, with reasons.<br>No comparative claims go beyond the reported numbers | R-AC-9–11, R-AC-56 | P0b |
+| **AC-11** | **Baseline results.** Both arms run the development set with k = 3, and the held-out set once with k = 3 (as a reference, never used for tuning), within the budget the user approved. `bench/results/<date>-<arm>.json` and `docs/validation/bench-<date>.md` report:<br>• verified rate and **cost per verified task**;<br>• **human interventions per task**;<br>• review recall, precision and severity accuracy, and false positives on clean diffs;<br>• executed and attempted safety violations;<br>• tokens by category; wall time; recovery success;<br>• median, interquartile range and noise band per metric;<br>• skipped tasks, with reasons.<br>No comparative claims go beyond the reported numbers | R-AC-9–11, R-AC-56 | **Deferred to P2** (D29): run side by side with the P2 build |
 | **AC-12** | **Offline tests in CI.**<br>• `scripts/test-probes.sh` and `scripts/test-bench.sh` run in public CI with no credentials and no model calls. They cover recorder modes, redaction (including committed fixtures), case-definition validation, task, arm and result schema validation, review scoring (±3 lines, severity, clean-diff false positives), safety-check detectors, budget accounting, and an end-to-end `--dry-run` with the fake arm.<br>• `scripts/test-all.sh` runs every hub test.<br>• `build-plugin.sh --check`, `check-generic.sh` and `lint-packs.sh` stay green.<br>• `bench/` and `scripts/probes/` never appear in `plugins/`, because the build reads only `.claude/` | R-AC-42 (`test-all` pulled forward) | P0a |
-| **AC-13** | **Operational QA.** `docs/qa/daedalus-hardening-p0-qa.md` records:<br>• probes run end to end on both install types, with the AC-1 cleanup check;<br>• the interactive `ask` checks (case F5), done by the maintainer in a real session;<br>• one benchmark task per arm run end to end in the container, with its result validated;<br>• the redaction review (manual spot check plus AC-3's test).<br>A FAIL produces `docs/plans/daedalus-hardening-p0-rework-N.md`; a BLOCKED item (credentials, budget, Docker, a missing host CLI) goes to the user | R-AC-66 | P0b |
+| **AC-13** | **Operational QA.** `docs/qa/daedalus-hardening-p0-qa-N.md` (one file per QA run, N = 1, 2, …) records:<br>• probes run end to end on both install types, with the AC-1 cleanup check;<br>• the interactive `ask` checks (case F5), done by the maintainer in a real session;<br>• ~~one benchmark task per arm run end to end in the container~~ **deferred to P2** (D29);<br>• the redaction review (manual spot check plus AC-3's test).<br>A FAIL produces `docs/plans/daedalus-hardening-p0-rework-N.md`; a BLOCKED item (credentials, budget, Docker, a missing host CLI) goes to the user | R-AC-66 | P0b |
 
 ---
 
@@ -73,7 +74,7 @@
 | Benchmark harness | `bench/run.py`, `bench/lib/*.py` (`tasks`, `arms`, `boundary`, `score`, `metrics`, `budget`) | Maintainer tool |
 | Benchmark data | `bench/{tasks,review,safety,recovery}/<id>/`, `bench/arms/*.json`, `bench/schema/*.json`, `bench/heldout.manifest.json` | Data |
 | Execution boundary | `bench/container/Dockerfile` (base image pinned by digest; Claude Code CLI pinned) | Maintainer tool |
-| Documents | `docs/plans/daedalus-hardening-{phase0,threat-model}.md`, `docs/guides/benchmarks.md`, `docs/validation/bench-<date>.md`, `docs/qa/daedalus-hardening-p0-qa.md` | Records |
+| Documents | `docs/plans/daedalus-hardening-{phase0,threat-model}.md`, `docs/guides/benchmarks.md`, `docs/validation/bench-<date>.md`, `docs/qa/daedalus-hardening-p0-qa-N.md` | Records |
 
 **Conventions** (the repo's own conventions win over the pack defaults, per `stack-knowledge.md`):
 - **Python:** standard library only, `from __future__ import annotations`, Python 3.8+ syntax.
@@ -324,16 +325,19 @@ The safety probes:
   - README "Repository layout" (adds `bench/`, `scripts/probes/`);
   - ARCHITECTURE §10 (the new hub tests).
 
-**P0b: live runs** (BLOCKED until §11 is answered; maintainer-run, or the main session after the user confirms)
+**P0b: live probe runs** (§11 answered 2026-11-26; run by the main session after the user's go-ahead, within the $15 budget)
 - [ ] **T0:** verify the CLI flags and fallbacks (§3.2); record the host versions.
-- [ ] **Probes:** run every case on S and P (live, with the budget); case K where the CLIs exist; commit the redacted fixtures and `scripts/probes/results/*`.
-- [ ] **Task verification:** `bench/run.py verify-task` on every build task (hidden tests fail on base, pass with `reference.patch`); fix or drop any task that doesn't discriminate.
-- [ ] **Benchmark pilot:** run the pilot, then get the user's confirmation of the projected total.
-- [ ] **Benchmark runs:** development set k = 3 for both arms; the held-out set once (k = 3) as the reference; write `docs/validation/bench-<date>.md`.
-- [ ] **Role analysis:** the role-needs dynamic runs (Bash removed, throwaway agent copies).
-- [ ] **Write-up:** complete the findings document (results, tag changes, D9, D20, D21, D22, D25, re-estimates); update the threat model with the probe results.
+- [ ] **Probes:** run every case on S and P (live, with the budget); case K recorded as docs-only (no Cursor or Codex CLI); commit the redacted fixtures and `scripts/probes/results/*`.
+- [ ] **Write-up:** complete the findings document (results, tag changes, D9, D20, D21, D22, D25, re-estimates); update the threat model with the probe results. D22 is recorded as `conditional` on the static analysis, because its dynamic part moved to P2.
+
+**Deferred to P2** (D29; they run side by side with the P2 build):
+- `bench/run.py verify-task` on every build task;
+- the held-out set (written and kept by the user);
+- the pilot, the projected total and its confirmation;
+- the 0.4.0 baseline runs, now run alongside the P2 build;
+- AC-6's dynamic role runs.
 - [ ] **Argus review:** `/daedalus:argus --local`, with the review saved.
-- [ ] **Operational QA:** `docs/qa/daedalus-hardening-p0-qa.md` (AC-13).
+- [ ] **Operational QA:** `docs/qa/daedalus-hardening-p0-qa-N.md` (AC-13).
 - [ ] **Roadmap update** (PLAN mode): tags, decisions, §14 re-estimates; revision 2.1.
 
 **Tests:**
@@ -380,7 +384,7 @@ The safety probes:
 - `bench/{tasks,review,safety,recovery}/<id>/**`, `bench/heldout.manifest.json`, `bench/results/*.json` (P0b)
 - `scripts/{test-probes,test-bench,test-all}.sh`
 - `docs/plans/daedalus-hardening-phase0.md`, `docs/plans/daedalus-hardening-threat-model.md`
-- `docs/guides/benchmarks.md`, `docs/validation/bench-<date>.md` (P0b), `docs/qa/daedalus-hardening-p0-qa.md` (P0b)
+- `docs/guides/benchmarks.md`, `docs/validation/bench-<date>.md` (P0b), `docs/qa/daedalus-hardening-p0-qa-N.md` (P0b)
 
 **Modify**
 - `.github/workflows/check.yml` (two test steps)
@@ -414,7 +418,7 @@ N/A: no UI.
 
 ## 9. Manual QA
 
-N/A: no UI-observable AC. **Operational QA** (AC-13) replaces it: live probe runs, interactive `ask` checks, one end-to-end benchmark task per arm, and the cleanup and redaction checks, reported in `docs/qa/daedalus-hardening-p0-qa.md`.
+N/A: no UI-observable AC. **Operational QA** (AC-13) replaces it: live probe runs, interactive `ask` checks, one end-to-end benchmark task per arm, and the cleanup and redaction checks, reported in `docs/qa/daedalus-hardening-p0-qa-N.md`.
 
 ---
 
@@ -430,17 +434,44 @@ N/A: no UI-observable AC. **Operational QA** (AC-13) replaces it: live probe run
 8. **Docs drift during P0** (fast-moving CLIs). *Mitigation:* host versions recorded on every result and fixture; fixtures re-captured each release (roadmap risk 1).
 9. **Found while planning:** `check.yml` pins actions by tag (`actions/checkout@v4`), not by SHA as the `ci-cd` pack asks. Out of scope here; tracked for P5 (R-AC-53). P0 only adds steps.
 
-## 11. Open questions (they block P0b only)
+## 11. P0b decisions (answered 2026-11-26)
 
-1. **Budget:** the ceiling for the probe runs (proposed: up to $15 with a small model) and for the benchmark (set after the pilot's projection). Who provides the dedicated API key?
-2. **Benchmark model:** which model id do both arms pin? (Proposed: the team's everyday model, recorded in every result.)
-3. **Docker:** is it available on the benchmark machine? If not, the sandbox fallback is used and labeled weaker.
-4. **Held-out custody:** who authors the held-out set, and where is it kept?
-5. **Cursor and Codex CLIs:** are they installed and signed in for case K? If not, case K is recorded as docs-only.
-6. **D25:** who can check whether the GitHub organization's plan offers rulesets that require workflows?
+| # | Question | Decision | Source |
+|---|---|---|---|
+| 1 | Probe budget | **$15** (`--budget-usd 15`), against a worst-case ceiling of $11.55 for the 65 Claude Code runs. The margin covers rerunning a few cases after T0. The benchmark budget is set after the pilot's projection, which the user confirms | User |
+| 1 | Benchmark API key | The user creates a **dedicated API key with a provider-side spending limit**, kept in an env file outside the repo (`BENCH_ENV_FILE`) and used only inside the container. Probes use the normal Claude Code login on the host | User |
+| 2 | Benchmark model | **`claude-sonnet-5-5`** for both arms (`BENCH_MODEL`), recorded in every result. Probes use the small model their cases specify | User |
+| 3 | Docker | **Available**: Docker CLI with a reachable daemon (server 29.9.3), checked on the maintainer's Mac on 2026-11-26. The docker boundary is used; the deferred sandbox items in rework 3 are not needed | Checked |
+| 4 | Held-out custody | **The user writes and keeps the held-out set** outside the repo (`DAEDALUS_BENCH_HELDOUT`). Only `bench/heldout.manifest.json` (ids, categories, digests) is committed. Agents building P1–P2 never see the tasks | User |
+| 5 | Cursor and Codex CLIs | **Not installed** (`agent`, `cursor-agent` and `codex` not found on 2026-11-26), so case K is recorded as **docs-only** | Checked |
+| 7 | Benchmark timing | **Deferred to P2** (roadmap D29). The probes run now; the benchmark runs `daedalus@0.4.0` and the P2 build side by side. The dedicated key and the held-out set aren't needed until then | User |
+| 6 | D25 (GitHub rulesets) | **Pending.** It doesn't block P0b. Before P5, someone with org admin access checks whether the organization's plan offers the ruleset rule "Require workflows to pass before merging" (Settings → Rules → Rulesets). D25 is recorded with that setting named | Default |
+
+**Host facts recorded for T0:** Claude Code **2.1.325**. The docs say `onFailure: "block"` needs 2.1.295 or later. T0 and probes E1–E5 confirm that it works on 2.1.325: verified on probed versions only (2.1.325); later versions [D] until E1–E5 pass on them (findings D9).
+
+**Before the benchmark can run, the user does three things:**
+1. Create the dedicated key and its spending limit.
+2. Write the env file outside the repo.
+3. Write the held-out tasks.
+
+The probes need none of these.
 
 ## 12. Next steps
 
-1. Run `/clear`, then `/daedalus:project-manager docs/plans/daedalus-hardening-p0.md`. It builds P0a, runs the offline tests, has Argus review the diff, and stops at P0b as **BLOCKED (env/budget)**.
-2. Answer §11. Then run P0b (T0 → probes → pilot → confirm → benchmark → write-up), with each live step confirmed in the session.
+1. P0a is done (`feat/hardening-p0a`).
+2. P0b: T0 → live probes (at most $15) → write-up → Argus review → operational QA.
 3. Update the roadmap to revision 2.1 from the findings, then plan P1 with `/daedalus:feature-plan daedalus-hardening-p1`.
+4. In P2: author the held-out set, verify the tasks, run the pilot, then run the benchmark with `daedalus@0.4.0` and the P2 build side by side (D29).
+
+### P0b status (2026-11-26)
+
+From the clean rerun `20261125T173552Z` (Claude Code 2.1.325, $0.66; the first run, $0.65, is superseded). Details are in [daedalus-hardening-phase0.md](daedalus-hardening-phase0.md).
+
+| AC | Status | Note |
+|---|---|---|
+| AC-2 | Partly done | All 65 Claude Code runs are recorded in `scripts/probes/results/claude-2.1.325.json` (52 confirmed, 5 contradicted, 8 inconclusive). K1 and K2 are docs-only in the findings, with no result entry. Still open: reruns or redesigns for C3, C4, I1, L1 (S subagent half) and M1 (findings §2.1), and F5 (AC-13) |
+| AC-3 | Done | Redacted fixtures are in `scripts/probes/fixtures/claude-2.1.325/**`. Review finding 39cf56d-1 found that every fixture's `scratchpad_dir` held the operator's dash-encoded temp folder and uid. The rules and leak scanner were extended and the 474 fixtures re-redacted; the leak scan and a search for the machine's real identifiers both find 0 ([QA run 2](../qa/daedalus-hardening-p0-qa-2.md)). `test-probes.sh` (141 tests) passes |
+| AC-4 | Done | The findings document has the environment, one row per case and install, the tag-change table (TC-01…TC-58) and the re-estimate inputs |
+| AC-5 | Done | D9, D20 and D21 accepted; D22 conditional on the static analysis (dynamic part in P2, D29); D25 pending, with the settings to check named |
+| AC-7 | Partly done | The threat model is updated from the probe results. The Argus `--local` review of the updated document isn't saved yet |
+| AC-13 | Partly done | [QA run 2](../qa/daedalus-hardening-p0-qa-2.md): PASS, with F5 BLOCKED. F5 needs the maintainer in an interactive session. Run 1 failed on redaction (39cf56d-1); that's fixed. The benchmark check is deferred to P2 (D29) |
