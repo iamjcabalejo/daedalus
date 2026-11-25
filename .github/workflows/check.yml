@@ -26,3 +26,7 @@ jobs:
         env:
           WORKFLOW_MATRIX_CACHE: ${{ runner.temp }}/workflow-matrix
         run: scripts/test-detector.sh
+      - name: Probe harness offline tests (AC-12; no credentials, no model)
+        run: scripts/test-probes.sh
+      - name: Benchmark harness offline tests (AC-12; no credentials, no docker, no model)
+        run: scripts/test-bench.sh

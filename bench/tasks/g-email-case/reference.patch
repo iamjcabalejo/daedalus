@@ -1,0 +1,91 @@
+diff --git a/users/models.go b/users/models.go
+index 92581d3..70c6310 100644
+--- a/users/models.go
++++ b/users/models.go
+@@ -2,6 +2,7 @@ package users
+ 
+ import (
+ 	"errors"
++	"strings"
+ 
+ 	"github.com/gothinkster/golang-gin-realworld-example-app/common"
+ 	"golang.org/x/crypto/bcrypt"
+@@ -87,6 +88,20 @@ func FindOneUser(condition interface{}) (UserModel, error) {
+ 	return model, err
+ }
+ 
++// normalizeEmail is the canonical form of an email address: trimmed and lowercased.
++func normalizeEmail(email string) string {
++	return strings.ToLower(strings.TrimSpace(email))
++}
++
++// FindUserByEmail looks a user up by email regardless of letter case, so accounts
++// stored before emails were normalized are still found.
++func FindUserByEmail(email string) (UserModel, error) {
++	db := common.GetDB()
++	var model UserModel
++	err := db.Where("LOWER(email) = ?", normalizeEmail(email)).First(&model).Error
++	return model, err
++}
++
+ // You could input an UserModel which will be saved in database returning with error info
+ //
+ //	if err := SaveOne(&userModel); err != nil { ... }
+diff --git a/users/routers.go b/users/routers.go
+index 0633fa7..9eddb01 100644
+--- a/users/routers.go
++++ b/users/routers.go
+@@ -88,7 +88,7 @@ func UsersRegistration(c *gin.Context) {
+ 		c.JSON(http.StatusConflict, common.NewErrorMessage("username", "has already been taken"))
+ 		return
+ 	}
+-	if _, err := FindOneUser(&UserModel{Email: userModelValidator.userModel.Email}); err == nil {
++	if _, err := FindUserByEmail(userModelValidator.userModel.Email); err == nil {
+ 		c.JSON(http.StatusConflict, common.NewErrorMessage("email", "has already been taken"))
+ 		return
+ 	}
+@@ -120,7 +120,7 @@ func UsersLogin(c *gin.Context) {
+ 		c.JSON(http.StatusUnprocessableEntity, common.NewValidatorError(err))
+ 		return
+ 	}
+-	userModel, err := FindOneUser(&UserModel{Email: loginValidator.userModel.Email})
++	userModel, err := FindUserByEmail(loginValidator.userModel.Email)
+ 
+ 	if err != nil {
+ 		c.JSON(http.StatusUnauthorized, common.NewErrorMessage("credentials", "invalid"))
+@@ -167,7 +167,12 @@ func UserUpdate(c *gin.Context) {
+ 		myUserModel.Username = f.Value
+ 	}
+ 	if f := userUpdateValidator.User.Email; f.Set {
+-		myUserModel.Email = f.Value
++		email := normalizeEmail(f.Value)
++		if other, err := FindUserByEmail(email); err == nil && other.ID != myUserModel.ID {
++			c.JSON(http.StatusConflict, common.NewErrorMessage("email", "has already been taken"))
++			return
++		}
++		myUserModel.Email = email
+ 	}
+ 	if f := userUpdateValidator.User.Bio; f.Set {
+ 		myUserModel.Bio = f.Value // zero value on null: clears
+diff --git a/users/validators.go b/users/validators.go
+index eb7bad7..f80a06a 100644
+--- a/users/validators.go
++++ b/users/validators.go
+@@ -27,7 +27,7 @@ func (self *UserModelValidator) Bind(c *gin.Context) error {
+ 		return err
+ 	}
+ 	self.userModel.Username = self.User.Username
+-	self.userModel.Email = self.User.Email
++	self.userModel.Email = normalizeEmail(self.User.Email)
+ 	self.userModel.Bio = self.User.Bio
+ 	if err := self.userModel.setPassword(self.User.Password); err != nil {
+ 		return err
+@@ -105,7 +105,7 @@ func (self *LoginValidator) Bind(c *gin.Context) error {
+ 		return err
+ 	}
+ 
+-	self.userModel.Email = self.User.Email
++	self.userModel.Email = normalizeEmail(self.User.Email)
+ 	return nil
+ }
+ 

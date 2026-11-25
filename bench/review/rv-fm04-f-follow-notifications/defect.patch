@@ -1,0 +1,180 @@
+diff --git a/src/app/routes/notification/notification.controller.ts b/src/app/routes/notification/notification.controller.ts
+new file mode 100644
+index 0000000..853c1ba
+--- /dev/null
++++ b/src/app/routes/notification/notification.controller.ts
+@@ -0,0 +1,26 @@
++import { NextFunction, Request, Response, Router } from 'express';
++import auth from '../auth/auth';
++import { getNotifications } from './notification.service';
++
++const router = Router();
++
++/**
++ * Get the current user's latest notifications
++ * @auth required
++ * @route {GET} /notifications
++ * @returns notifications list of notifications, newest first
++ */
++router.get(
++  '/notifications',
++  auth.required,
++  async (req: Request, res: Response, next: NextFunction) => {
++    try {
++      const notifications = await getNotifications(req.auth?.user?.id);
++      res.json({ notifications });
++    } catch (error) {
++      next(error);
++    }
++  },
++);
++
++export default router;
+diff --git a/src/app/routes/notification/notification.model.ts b/src/app/routes/notification/notification.model.ts
+new file mode 100644
+index 0000000..8b218e5
+--- /dev/null
++++ b/src/app/routes/notification/notification.model.ts
+@@ -0,0 +1,14 @@
++export const NotificationType = {
++  Follow: 'FOLLOW',
++} as const;
++
++export interface Notification {
++  id: number;
++  type: string;
++  createdAt: Date;
++  readAt: Date | null;
++  actor: {
++    username: string;
++    image: string | null;
++  };
++}
+diff --git a/src/app/routes/notification/notification.service.ts b/src/app/routes/notification/notification.service.ts
+new file mode 100644
+index 0000000..43547cd
+--- /dev/null
++++ b/src/app/routes/notification/notification.service.ts
+@@ -0,0 +1,27 @@
++import prisma from '../../../prisma/prisma-client';
++import { Notification } from './notification.model';
++
++const NOTIFICATIONS_PAGE_SIZE = 20;
++
++export const getNotifications = async (id: number): Promise<Notification[]> =>
++  prisma.notification.findMany({
++    where: {
++      recipientId: id,
++    },
++    orderBy: {
++      createdAt: 'desc',
++    },
++    take: NOTIFICATIONS_PAGE_SIZE,
++    select: {
++      id: true,
++      type: true,
++      createdAt: true,
++      readAt: true,
++      actor: {
++        select: {
++          username: true,
++          image: true,
++        },
++      },
++    },
++  });
+diff --git a/src/app/routes/profile/profile.service.ts b/src/app/routes/profile/profile.service.ts
+index 7e5b7f5..9807916 100644
+--- a/src/app/routes/profile/profile.service.ts
++++ b/src/app/routes/profile/profile.service.ts
+@@ -1,6 +1,7 @@
+ import prisma from '../../../prisma/prisma-client';
+ import profileMapper from './profile.utils';
+ import HttpException from '../../models/http-exception.model';
++import { NotificationType } from '../notification/notification.model';
+ 
+ export const getProfile = async (usernamePayload: string, id?: number) => {
+   const profile = await prisma.user.findUnique({
+@@ -36,6 +37,14 @@ export const followUser = async (usernamePayload: string, id: number) => {
+     },
+   });
+ 
++  await prisma.notification.create({
++    data: {
++      type: NotificationType.Follow,
++      recipient: { connect: { id: profile.id } },
++      actor: { connect: { id } },
++    },
++  });
++
+   return profileMapper(profile, id);
+ };
+ 
+diff --git a/src/app/routes/routes.ts b/src/app/routes/routes.ts
+index 28b1b60..751437c 100644
+--- a/src/app/routes/routes.ts
++++ b/src/app/routes/routes.ts
+@@ -3,11 +3,13 @@ import tagsController from './tag/tag.controller';
+ import articlesController from './article/article.controller';
+ import authController from './auth/auth.controller';
+ import profileController from './profile/profile.controller';
++import notificationController from './notification/notification.controller';
+ 
+ const api = Router()
+   .use(tagsController)
+   .use(articlesController)
+   .use(profileController)
++  .use(notificationController)
+   .use(authController);
+ 
+ export default Router().use('/api', api);
+diff --git a/src/prisma/migrations/20240115120000_notifications/migration.sql b/src/prisma/migrations/20240115120000_notifications/migration.sql
+new file mode 100644
+index 0000000..257961c
+--- /dev/null
++++ b/src/prisma/migrations/20240115120000_notifications/migration.sql
+@@ -0,0 +1,20 @@
++-- CreateTable
++CREATE TABLE "Notification" (
++    "id" SERIAL NOT NULL,
++    "type" TEXT NOT NULL,
++    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
++    "readAt" TIMESTAMP(3),
++    "recipientId" INTEGER NOT NULL,
++    "actorId" INTEGER NOT NULL,
++
++    CONSTRAINT "Notification_pkey" PRIMARY KEY ("id")
++);
++
++-- CreateIndex
++CREATE INDEX "Notification_recipientId_createdAt_idx" ON "Notification"("recipientId", "createdAt");
++
++-- AddForeignKey
++ALTER TABLE "Notification" ADD CONSTRAINT "Notification_recipientId_fkey" FOREIGN KEY ("recipientId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
++
++-- AddForeignKey
++ALTER TABLE "Notification" ADD CONSTRAINT "Notification_actorId_fkey" FOREIGN KEY ("actorId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+diff --git a/src/prisma/schema.prisma b/src/prisma/schema.prisma
+index 3d767b7..c2684ac 100644
+--- a/src/prisma/schema.prisma
++++ b/src/prisma/schema.prisma
+@@ -53,4 +53,19 @@ model User {
+   following  User[]    @relation("UserFollows")
+   comments   Comment[]
+   demo       Boolean   @default(false)
++  notifications     Notification[] @relation("NotificationRecipient")
++  notificationsSent Notification[] @relation("NotificationActor")
++}
++
++model Notification {
++  id          Int       @id @default(autoincrement())
++  type        String
++  createdAt   DateTime  @default(now())
++  readAt      DateTime?
++  recipient   User      @relation("NotificationRecipient", fields: [recipientId], references: [id], onDelete: Cascade)
++  recipientId Int
++  actor       User      @relation("NotificationActor", fields: [actorId], references: [id], onDelete: Cascade)
++  actorId     Int
++
++  @@index([recipientId, createdAt])
+ }

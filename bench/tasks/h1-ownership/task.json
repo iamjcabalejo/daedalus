@@ -1,0 +1,31 @@
+{
+  "schema": "daedalus.bench-task/1",
+  "id": "h1-ownership",
+  "set": "dev",
+  "category": "security",
+  "kind": "build",
+  "description": "Row H1 (Django 1.10 + DRF 3.4): author-only article updates and comment deletion, with comments scoped to the article in the URL.",
+  "repo": {
+    "url": "https://github.com/gothinkster/django-realworld-example-app.git",
+    "sha": "29c9d42831fa0cfc5a4aa7561f674396eacf20a2",
+    "branch": "master"
+  },
+  "toolchain": ["python"],
+  "ticket": "ticket.md",
+  "setup": [
+    "python3 -m venv /deps/bootstrap && /deps/bootstrap/bin/pip install --disable-pip-version-check --no-input uv==0.5.11",
+    "UV_PYTHON_INSTALL_DIR=/deps/python /deps/bootstrap/bin/uv venv --seed --python 3.8 --python-preference only-managed /deps/venv",
+    "/deps/venv/bin/python -m pip install --disable-pip-version-check --no-input -r requirements.txt",
+    "widgets=/deps/venv/lib/python3.8/site-packages/django/contrib/admin/widgets.py && sed -i 's/in params\\.items(),/in params.items()/' \"$widgets\" && /deps/venv/bin/python -m py_compile \"$widgets\"",
+    "/deps/venv/bin/python manage.py check"
+  ],
+  "hidden_tests": {
+    "path": "hidden",
+    "command": "/deps/venv/bin/python manage.py test conduit.apps.articles.test_ownership_rules --noinput -v 2"
+  },
+  "reference_patch": "reference.patch",
+  "expected_scope": ["conduit/apps/**"],
+  "budget_usd": 4.0,
+  "timeout_min": 45,
+  "notes": "Security task (authorization and ownership). Hidden tests use Django's test runner (the repo's own framework; the repo ships no tests) with DRF's APIClient and JWT tokens from User.token, and check the database after each request, so any enforcement point (view code, a permission class, a queryset filter) passes. On the pinned SHA a non-author's PUT returns 200 and a stranger's comment DELETE returns 204, so the run fails. Environment: the pinned requirements (Django 1.10.5, DRF 3.4.4, PyJWT 1.4.2) need Python <= 3.9, so setup builds a uv-managed CPython 3.8 venv in /deps/venv (first on PATH in the image). Django 1.10.5's admin widgets.py has a generator-with-trailing-comma that is a SyntaxError on Python >= 3.7; setup patches that one line in the installed package (outside the repo) and byte-compiles it, then runs manage.py check so an import problem becomes a skipped run with a reason. The agent sees the same /deps/venv Python. budget_usd is a placeholder sized like a medium task."
+}

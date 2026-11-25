@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "Read",
+      "Grep",
+      "Glob",
+      "Edit",
+      "Write",
+      "Bash(echo *)",
+      "Bash(touch *)",
+      "Bash(cat *)",
+      "Bash(ls *)",
+      "Bash(pwd)",
+      "Bash(git branch *)",
+      "Bash(curl *)",
+      "WebFetch(domain:example.com)",
+      "mcp__probe-mcp",
+      "mcp__plugin_probe_probe-mcp"
+    ]
+  },
+  "sandbox": {
+    "enabled": true,
+    "allowUnsandboxedCommands": false
+  }
+}

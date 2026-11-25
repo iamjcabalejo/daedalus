@@ -1,0 +1,156 @@
+{
+  "schema": "daedalus.probe-case/1",
+  "id": "L1",
+  "title": "A hook can deny an edit before it lands",
+  "refs": [
+    "R-AC-2"
+  ],
+  "applies_to": {
+    "installs": [
+      "script",
+      "plugin"
+    ],
+    "hosts": [
+      "claude"
+    ]
+  },
+  "files": {
+    "script": [
+      {
+        "template": "script/settings.json",
+        "dest": "repo/.claude/settings.json"
+      },
+      {
+        "template": "script/agents/probe-reader.md",
+        "dest": "repo/.claude/agents/probe-reader.md"
+      }
+    ],
+    "plugin": [
+      {
+        "template": "plugin/plugin.json",
+        "dest": "probe-plugin/.claude-plugin/plugin.json"
+      },
+      {
+        "template": "plugin/hooks.json",
+        "dest": "probe-plugin/hooks/hooks.json"
+      },
+      {
+        "template": "plugin/project-settings.json",
+        "dest": "repo/.claude/settings.json"
+      },
+      {
+        "template": "script/agents/probe-reader.md",
+        "dest": "probe-plugin/agents/probe-reader.md"
+      }
+    ]
+  },
+  "ctrl": [
+    {
+      "key": "PreToolUse:Edit|Write|MultiEdit",
+      "mode": "deny",
+      "reason": "probe L1: edits are blocked"
+    }
+  ],
+  "stimulus": {
+    "prompt": "Step 1: use the Edit tool yourself to replace \"seed\" with \"L1-main\" in seed.txt. Step 2: use the {{AGENT_PREFIX}}probe-reader agent to replace \"seed\" with \"L1-agent\" in seed.txt with the Edit tool. Don't use Bash for either step, and don't retry a denied edit. Reply done."
+  },
+  "flags": {
+    "max_turns": 8,
+    "max_budget_usd": 0.25
+  },
+  "observations": [
+    {
+      "id": "main-edit",
+      "kind": "event",
+      "role": "precondition",
+      "description": "The main thread attempted an edit of seed.txt.",
+      "event": "PreToolUse",
+      "where": [
+        {
+          "field": "tool_name",
+          "op": "in",
+          "value": [
+            "Edit",
+            "Write",
+            "MultiEdit"
+          ]
+        },
+        {
+          "field": "agent_type",
+          "op": "absent"
+        },
+        {
+          "field": "tool_input.file_path",
+          "op": "endswith",
+          "value": "seed.txt"
+        }
+      ],
+      "expect": "present"
+    },
+    {
+      "id": "agent-edit",
+      "kind": "event",
+      "role": "precondition",
+      "description": "The agent attempted an edit of seed.txt.",
+      "event": "PreToolUse",
+      "where": [
+        {
+          "field": "tool_name",
+          "op": "in",
+          "value": [
+            "Edit",
+            "Write",
+            "MultiEdit"
+          ]
+        },
+        {
+          "field": "agent_type",
+          "op": "present"
+        },
+        {
+          "field": "tool_input.file_path",
+          "op": "endswith",
+          "value": "seed.txt"
+        }
+      ],
+      "expect": "present"
+    },
+    {
+      "id": "seed-unchanged",
+      "kind": "file",
+      "role": "assert",
+      "description": "seed.txt is unchanged after both attempts.",
+      "path": "seed.txt",
+      "expect": "unchanged"
+    },
+    {
+      "id": "no-post-edit",
+      "kind": "event",
+      "role": "record",
+      "description": "No edit reached PostToolUse.",
+      "event": "PostToolUse",
+      "where": [
+        {
+          "field": "tool_name",
+          "op": "in",
+          "value": [
+            "Edit",
+            "Write",
+            "MultiEdit"
+          ]
+        }
+      ],
+      "expect": "absent"
+    }
+  ],
+  "status_rules": {
+    "evaluate": "auto",
+    "confirmed": "seed.txt is unchanged after the main thread's and the agent's denied edits",
+    "contradicted": "an edit landed despite the deny",
+    "inconclusive": "the main thread or the agent never attempted an edit of seed.txt"
+  },
+  "notes": [
+    "The plan's matcher is Edit|Write; MultiEdit is added so a different edit tool can't bypass the probe.",
+    "verify in T0: permission rule syntax in the templates (Bash(echo *), WebFetch(domain:...), mcp__...)"
+  ]
+}

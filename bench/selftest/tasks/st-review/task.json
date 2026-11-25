@@ -1,0 +1,21 @@
+{
+  "schema": "daedalus.bench-task/1",
+  "id": "st-review",
+  "set": "selftest",
+  "category": "FM-08",
+  "kind": "review",
+  "description": "Selftest review task: divide() swallows ZeroDivisionError and returns 0 (silent degradation).",
+  "repo": {"url": "selftest:calc", "sha": "f8f272d050698b7a56fff3d89959f45e2ff21e64", "branch": "main"},
+  "toolchain": ["python"],
+  "ticket": "ticket.md",
+  "setup": [],
+  "hidden_tests": null,
+  "reference_patch": null,
+  "expected_scope": [],
+  "review": {
+    "patch": "review.patch",
+    "expected": [{"file": "calc.py", "line_start": 11, "line_end": 12, "fm": "FM-08", "severity": "important"}]
+  },
+  "budget_usd": 0.5,
+  "timeout_min": 5
+}

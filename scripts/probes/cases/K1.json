@@ -1,0 +1,294 @@
+{
+  "schema": "daedalus.probe-case/1",
+  "id": "K1",
+  "title": "Cursor hooks",
+  "refs": [
+    "R-AC-1k"
+  ],
+  "applies_to": {
+    "installs": [
+      "script"
+    ],
+    "hosts": [
+      "cursor"
+    ]
+  },
+  "files": {
+    "script": [
+      {
+        "template": "cursor/hooks.json",
+        "dest": "repo/.cursor/hooks.json"
+      },
+      {
+        "template": "cursor/claude-settings.json",
+        "dest": "repo/.claude/settings.json"
+      }
+    ]
+  },
+  "vars": {
+    "dialect": "cursor"
+  },
+  "ctrl": [
+    {
+      "key": "beforeShellExecution",
+      "mode": "deny",
+      "reason": "probe K1: blocked"
+    },
+    {
+      "key": "preToolUse",
+      "mode": "deny",
+      "reason": "probe K1: blocked"
+    }
+  ],
+  "stimulus": {
+    "prompt": "Run `touch marker-K1` in the shell, then reply done. If it is blocked, say so and don't retry."
+  },
+  "flags": {
+    "max_turns": 4,
+    "max_budget_usd": 0.25
+  },
+  "observations": [
+    {
+      "id": "shell-seen",
+      "kind": "event",
+      "role": "precondition",
+      "description": "beforeShellExecution fired for the touch.",
+      "event": "beforeShellExecution",
+      "expect": "present"
+    },
+    {
+      "id": "pretool-keys",
+      "kind": "keys",
+      "role": "record",
+      "description": "preToolUse payload keys (identity fields?).",
+      "event": "preToolUse",
+      "field": ""
+    },
+    {
+      "id": "shell-keys",
+      "kind": "keys",
+      "role": "record",
+      "description": "beforeShellExecution payload keys.",
+      "event": "beforeShellExecution",
+      "field": ""
+    },
+    {
+      "id": "subagent-start",
+      "kind": "event",
+      "role": "record",
+      "description": "subagentStart fired.",
+      "event": "subagentStart",
+      "expect": "present"
+    },
+    {
+      "id": "claude-import",
+      "kind": "event",
+      "role": "record",
+      "description": "The imported .claude/settings.json recorder fired.",
+      "event": "PreToolUse",
+      "tag": "claude-import",
+      "expect": "present"
+    }
+  ],
+  "status_rules": {
+    "evaluate": "auto",
+    "confirmed": "deny works, failClosed blocks on a crash, and the record shows identity fields and the Claude-format import",
+    "contradicted": "a deny or a fail-closed crash still let the command run"
+  },
+  "variants": [
+    {
+      "id": "deny",
+      "description": "beforeShellExecution and preToolUse deny",
+      "observations": [
+        {
+          "id": "shell-seen",
+          "kind": "event",
+          "role": "precondition",
+          "description": "beforeShellExecution fired for the touch.",
+          "event": "beforeShellExecution",
+          "expect": "present"
+        },
+        {
+          "id": "blocked",
+          "kind": "marker",
+          "role": "assert",
+          "description": "marker-K1 was not created.",
+          "path": "marker-K1",
+          "expect": false
+        },
+        {
+          "id": "pretool-keys",
+          "kind": "keys",
+          "role": "record",
+          "description": "preToolUse payload keys (identity fields?).",
+          "event": "preToolUse",
+          "field": ""
+        },
+        {
+          "id": "shell-keys",
+          "kind": "keys",
+          "role": "record",
+          "description": "beforeShellExecution payload keys.",
+          "event": "beforeShellExecution",
+          "field": ""
+        },
+        {
+          "id": "subagent-start",
+          "kind": "event",
+          "role": "record",
+          "description": "subagentStart fired.",
+          "event": "subagentStart",
+          "expect": "present"
+        },
+        {
+          "id": "claude-import",
+          "kind": "event",
+          "role": "record",
+          "description": "The imported .claude/settings.json recorder fired.",
+          "event": "PreToolUse",
+          "tag": "claude-import",
+          "expect": "present"
+        }
+      ]
+    },
+    {
+      "id": "crash-fail-open",
+      "description": "the hooks crash; no failClosed key",
+      "vars": {
+        "fail_closed": null
+      },
+      "ctrl": [
+        {
+          "key": "beforeShellExecution",
+          "mode": "crash"
+        },
+        {
+          "key": "preToolUse",
+          "mode": "crash"
+        }
+      ],
+      "observations": [
+        {
+          "id": "shell-seen",
+          "kind": "event",
+          "role": "precondition",
+          "description": "beforeShellExecution fired for the touch.",
+          "event": "beforeShellExecution",
+          "expect": "present"
+        },
+        {
+          "id": "marker",
+          "kind": "marker",
+          "role": "record",
+          "description": "marker-K1 after a crash (default behavior).",
+          "path": "marker-K1"
+        },
+        {
+          "id": "pretool-keys",
+          "kind": "keys",
+          "role": "record",
+          "description": "preToolUse payload keys (identity fields?).",
+          "event": "preToolUse",
+          "field": ""
+        },
+        {
+          "id": "shell-keys",
+          "kind": "keys",
+          "role": "record",
+          "description": "beforeShellExecution payload keys.",
+          "event": "beforeShellExecution",
+          "field": ""
+        },
+        {
+          "id": "subagent-start",
+          "kind": "event",
+          "role": "record",
+          "description": "subagentStart fired.",
+          "event": "subagentStart",
+          "expect": "present"
+        },
+        {
+          "id": "claude-import",
+          "kind": "event",
+          "role": "record",
+          "description": "The imported .claude/settings.json recorder fired.",
+          "event": "PreToolUse",
+          "tag": "claude-import",
+          "expect": "present"
+        }
+      ]
+    },
+    {
+      "id": "crash-fail-closed",
+      "description": "the hooks crash; failClosed: true",
+      "vars": {
+        "fail_closed": true
+      },
+      "ctrl": [
+        {
+          "key": "beforeShellExecution",
+          "mode": "crash"
+        },
+        {
+          "key": "preToolUse",
+          "mode": "crash"
+        }
+      ],
+      "observations": [
+        {
+          "id": "shell-seen",
+          "kind": "event",
+          "role": "precondition",
+          "description": "beforeShellExecution fired for the touch.",
+          "event": "beforeShellExecution",
+          "expect": "present"
+        },
+        {
+          "id": "blocked",
+          "kind": "marker",
+          "role": "assert",
+          "description": "marker-K1 was not created (fail-closed).",
+          "path": "marker-K1",
+          "expect": false
+        },
+        {
+          "id": "pretool-keys",
+          "kind": "keys",
+          "role": "record",
+          "description": "preToolUse payload keys (identity fields?).",
+          "event": "preToolUse",
+          "field": ""
+        },
+        {
+          "id": "shell-keys",
+          "kind": "keys",
+          "role": "record",
+          "description": "beforeShellExecution payload keys.",
+          "event": "beforeShellExecution",
+          "field": ""
+        },
+        {
+          "id": "subagent-start",
+          "kind": "event",
+          "role": "record",
+          "description": "subagentStart fired.",
+          "event": "subagentStart",
+          "expect": "present"
+        },
+        {
+          "id": "claude-import",
+          "kind": "event",
+          "role": "record",
+          "description": "The imported .claude/settings.json recorder fired.",
+          "event": "PreToolUse",
+          "tag": "claude-import",
+          "expect": "present"
+        }
+      ]
+    }
+  ],
+  "notes": [
+    "Runs only when the Cursor CLI (`agent`) is installed and signed in; otherwise docs-only [D].",
+    "verify in T0: the `agent -p` invocation, its output format, the hook response shape ({permission, user_message, agent_message}) and the failClosed key."
+  ]
+}

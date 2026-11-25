@@ -1,0 +1,171 @@
+diff --git a/apps/nextjs/src/app/_components/posts.tsx b/apps/nextjs/src/app/_components/posts.tsx
+index 5a4bbeb..f46a0ca 100644
+--- a/apps/nextjs/src/app/_components/posts.tsx
++++ b/apps/nextjs/src/app/_components/posts.tsx
+@@ -21,6 +21,7 @@ import {
+ import { Input } from "@acme/ui/input";
+ import { toast } from "@acme/ui/toast";
+ 
++import { authClient } from "~/auth/client";
+ import { useTRPC } from "~/trpc/react";
+ 
+ export function CreatePostForm() {
+@@ -149,6 +150,8 @@ export function PostCard(props: {
+ }) {
+   const trpc = useTRPC();
+   const queryClient = useQueryClient();
++  const { data: session } = authClient.useSession();
++  const isAuthor = session?.user.id === props.post.author.id;
+   const deletePost = useMutation(
+     trpc.post.delete.mutationOptions({
+       onSuccess: async () => {
+@@ -158,7 +161,9 @@ export function PostCard(props: {
+         toast.error(
+           err.data?.code === "UNAUTHORIZED"
+             ? "You must be logged in to delete a post"
+-            : "Failed to delete post",
++            : err.data?.code === "FORBIDDEN"
++              ? "You can only delete your own posts"
++              : "Failed to delete post",
+         );
+       },
+     }),
+@@ -168,17 +173,22 @@ export function PostCard(props: {
+     <div className="bg-muted flex flex-row rounded-lg p-4">
+       <div className="grow">
+         <h2 className="text-primary text-2xl font-bold">{props.post.title}</h2>
++        <p className="text-muted-foreground text-xs">
++          by {props.post.author.name}
++        </p>
+         <p className="mt-2 text-sm">{props.post.content}</p>
+       </div>
+-      <div>
+-        <Button
+-          variant="ghost"
+-          className="text-primary cursor-pointer text-sm font-bold uppercase hover:bg-transparent hover:text-white"
+-          onClick={() => deletePost.mutate(props.post.id)}
+-        >
+-          Delete
+-        </Button>
+-      </div>
++      {isAuthor && (
++        <div>
++          <Button
++            variant="ghost"
++            className="text-primary cursor-pointer text-sm font-bold uppercase hover:bg-transparent hover:text-white"
++            onClick={() => deletePost.mutate(props.post.id)}
++          >
++            Delete
++          </Button>
++        </div>
++      )}
+     </div>
+   );
+ }
+diff --git a/packages/api/src/router/post.ts b/packages/api/src/router/post.ts
+index f37156f..3018330 100644
+--- a/packages/api/src/router/post.ts
++++ b/packages/api/src/router/post.ts
+@@ -1,4 +1,5 @@
+ import type { TRPCRouterRecord } from "@trpc/server";
++import { TRPCError } from "@trpc/server";
+ import { z } from "zod/v4";
+ 
+ import { desc, eq } from "@acme/db";
+@@ -6,11 +7,16 @@ import { CreatePostSchema, Post } from "@acme/db/schema";
+ 
+ import { protectedProcedure, publicProcedure } from "../trpc";
+ 
++const withAuthor = {
++  author: { columns: { id: true, name: true } },
++} as const;
++
+ export const postRouter = {
+   all: publicProcedure.query(({ ctx }) => {
+     return ctx.db.query.Post.findMany({
+       orderBy: desc(Post.id),
+       limit: 10,
++      with: withAuthor,
+     });
+   }),
+ 
+@@ -19,16 +25,34 @@ export const postRouter = {
+     .query(({ ctx, input }) => {
+       return ctx.db.query.Post.findFirst({
+         where: eq(Post.id, input.id),
++        with: withAuthor,
+       });
+     }),
+ 
+   create: protectedProcedure
+     .input(CreatePostSchema)
+     .mutation(({ ctx, input }) => {
+-      return ctx.db.insert(Post).values(input);
++      return ctx.db
++        .insert(Post)
++        .values({ ...input, authorId: ctx.session.user.id });
+     }),
+ 
+-  delete: protectedProcedure.input(z.string()).mutation(({ ctx, input }) => {
+-    return ctx.db.delete(Post).where(eq(Post.id, input));
+-  }),
++  delete: protectedProcedure
++    .input(z.string())
++    .mutation(async ({ ctx, input }) => {
++      const post = await ctx.db.query.Post.findFirst({
++        where: eq(Post.id, input),
++        columns: { authorId: true },
++      });
++      if (!post) {
++        throw new TRPCError({ code: "NOT_FOUND", message: "Post not found" });
++      }
++      if (post.authorId !== ctx.session.user.id) {
++        throw new TRPCError({
++          code: "FORBIDDEN",
++          message: "Only the author can delete this post",
++        });
++      }
++      return ctx.db.delete(Post).where(eq(Post.id, input));
++    }),
+ } satisfies TRPCRouterRecord;
+diff --git a/packages/db/src/schema.ts b/packages/db/src/schema.ts
+index b519825..dd6b9eb 100644
+--- a/packages/db/src/schema.ts
++++ b/packages/db/src/schema.ts
+@@ -1,23 +1,35 @@
+-import { sql } from "drizzle-orm";
++import { relations, sql } from "drizzle-orm";
+ import { pgTable } from "drizzle-orm/pg-core";
+ import { createInsertSchema } from "drizzle-zod";
+ import { z } from "zod/v4";
+ 
++import { user } from "./auth-schema";
++
+ export const Post = pgTable("post", (t) => ({
+   id: t.uuid().notNull().primaryKey().defaultRandom(),
+   title: t.varchar({ length: 256 }).notNull(),
+   content: t.text().notNull(),
++  authorId: t
++    .text()
++    .notNull()
++    .references(() => user.id, { onDelete: "cascade" }),
+   createdAt: t.timestamp().defaultNow().notNull(),
+   updatedAt: t
+     .timestamp({ mode: "date", withTimezone: true })
+     .$onUpdateFn(() => sql`now()`),
+ }));
+ 
++export const PostRelations = relations(Post, ({ one }) => ({
++  author: one(user, { fields: [Post.authorId], references: [user.id] }),
++}));
++
++// The author always comes from the session, never from the client.
+ export const CreatePostSchema = createInsertSchema(Post, {
+   title: z.string().max(256),
+   content: z.string().max(256),
+ }).omit({
+   id: true,
++  authorId: true,
+   createdAt: true,
+   updatedAt: true,
+ });

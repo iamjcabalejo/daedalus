@@ -1,0 +1,92 @@
+{
+  "schema": "daedalus.probe-result/1",
+  "host": "claude",
+  "host_version": "0.0.0-synthetic",
+  "generated_at": "2026-01-01T00:00:00Z",
+  "entries": [
+    {
+      "case": "A1",
+      "variant": null,
+      "install": "script",
+      "host": "claude",
+      "host_version": "0.0.0-synthetic",
+      "os": "synthetic",
+      "status": "confirmed",
+      "observations": [
+        {
+          "check": "bash-seen",
+          "expected": "present",
+          "actual": {
+            "count": 1
+          },
+          "outcome": "pass",
+          "role": "precondition"
+        },
+        {
+          "check": "agent-id",
+          "expected": "present",
+          "actual": {
+            "matched": 1,
+            "with_field": 1
+          },
+          "outcome": "pass",
+          "role": "assert"
+        },
+        {
+          "check": "agent-type",
+          "expected": "equals probe-reader",
+          "actual": {
+            "matched": 1,
+            "equal": 1,
+            "values": [
+              "\"probe-reader\""
+            ]
+          },
+          "outcome": "pass",
+          "role": "assert"
+        },
+        {
+          "check": "agent-type-after",
+          "expected": "equals probe-reader",
+          "actual": {
+            "matched": 1,
+            "equal": 1,
+            "values": [
+              "\"probe-reader\""
+            ]
+          },
+          "outcome": "pass",
+          "role": "assert"
+        },
+        {
+          "check": "read-agent-type",
+          "expected": "value",
+          "actual": [
+            "\"probe-reader\""
+          ],
+          "outcome": "recorded",
+          "role": "record"
+        }
+      ],
+      "fixture_ids": [
+        "claude-0.0.0-synthetic/A1/script/UserPromptSubmit-1",
+        "claude-0.0.0-synthetic/A1/script/PreToolUse-1",
+        "claude-0.0.0-synthetic/A1/script/SubagentStart-1",
+        "claude-0.0.0-synthetic/A1/script/PreToolUse-2",
+        "claude-0.0.0-synthetic/A1/script/PreToolUse-3",
+        "claude-0.0.0-synthetic/A1/script/PostToolUse-1",
+        "claude-0.0.0-synthetic/A1/script/SubagentStop-1",
+        "claude-0.0.0-synthetic/A1/script/Stop-1"
+      ],
+      "cost_usd": 0.0,
+      "plugins_enabled": [
+        "daedalus",
+        "other:1"
+      ],
+      "notes": [
+        "synthetic sample: not a host observation"
+      ],
+      "run_at": "2026-01-01T00:00:00Z"
+    }
+  ]
+}

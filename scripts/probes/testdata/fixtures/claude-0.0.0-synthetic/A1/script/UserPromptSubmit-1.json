@@ -1,0 +1,46 @@
+{
+  "schema": "daedalus.probe-fixture/1",
+  "host": "claude",
+  "host_version": "0.0.0-synthetic",
+  "install": "script",
+  "case": "A1",
+  "variant": null,
+  "event": "UserPromptSubmit",
+  "seq": 1,
+  "mode": "record",
+  "tag": null,
+  "redactions": [
+    {
+      "path": "session_id",
+      "rule": "id"
+    },
+    {
+      "path": "transcript_path",
+      "rule": "home-path"
+    },
+    {
+      "path": "transcript_path",
+      "rule": "project-folder"
+    },
+    {
+      "path": "transcript_path",
+      "rule": "id"
+    },
+    {
+      "path": "cwd",
+      "rule": "workspace-path"
+    },
+    {
+      "path": "prompt",
+      "rule": "prompt"
+    }
+  ],
+  "payload": {
+    "session_id": "<SESSION-1>",
+    "transcript_path": "<HOME>/.claude/projects/<PROJECT>/<SESSION-1>.jsonl",
+    "cwd": "<WORKSPACE>/repo",
+    "permission_mode": "default",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "<REDACTED:prompt>"
+  }
+}

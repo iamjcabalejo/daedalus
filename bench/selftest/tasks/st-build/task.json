@@ -1,0 +1,17 @@
+{
+  "schema": "daedalus.bench-task/1",
+  "id": "st-build",
+  "set": "selftest",
+  "category": "small",
+  "kind": "build",
+  "description": "Selftest build task: hidden tests fail on the seed and pass with reference.patch.",
+  "repo": {"url": "selftest:calc", "sha": "f8f272d050698b7a56fff3d89959f45e2ff21e64", "branch": "main"},
+  "toolchain": ["python"],
+  "ticket": "ticket.md",
+  "setup": [],
+  "hidden_tests": {"path": "hidden", "command": "python3 -m unittest discover -s tests -t ."},
+  "reference_patch": "reference.patch",
+  "expected_scope": ["calc.py", "tests/**"],
+  "budget_usd": 0.5,
+  "timeout_min": 5
+}

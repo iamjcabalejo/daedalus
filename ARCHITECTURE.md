@@ -379,6 +379,10 @@ CI (`.github/workflows/check.yml`) runs on every push and pull request:
 | `scripts/check-generic.sh` | The hub stays generic (§9) |
 | `scripts/build-plugin.sh --check` | The committed `plugins/` and `.claude-plugin/` match a fresh build |
 | `scripts/test-detector.sh` | The detector validation matrix in `docs/validation/matrix.json`: public repos pinned by SHA, synthetic cases (such as unsafe script bodies), and private rows from a gitignored `matrix.local.json`, skipped in CI. Every row runs with `--stdout`, so nothing is written into scanned repos, and each row also checks the detector's subprocess use (only read-only `git`) and its time budget |
+| `scripts/test-probes.sh` | The capability-probe harness, offline (no credentials, no model, no docker): recorder modes, redaction and a leak scan over committed fixtures, case-file validation, and the isolation and cleanup logic |
+| `scripts/test-bench.sh` | The benchmark harness, offline (no credentials, no model, no docker): task, arm and result schemas, scoring, safety detectors, budget accounting, and an end-to-end dry run with the fake arm |
+
+Locally, `scripts/test-all.sh` runs every check in this table, continues past failures and prints a summary; `--skip <name>` skips one. Maintainer guide for both harnesses: [docs/guides/benchmarks.md](docs/guides/benchmarks.md).
 
 Validation runs are recorded in `docs/validation/results-<date>.md`, and reviews of the hub itself are saved in `docs/reviews/`.
 

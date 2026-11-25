@@ -1,0 +1,154 @@
+{
+  "schema": "daedalus.probe-case/1",
+  "id": "M2",
+  "title": "MCP matcher",
+  "refs": [
+    "R-AC-67"
+  ],
+  "applies_to": {
+    "installs": [
+      "script",
+      "plugin"
+    ],
+    "hosts": [
+      "claude"
+    ]
+  },
+  "files": {
+    "script": [
+      {
+        "template": "script/settings.mcp.json",
+        "dest": "repo/.claude/settings.json"
+      },
+      {
+        "template": "script/mcp.json",
+        "dest": "repo/.mcp.json"
+      },
+      {
+        "template": "script/mcp/probe_mcp.py",
+        "dest": "repo/.claude/probe-mcp/probe_mcp.py"
+      }
+    ],
+    "plugin": [
+      {
+        "template": "plugin/plugin.json",
+        "dest": "probe-plugin/.claude-plugin/plugin.json"
+      },
+      {
+        "template": "plugin/hooks.json",
+        "dest": "probe-plugin/hooks/hooks.json"
+      },
+      {
+        "template": "plugin/project-settings.json",
+        "dest": "repo/.claude/settings.json"
+      },
+      {
+        "template": "plugin/mcp.json",
+        "dest": "probe-plugin/.mcp.json"
+      },
+      {
+        "template": "script/mcp/probe_mcp.py",
+        "dest": "probe-plugin/mcp/probe_mcp.py"
+      }
+    ]
+  },
+  "ctrl": [
+    {
+      "key": "PreToolUse:mcp__.*",
+      "mode": "deny",
+      "after": 1,
+      "reason": "probe M2: second MCP call denied"
+    }
+  ],
+  "stimulus": {
+    "prompt": "Call the echo tool of the probe-mcp MCP server twice: first with text \"one\", then with text \"two\". Report both results. Don't use any other tool."
+  },
+  "flags": {
+    "max_turns": 6,
+    "max_budget_usd": 0.15
+  },
+  "observations": [
+    {
+      "id": "mcp-calls",
+      "kind": "count",
+      "role": "precondition",
+      "description": "Both MCP calls reached PreToolUse.",
+      "event": "PreToolUse",
+      "where": [
+        {
+          "field": "tool_name",
+          "op": "startswith",
+          "value": "mcp__"
+        }
+      ],
+      "op": "ge",
+      "value": 2
+    },
+    {
+      "id": "tool-name",
+      "kind": "field",
+      "role": "record",
+      "description": "The MCP tool-name format on this install.",
+      "event": "PreToolUse",
+      "where": [
+        {
+          "field": "tool_name",
+          "op": "startswith",
+          "value": "mcp__"
+        }
+      ],
+      "field": "tool_name",
+      "expect": "value",
+      "scope": "any"
+    },
+    {
+      "id": "second-denied",
+      "kind": "count",
+      "role": "assert",
+      "description": "At most one MCP call completed (the second was denied).",
+      "event": "PostToolUse",
+      "where": [
+        {
+          "field": "tool_name",
+          "op": "startswith",
+          "value": "mcp__"
+        }
+      ],
+      "op": "le",
+      "value": 1
+    },
+    {
+      "id": "first-ran",
+      "kind": "count",
+      "role": "record",
+      "description": "The first MCP call completed (recorded, then allowed).",
+      "event": "PostToolUse",
+      "where": [
+        {
+          "field": "tool_name",
+          "op": "startswith",
+          "value": "mcp__"
+        }
+      ],
+      "op": "eq",
+      "value": 1
+    },
+    {
+      "id": "denials",
+      "kind": "stream",
+      "role": "record",
+      "description": "permission_denials reported by the stream.",
+      "check": "permission-denials"
+    }
+  ],
+  "status_rules": {
+    "evaluate": "auto",
+    "confirmed": "a PreToolUse rule on mcp__.* records the first call and denies the second",
+    "contradicted": "the second MCP call completed despite the deny"
+  },
+  "notes": [
+    "Script installs enable the server with enabledMcpjsonServers in project settings; plugin installs declare it in probe-plugin/.mcp.json (both: verify in T0).",
+    "The plugin MCP tool-name format is what this case records; the permission allow list guesses mcp__plugin_probe_probe-mcp (verify in T0).",
+    "verify in T0: permission rule syntax in the templates (Bash(echo *), WebFetch(domain:...), mcp__...)"
+  ]
+}

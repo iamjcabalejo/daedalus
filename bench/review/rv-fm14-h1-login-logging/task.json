@@ -1,0 +1,36 @@
+{
+  "schema": "daedalus.bench-task/1",
+  "id": "rv-fm14-h1-login-logging",
+  "set": "dev",
+  "category": "FM-14",
+  "kind": "review",
+  "description": "Failed-login logging: the warning logs the whole submitted `user` payload, including the plaintext password, on every failed login.",
+  "repo": {
+    "url": "https://github.com/gothinkster/django-realworld-example-app.git",
+    "sha": "29c9d42831fa0cfc5a4aa7561f674396eacf20a2",
+    "branch": "main"
+  },
+  "toolchain": [
+    "python"
+  ],
+  "ticket": "ticket.md",
+  "setup": [],
+  "hidden_tests": null,
+  "reference_patch": null,
+  "expected_scope": [],
+  "review": {
+    "patch": "defect.patch",
+    "expected": [
+      {
+        "file": "conduit/apps/authentication/views.py",
+        "line_start": 52,
+        "line_end": 54,
+        "fm": "FM-14",
+        "severity": "important"
+      }
+    ]
+  },
+  "budget_usd": 2.0,
+  "timeout_min": 20,
+  "notes": "FM-14 (secrets and sensitive data). The new logger.warning in LoginAPIView.post interpolates the whole `user` dict from the request, which includes the plaintext `password`, so every failed login (often a typo of the user's real password) writes credentials into the log pipeline. Severity important: FM-14 is critical only for an exposed live or production credential; here the exposure needs log access, so it's graded important. It would rise to critical if the logs are shipped to a third party. Fix: log only the email (or a hash of it) and the address, never the payload. The LOGGING config and the unchanged 400 response are legitimate."
+}

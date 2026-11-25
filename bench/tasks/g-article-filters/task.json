@@ -1,0 +1,36 @@
+{
+  "schema": "daedalus.bench-task/1",
+  "id": "g-article-filters",
+  "set": "dev",
+  "category": "medium",
+  "kind": "build",
+  "description": "Row G (Go Gin + GORM/SQLite): make the tag, author and favorited list filters combine (AND) with correct counts and paging.",
+  "repo": {
+    "url": "https://github.com/realworld-apps/golang-gin-realworld-example-app.git",
+    "sha": "de2be2ab883217c609a22b3872f200d9fad9cfb9",
+    "branch": "main"
+  },
+  "toolchain": [
+    "go"
+  ],
+  "ticket": "ticket.md",
+  "setup": [
+    "test \"$(go env CGO_ENABLED)\" = 1 || { echo 'row G needs cgo for mattn/go-sqlite3: the image has no C compiler (gcc, libc6-dev)' >&2; exit 1; }",
+    "GOTOOLCHAIN=local go mod download",
+    "GOTOOLCHAIN=local go list -deps -test ./... > /dev/null",
+    "GOTOOLCHAIN=local go build ./..."
+  ],
+  "hidden_tests": {
+    "path": "hidden",
+    "command": "GOTOOLCHAIN=local GOPROXY=off GOFLAGS=-mod=readonly go test ./articles/ -run '^TestHiddenAC' -count=1"
+  },
+  "reference_patch": "reference.patch",
+  "expected_scope": [
+    "articles/**",
+    "common/**",
+    "readme.md"
+  ],
+  "budget_usd": 4.0,
+  "timeout_min": 45,
+  "notes": "Hidden tests are Go tests in package articles (the repo's framework and layout). They use only the public HTTP API (register, create article, favorite, list) through a router they build themselves, with their own helper names, and rely on unit_test.go's TestMain for the SQLite test database; unique usernames and tags keep them independent of other rows. On the pinned SHA the filters are an else-if chain, so tag+author returns every article with the tag and the run fails. The hidden tests and the reference patch were type-checked offline with go vet against the cached modules; they have not been run. Setup step 1 turns a missing C toolchain into a skipped run with a clear reason: mattn/go-sqlite3 needs cgo, and bench/container/Dockerfile doesn't install gcc yet. Scoring runs offline (GOPROXY=off), so setup must have downloaded every module. budget_usd is a placeholder sized for a medium task."
+}

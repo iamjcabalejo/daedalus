@@ -1,0 +1,43 @@
+diff --git a/conduit/apps/articles/views.py b/conduit/apps/articles/views.py
+index 5da36d6..75a3dc2 100644
+--- a/conduit/apps/articles/views.py
++++ b/conduit/apps/articles/views.py
+@@ -165,11 +165,7 @@ class ArticlesFavoriteAPIView(APIView):
+     def delete(self, request, article_slug=None):
+         profile = self.request.user.profile
+         serializer_context = {'request': request}
+-
+-        try:
+-            article = Article.objects.get(slug=article_slug)
+-        except Article.DoesNotExist:
+-            raise NotFound('An article with this slug was not found.')
++        article = self._get_article(article_slug)
+ 
+         profile.unfavorite(article)
+ 
+@@ -180,11 +176,7 @@ class ArticlesFavoriteAPIView(APIView):
+     def post(self, request, article_slug=None):
+         profile = self.request.user.profile
+         serializer_context = {'request': request}
+-
+-        try:
+-            article = Article.objects.get(slug=article_slug)
+-        except Article.DoesNotExist:
+-            raise NotFound('An article with this slug was not found.')
++        article = self._get_article(article_slug)
+ 
+         profile.favorite(article)
+ 
+@@ -192,6 +184,12 @@ class ArticlesFavoriteAPIView(APIView):
+ 
+         return Response(serializer.data, status=status.HTTP_201_CREATED)
+ 
++    def _get_article(self, slug):
++        try:
++            return Article.objects.get(slug=slug)
++        except Article.DoesNotExist:
++            raise NotFound('An article with this slug was not found.')
++
+ 
+ class TagListAPIView(generics.ListAPIView):
+     queryset = Tag.objects.all()

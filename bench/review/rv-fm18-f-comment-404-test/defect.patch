@@ -1,0 +1,70 @@
+diff --git a/src/app/routes/article/article.service.ts b/src/app/routes/article/article.service.ts
+index c8fdc0c..6da9846 100644
+--- a/src/app/routes/article/article.service.ts
++++ b/src/app/routes/article/article.service.ts
+@@ -470,8 +470,11 @@ export const getCommentsByArticle = async (slug: string, id?: number) => {
+   return result;
+ };
+ 
++// A body made only of whitespace is as blank as an empty one.
++const BLANK_BODY = /^\s$/;
++
+ export const addComment = async (body: string, slug: string, id: number) => {
+-  if (!body) {
++  if (!body || BLANK_BODY.test(body)) {
+     throw new HttpException(422, { errors: { body: ["can't be blank"] } });
+   }
+ 
+@@ -484,12 +487,16 @@ export const addComment = async (body: string, slug: string, id: number) => {
+     },
+   });
+ 
++  if (!article) {
++    throw new HttpException(404, { errors: { article: ['not found'] } });
++  }
++
+   const comment = await prisma.comment.create({
+     data: {
+       body,
+       article: {
+         connect: {
+-          id: article?.id,
++          id: article.id,
+         },
+       },
+       author: {
+diff --git a/src/tests/services/article.service.test.ts b/src/tests/services/article.service.test.ts
+index 4f39562..3e9e2e0 100644
+--- a/src/tests/services/article.service.test.ts
++++ b/src/tests/services/article.service.test.ts
+@@ -1,5 +1,6 @@
+ import prismaMock from '../prisma-mock';
+ import {
++  addComment,
+   deleteComment,
+   favoriteArticle,
+   unfavoriteArticle,
+@@ -21,6 +22,23 @@ describe('ArticleService', () => {
+     });
+   });
+ 
++  describe('addComment', () => {
++    beforeEach(() => {
++      prismaMock.article.findUnique.mockResolvedValue(null);
++    });
++
++    test('should throw a 404 when the article does not exist', async () => {
++      await expect(addComment('Great read!', 'missing-article', 123)).rejects.toHaveProperty(
++        'errorCode',
++        404,
++      );
++    });
++
++    test.each(['', ' ', '  \n  '])('should reject a blank body (%j)', async (body) => {
++      await expect(addComment(body, 'how-to-train-your-dragon', 123)).rejects.toThrowError();
++    });
++  });
++
+   describe('favoriteArticle', () => {
+     test('should return the favorited article', async () => {
+       // Given

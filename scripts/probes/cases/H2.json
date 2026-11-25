@@ -1,0 +1,101 @@
+{
+  "schema": "daedalus.probe-case/1",
+  "id": "H2",
+  "title": "One-shot Stop block",
+  "refs": [
+    "R-AC-1h"
+  ],
+  "applies_to": {
+    "installs": [
+      "script",
+      "plugin"
+    ],
+    "hosts": [
+      "claude"
+    ]
+  },
+  "files": {
+    "script": [
+      {
+        "template": "script/settings.json",
+        "dest": "repo/.claude/settings.json"
+      }
+    ],
+    "plugin": [
+      {
+        "template": "plugin/plugin.json",
+        "dest": "probe-plugin/.claude-plugin/plugin.json"
+      },
+      {
+        "template": "plugin/hooks.json",
+        "dest": "probe-plugin/hooks/hooks.json"
+      },
+      {
+        "template": "plugin/project-settings.json",
+        "dest": "repo/.claude/settings.json"
+      }
+    ]
+  },
+  "ctrl": [
+    {
+      "key": "Stop",
+      "mode": "exit2",
+      "limit": 1,
+      "reason": "probe H2: run `touch done.flag` with Bash, then finish"
+    }
+  ],
+  "stimulus": {
+    "prompt": "Reply with the single word ready."
+  },
+  "flags": {
+    "max_turns": 4,
+    "max_budget_usd": 0.1
+  },
+  "observations": [
+    {
+      "id": "stop-seen",
+      "kind": "event",
+      "role": "precondition",
+      "description": "The Stop hook ran at least once (the session reached its end), so a missing second Stop is a finding, not an early exit.",
+      "event": "Stop",
+      "expect": "present"
+    },
+    {
+      "id": "stop-twice",
+      "kind": "count",
+      "role": "assert",
+      "description": "Stop fired at least twice (the session continued once).",
+      "event": "Stop",
+      "op": "ge",
+      "value": 2
+    },
+    {
+      "id": "stop-hook-active",
+      "kind": "field",
+      "role": "assert",
+      "description": "A later Stop carried stop_hook_active: true.",
+      "event": "Stop",
+      "field": "stop_hook_active",
+      "expect": "equals",
+      "value": true,
+      "scope": "any"
+    },
+    {
+      "id": "done-flag",
+      "kind": "marker",
+      "role": "record",
+      "description": "done.flag was created after the block.",
+      "path": "done.flag"
+    }
+  ],
+  "status_rules": {
+    "evaluate": "auto",
+    "confirmed": "the session continues once after the Stop block and stop_hook_active is seen",
+    "contradicted": "the block is ignored or stop_hook_active never appears",
+    "inconclusive": "no Stop was recorded (the session never reached its end)"
+  },
+  "notes": [
+    "limit: 1 realizes \"block once while done.flag is missing\"; the block reason asks for done.flag.",
+    "verify in T0: permission rule syntax in the templates (Bash(echo *), WebFetch(domain:...), mcp__...)"
+  ]
+}

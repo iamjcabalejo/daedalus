@@ -1,0 +1,79 @@
+{
+  "schema": "daedalus.probe-fixture/1",
+  "host": "claude",
+  "host_version": "2.1.325",
+  "install": "script",
+  "case": "M2",
+  "variant": null,
+  "event": "PreToolUse",
+  "seq": 6,
+  "mode": "deny",
+  "tag": null,
+  "redactions": [
+    {
+      "path": "session_id",
+      "rule": "id"
+    },
+    {
+      "path": "transcript_path",
+      "rule": "home-path"
+    },
+    {
+      "path": "transcript_path",
+      "rule": "project-folder"
+    },
+    {
+      "path": "transcript_path",
+      "rule": "id"
+    },
+    {
+      "path": "cwd",
+      "rule": "workspace-path"
+    },
+    {
+      "path": "scratchpad_dir",
+      "rule": "id"
+    },
+    {
+      "path": "prompt_id",
+      "rule": "id"
+    },
+    {
+      "path": "tool_input.text",
+      "rule": "message"
+    },
+    {
+      "path": "tool_use_id",
+      "rule": "id"
+    },
+    {
+      "path": "scratchpad_dir",
+      "rule": "temp-path"
+    },
+    {
+      "path": "scratchpad_dir",
+      "rule": "project-folder"
+    }
+  ],
+  "payload": {
+    "session_id": "<SESSION-1>",
+    "transcript_path": "<HOME>/.claude/projects/<PROJECT>/<SESSION-1>.jsonl",
+    "cwd": "<WORKSPACE>/repo",
+    "scratchpad_dir": "<TMP>/<PROJECT>/<SESSION-1>/scratchpad",
+    "prompt_id": "<PROMPT-1>",
+    "permission_mode": "default",
+    "effort": {
+      "level": "medium"
+    },
+    "hook_event_name": "PreToolUse",
+    "tool_name": "mcp__probe-mcp__echo",
+    "tool_input": {
+      "text": "<REDACTED:message>"
+    },
+    "tool_use_id": "<TOOL-USE-3>",
+    "mcp_server": {
+      "name": "probe-mcp",
+      "source": "project"
+    }
+  }
+}

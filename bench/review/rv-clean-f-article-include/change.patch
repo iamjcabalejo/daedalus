@@ -1,0 +1,242 @@
+diff --git a/src/app/routes/article/article.service.ts b/src/app/routes/article/article.service.ts
+index c8fdc0c..51f67b6 100644
+--- a/src/app/routes/article/article.service.ts
++++ b/src/app/routes/article/article.service.ts
+@@ -1,3 +1,4 @@
++import { Prisma } from '@prisma/client';
+ import slugify from 'slugify';
+ import prisma from '../../../prisma/prisma-client';
+ import HttpException from '../../models/http-exception.model';
+@@ -5,6 +6,29 @@ import profileMapper from '../profile/profile.utils';
+ import articleMapper from './article.mapper';
+ import { Tag } from '../tag/tag.model';
+ 
++// Relations every article response needs (see articleMapper).
++const articleInclude = Prisma.validator<Prisma.ArticleInclude>()({
++  tagList: {
++    select: {
++      name: true,
++    },
++  },
++  author: {
++    select: {
++      username: true,
++      bio: true,
++      image: true,
++      followedBy: true,
++    },
++  },
++  favoritedBy: true,
++  _count: {
++    select: {
++      favoritedBy: true,
++    },
++  },
++});
++
+ const buildFindAllQuery = (query: any, id: number | undefined) => {
+   const queries: any = [];
+   const orAuthorQuery = [];
+@@ -81,27 +105,7 @@ export const getArticles = async (query: any, id?: number) => {
+     },
+     skip: Number(query.offset) || 0,
+     take: Number(query.limit) || 10,
+-    include: {
+-      tagList: {
+-        select: {
+-          name: true,
+-        },
+-      },
+-      author: {
+-        select: {
+-          username: true,
+-          bio: true,
+-          image: true,
+-          followedBy: true,
+-        },
+-      },
+-      favoritedBy: true,
+-      _count: {
+-        select: {
+-          favoritedBy: true,
+-        },
+-      },
+-    },
++    include: articleInclude,
+   });
+ 
+   return {
+@@ -130,27 +134,7 @@ export const getFeed = async (offset: number, limit: number, id: number) => {
+     },
+     skip: offset || 0,
+     take: limit || 10,
+-    include: {
+-      tagList: {
+-        select: {
+-          name: true,
+-        },
+-      },
+-      author: {
+-        select: {
+-          username: true,
+-          bio: true,
+-          image: true,
+-          followedBy: true,
+-        },
+-      },
+-      favoritedBy: true,
+-      _count: {
+-        select: {
+-          favoritedBy: true,
+-        },
+-      },
+-    },
++    include: articleInclude,
+   });
+ 
+   return {
+@@ -212,27 +196,7 @@ export const createArticle = async (article: any, id: number) => {
+         },
+       },
+     },
+-    include: {
+-      tagList: {
+-        select: {
+-          name: true,
+-        },
+-      },
+-      author: {
+-        select: {
+-          username: true,
+-          bio: true,
+-          image: true,
+-          followedBy: true,
+-        },
+-      },
+-      favoritedBy: true,
+-      _count: {
+-        select: {
+-          favoritedBy: true,
+-        },
+-      },
+-    },
++    include: articleInclude,
+   });
+ 
+   return articleMapper(createdArticle, id);
+@@ -243,27 +207,7 @@ export const getArticle = async (slug: string, id?: number) => {
+     where: {
+       slug,
+     },
+-    include: {
+-      tagList: {
+-        select: {
+-          name: true,
+-        },
+-      },
+-      author: {
+-        select: {
+-          username: true,
+-          bio: true,
+-          image: true,
+-          followedBy: true,
+-        },
+-      },
+-      favoritedBy: true,
+-      _count: {
+-        select: {
+-          favoritedBy: true,
+-        },
+-      },
+-    },
++    include: articleInclude,
+   });
+ 
+   if (!article) {
+@@ -356,27 +300,7 @@ export const updateArticle = async (article: any, slug: string, id: number) => {
+         connectOrCreate: tagList,
+       },
+     },
+-    include: {
+-      tagList: {
+-        select: {
+-          name: true,
+-        },
+-      },
+-      author: {
+-        select: {
+-          username: true,
+-          bio: true,
+-          image: true,
+-          followedBy: true,
+-        },
+-      },
+-      favoritedBy: true,
+-      _count: {
+-        select: {
+-          favoritedBy: true,
+-        },
+-      },
+-    },
++    include: articleInclude,
+   });
+ 
+   return articleMapper(updatedArticle, id);
+@@ -571,27 +495,7 @@ export const favoriteArticle = async (slugPayload: string, id: number) => {
+         },
+       },
+     },
+-    include: {
+-      tagList: {
+-        select: {
+-          name: true,
+-        },
+-      },
+-      author: {
+-        select: {
+-          username: true,
+-          bio: true,
+-          image: true,
+-          followedBy: true,
+-        },
+-      },
+-      favoritedBy: true,
+-      _count: {
+-        select: {
+-          favoritedBy: true,
+-        },
+-      },
+-    },
++    include: articleInclude,
+   });
+ 
+   const result = {
+@@ -617,27 +521,7 @@ export const unfavoriteArticle = async (slugPayload: string, id: number) => {
+         },
+       },
+     },
+-    include: {
+-      tagList: {
+-        select: {
+-          name: true,
+-        },
+-      },
+-      author: {
+-        select: {
+-          username: true,
+-          bio: true,
+-          image: true,
+-          followedBy: true,
+-        },
+-      },
+-      favoritedBy: true,
+-      _count: {
+-        select: {
+-          favoritedBy: true,
+-        },
+-      },
+-    },
++    include: articleInclude,
+   });
+ 
+   const result = {

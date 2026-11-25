@@ -1,0 +1,128 @@
+{
+  "schema": "daedalus.probe-case/1",
+  "id": "D1",
+  "title": "Prompt events",
+  "refs": [
+    "R-AC-1d"
+  ],
+  "applies_to": {
+    "installs": [
+      "script",
+      "plugin"
+    ],
+    "hosts": [
+      "claude"
+    ]
+  },
+  "files": {
+    "script": [
+      {
+        "template": "script/settings.prompts.json",
+        "dest": "repo/.claude/settings.json"
+      },
+      {
+        "template": "script/commands/probe-cmd.md",
+        "dest": "repo/.claude/commands/probe-cmd.md"
+      }
+    ],
+    "plugin": [
+      {
+        "template": "plugin/plugin.json",
+        "dest": "probe-plugin/.claude-plugin/plugin.json"
+      },
+      {
+        "template": "plugin/hooks.prompts.json",
+        "dest": "probe-plugin/hooks/hooks.json"
+      },
+      {
+        "template": "plugin/project-settings.json",
+        "dest": "repo/.claude/settings.json"
+      },
+      {
+        "template": "script/commands/probe-cmd.md",
+        "dest": "probe-plugin/commands/probe-cmd.md"
+      }
+    ]
+  },
+  "ctrl": [],
+  "stimulus": {
+    "prompt": "/{{AGENT_PREFIX}}probe-cmd x"
+  },
+  "flags": {
+    "max_turns": 3,
+    "max_budget_usd": 0.1
+  },
+  "observations": [
+    {
+      "id": "prompt-submit",
+      "kind": "event",
+      "role": "precondition",
+      "description": "UserPromptSubmit fired.",
+      "event": "UserPromptSubmit",
+      "expect": "present"
+    },
+    {
+      "id": "prompt-expansion",
+      "kind": "event",
+      "role": "assert",
+      "description": "UserPromptExpansion fired for the slash command.",
+      "event": "UserPromptExpansion",
+      "expect": "present"
+    },
+    {
+      "id": "command-name",
+      "kind": "field",
+      "role": "assert",
+      "description": "command_name is present.",
+      "event": "UserPromptExpansion",
+      "field": "command_name",
+      "expect": "present",
+      "scope": "any"
+    },
+    {
+      "id": "command-args",
+      "kind": "field",
+      "role": "assert",
+      "description": "command_args is present.",
+      "event": "UserPromptExpansion",
+      "field": "command_args",
+      "expect": "present",
+      "scope": "any"
+    },
+    {
+      "id": "command-name-value",
+      "kind": "field",
+      "role": "record",
+      "description": "The command_name value (probe-cmd or probe:probe-cmd).",
+      "event": "UserPromptExpansion",
+      "field": "command_name",
+      "expect": "value",
+      "scope": "any"
+    },
+    {
+      "id": "submit-keys",
+      "kind": "keys",
+      "role": "record",
+      "description": "UserPromptSubmit payload keys.",
+      "event": "UserPromptSubmit",
+      "field": ""
+    },
+    {
+      "id": "expansion-keys",
+      "kind": "keys",
+      "role": "record",
+      "description": "UserPromptExpansion payload keys.",
+      "event": "UserPromptExpansion",
+      "field": ""
+    }
+  ],
+  "status_rules": {
+    "evaluate": "auto",
+    "confirmed": "UserPromptExpansion fires with command_name and command_args",
+    "contradicted": "UserPromptExpansion is missing or lacks command_name or command_args"
+  },
+  "notes": [
+    "UserPromptExpansion is a [D] event; it is wired only in the prompts templates so an unknown event can't invalidate the other cases' settings (verify in T0).",
+    "verify in T0: permission rule syntax in the templates (Bash(echo *), WebFetch(domain:...), mcp__...)"
+  ]
+}

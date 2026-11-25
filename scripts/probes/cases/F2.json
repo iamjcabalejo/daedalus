@@ -1,0 +1,110 @@
+{
+  "schema": "daedalus.probe-case/1",
+  "id": "F2",
+  "title": "ask semantics: -p --permission-mode dontAsk",
+  "refs": [
+    "R-AC-1f"
+  ],
+  "expects_permission_denial": true,
+  "applies_to": {
+    "installs": [
+      "script",
+      "plugin"
+    ],
+    "hosts": [
+      "claude"
+    ]
+  },
+  "files": {
+    "script": [
+      {
+        "template": "script/settings.json",
+        "dest": "repo/.claude/settings.json"
+      }
+    ],
+    "plugin": [
+      {
+        "template": "plugin/plugin.json",
+        "dest": "probe-plugin/.claude-plugin/plugin.json"
+      },
+      {
+        "template": "plugin/hooks.json",
+        "dest": "probe-plugin/hooks/hooks.json"
+      },
+      {
+        "template": "plugin/project-settings.json",
+        "dest": "repo/.claude/settings.json"
+      }
+    ]
+  },
+  "ctrl": [
+    {
+      "key": "PreToolUse:Bash",
+      "mode": "ask",
+      "reason": "probe F2: ask"
+    }
+  ],
+  "stimulus": {
+    "prompt": "Run `touch marker-F2` with the Bash tool yourself, then reply done. Don't retry if blocked."
+  },
+  "flags": {
+    "max_turns": 4,
+    "max_budget_usd": 0.1,
+    "permission_mode": "dontAsk"
+  },
+  "observations": [
+    {
+      "id": "bash-seen",
+      "kind": "event",
+      "role": "precondition",
+      "description": "`touch marker-F2` reached PreToolUse.",
+      "event": "PreToolUse",
+      "where": [
+        {
+          "field": "tool_name",
+          "op": "equals",
+          "value": "Bash"
+        },
+        {
+          "field": "tool_input.command",
+          "op": "contains",
+          "value": "marker-F2"
+        }
+      ],
+      "expect": "present"
+    },
+    {
+      "id": "not-run",
+      "kind": "marker",
+      "role": "assert",
+      "description": "marker-F2 doesn't exist: an ask never turns into an allow without a person.",
+      "path": "marker-F2",
+      "expect": false
+    },
+    {
+      "id": "denials",
+      "kind": "stream",
+      "role": "record",
+      "description": "permission_denials reported by the stream.",
+      "check": "permission-denials"
+    },
+    {
+      "id": "result",
+      "kind": "stream",
+      "role": "record",
+      "description": "The stream's result event.",
+      "check": "result"
+    }
+  ],
+  "status_rules": {
+    "evaluate": "auto",
+    "confirmed": "the command did not run under a headless ask",
+    "contradicted": "the command ran under a headless ask"
+  },
+  "notes": [
+    "F5 (interactive ask) is in the operational QA checklist (AC-13), not a case file.",
+    "--permission-mode dontAsk: verify in T0.",
+    "verify in T0: permission rule syntax in the templates (Bash(echo *), WebFetch(domain:...), mcp__...)",
+    "expects_permission_denial: the case tests how the permission layer resolves a hook's ask under -p; a denial of the touch by the host is the expected outcome, whatever its wording. The runner passes Bash(touch *) with --allowedTools, so only the ask can stop it."
+  ]
+}

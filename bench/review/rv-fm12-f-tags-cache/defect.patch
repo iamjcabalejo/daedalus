@@ -1,0 +1,78 @@
+diff --git a/src/app/routes/tag/tag.service.ts b/src/app/routes/tag/tag.service.ts
+index 2a6262f..f0d5333 100644
+--- a/src/app/routes/tag/tag.service.ts
++++ b/src/app/routes/tag/tag.service.ts
+@@ -1,7 +1,17 @@
+ import prisma from '../../../prisma/prisma-client';
+ import { Tag } from './tag.model';
+ 
++// Popular tags change slowly; caching them spares the aggregate query on every page load.
++const TAGS_CACHE_TTL_MS = 5 * 60 * 1000;
++
++let cachedTags: string[] | null = null;
++let cachedAt = 0;
++
+ const getTags = async (id?: number): Promise<string[]> => {
++  if (cachedTags && Date.now() - cachedAt < TAGS_CACHE_TTL_MS) {
++    return cachedTags;
++  }
++
+   const queries = [];
+   queries.push({ demo: true });
+ 
+@@ -34,7 +44,15 @@ const getTags = async (id?: number): Promise<string[]> => {
+     take: 10,
+   });
+ 
+-  return tags.map((tag: Tag) => tag.name);
++  cachedTags = tags.map((tag: Tag) => tag.name);
++  cachedAt = Date.now();
++
++  return cachedTags;
++};
++
++export const clearTagsCache = () => {
++  cachedTags = null;
++  cachedAt = 0;
+ };
+ 
+ export default getTags;
+diff --git a/src/tests/services/tag.service.test.ts b/src/tests/services/tag.service.test.ts
+index 97bc54d..5a6da22 100644
+--- a/src/tests/services/tag.service.test.ts
++++ b/src/tests/services/tag.service.test.ts
+@@ -1,6 +1,32 @@
++import prismaMock from '../prisma-mock';
++import getTags, { clearTagsCache } from '../../app/routes/tag/tag.service';
++
+ describe('TagService', () => {
++  beforeEach(() => {
++    clearTagsCache();
++  });
++
+   describe('getTags', () => {
+-    // TODO : prismaMock.tag.groupBy.mockResolvedValue(mockedResponse) doesn't work
+-    test.todo('should return a list of strings');
++    test('should return a list of strings', async () => {
++      // Given
++      // @ts-ignore
++      prismaMock.tag.findMany.mockResolvedValue([{ name: 'dragons' }, { name: 'training' }]);
++
++      // Then
++      await expect(getTags()).resolves.toEqual(['dragons', 'training']);
++    });
++
++    test('should query the database once within the cache window', async () => {
++      // Given
++      // @ts-ignore
++      prismaMock.tag.findMany.mockResolvedValue([{ name: 'dragons' }]);
++
++      // When
++      await getTags();
++      await getTags();
++
++      // Then
++      expect(prismaMock.tag.findMany).toHaveBeenCalledTimes(1);
++    });
+   });
+ });

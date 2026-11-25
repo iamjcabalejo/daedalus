@@ -1,0 +1,24 @@
+diff --git a/apps/nextjs/src/app/_components/posts.tsx b/apps/nextjs/src/app/_components/posts.tsx
+index 5a4bbeb..e7033af 100644
+--- a/apps/nextjs/src/app/_components/posts.tsx
++++ b/apps/nextjs/src/app/_components/posts.tsx
+@@ -112,7 +112,9 @@ export function CreatePostForm() {
+           }}
+         />
+       </FieldGroup>
+-      <Button type="submit">Create</Button>
++      <Button type="submit" disabled={createPost.isPending}>
++        Create
++      </Button>
+     </form>
+   );
+ }
+@@ -174,6 +176,8 @@ export function PostCard(props: {
+         <Button
+           variant="ghost"
+           className="text-primary cursor-pointer text-sm font-bold uppercase hover:bg-transparent hover:text-white"
++          aria-label={`Delete post: ${props.post.title}`}
++          disabled={deletePost.isPending}
+           onClick={() => deletePost.mutate(props.post.id)}
+         >
+           Delete

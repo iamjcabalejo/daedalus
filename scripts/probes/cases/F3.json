@@ -1,0 +1,150 @@
+{
+  "schema": "daedalus.probe-case/1",
+  "id": "F3",
+  "title": "ask semantics: -p subagent",
+  "refs": [
+    "R-AC-1f"
+  ],
+  "expects_permission_denial": true,
+  "requires": [
+    "A1"
+  ],
+  "applies_to": {
+    "installs": [
+      "script",
+      "plugin"
+    ],
+    "hosts": [
+      "claude"
+    ]
+  },
+  "files": {
+    "script": [
+      {
+        "template": "script/settings.json",
+        "dest": "repo/.claude/settings.json"
+      },
+      {
+        "template": "script/agents/probe-reader.md",
+        "dest": "repo/.claude/agents/probe-reader.md"
+      }
+    ],
+    "plugin": [
+      {
+        "template": "plugin/plugin.json",
+        "dest": "probe-plugin/.claude-plugin/plugin.json"
+      },
+      {
+        "template": "plugin/hooks.json",
+        "dest": "probe-plugin/hooks/hooks.json"
+      },
+      {
+        "template": "plugin/project-settings.json",
+        "dest": "repo/.claude/settings.json"
+      },
+      {
+        "template": "script/agents/probe-reader.md",
+        "dest": "probe-plugin/agents/probe-reader.md"
+      }
+    ]
+  },
+  "ctrl": [
+    {
+      "key": "PreToolUse:Bash",
+      "mode": "ask",
+      "reason": "probe F3: ask"
+    }
+  ],
+  "stimulus": {
+    "prompt": "Use the {{AGENT_PREFIX}}probe-reader agent to run `touch marker-F3`. Don't run anything yourself. Reply done when it has finished."
+  },
+  "flags": {
+    "max_turns": 6,
+    "max_budget_usd": 0.25
+  },
+  "observations": [
+    {
+      "id": "bash-seen",
+      "kind": "event",
+      "role": "precondition",
+      "description": "The agent's `touch marker-F3` reached PreToolUse.",
+      "event": "PreToolUse",
+      "where": [
+        {
+          "field": "tool_name",
+          "op": "equals",
+          "value": "Bash"
+        },
+        {
+          "field": "tool_input.command",
+          "op": "contains",
+          "value": "marker-F3"
+        },
+        {
+          "field": "agent_type",
+          "op": "endswith",
+          "value": "probe-reader"
+        }
+      ],
+      "expect": "present"
+    },
+    {
+      "id": "main-thread-no-touch",
+      "kind": "event",
+      "role": "precondition",
+      "description": "The main thread never attempted `touch marker-F3` itself (a PreToolUse without agent_type), so the marker speaks for the agent.",
+      "event": "PreToolUse",
+      "where": [
+        {
+          "field": "tool_name",
+          "op": "equals",
+          "value": "Bash"
+        },
+        {
+          "field": "tool_input.command",
+          "op": "contains",
+          "value": "marker-F3"
+        },
+        {
+          "field": "agent_type",
+          "op": "absent"
+        }
+      ],
+      "expect": "absent"
+    },
+    {
+      "id": "not-run",
+      "kind": "marker",
+      "role": "assert",
+      "description": "marker-F3 doesn't exist: an ask never turns into an allow without a person.",
+      "path": "marker-F3",
+      "expect": false
+    },
+    {
+      "id": "denials",
+      "kind": "stream",
+      "role": "record",
+      "description": "permission_denials reported by the stream.",
+      "check": "permission-denials"
+    },
+    {
+      "id": "result",
+      "kind": "stream",
+      "role": "record",
+      "description": "The stream's result event.",
+      "check": "result"
+    }
+  ],
+  "status_rules": {
+    "evaluate": "auto",
+    "confirmed": "the command did not run under a headless ask",
+    "contradicted": "the command ran under a headless ask",
+    "inconclusive": "the agent never attempted `touch marker-F3`, or the main thread attempted it itself; or A1 isn't confirmed for the same host version and install"
+  },
+  "notes": [
+    "F5 (interactive ask) is in the operational QA checklist (AC-13), not a case file.",
+    "verify in T0: permission rule syntax in the templates (Bash(echo *), WebFetch(domain:...), mcp__...)",
+    "Attribution: observations about the agent match only payloads whose agent_type ends in probe-reader (script) or probe:probe-reader (plugin), so the main thread can't decide the case. It requires A1: the result is inconclusive unless A1 is confirmed for the same host version and install.",
+    "expects_permission_denial: the case tests how the permission layer resolves a hook's ask under -p; a denial of the touch by the host is the expected outcome, whatever its wording. The runner passes Bash(touch *) with --allowedTools, so only the ask can stop it."
+  ]
+}

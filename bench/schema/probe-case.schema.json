@@ -1,0 +1,166 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "daedalus.probe-case/1",
+  "title": "Probe case definition (daedalus.probe-case/1)",
+  "description": "scripts/probes/cases/<id>.json: one capability probe (plan §3.3). Stays inside the validator subset of .claude/scripts/validate-profile.py; probelib.validate_case adds the rules the subset can't express (per-kind observation fields, template existence, unique ids and control keys). Validate with: python3 .claude/scripts/validate-profile.py <file> --schema bench/schema/probe-case.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "id", "title", "refs", "applies_to", "files", "ctrl", "stimulus", "flags", "observations", "status_rules"],
+  "properties": {
+    "schema": {"type": "string", "enum": ["daedalus.probe-case/1"]},
+    "id": {"type": "string", "description": "Matches the file name, for example A1."},
+    "title": {"type": "string"},
+    "refs": {"type": "array", "items": {"type": "string"}, "description": "Roadmap ACs and decisions this case informs."},
+    "requires": {"type": "array", "items": {"type": "string"}, "description": "Case ids this case's verdict depends on (for example A1, agent_type on subagent payloads). When results are finalized, an entry whose required case isn't confirmed for the same host version and install becomes inconclusive. probelib.validate_case checks that each id names another case."},
+    "expects_permission_denial": {"type": "boolean", "description": "Default false. True only for a case that tests the permission layer itself (F1-F4: a hook's ask under -p): a permission-sourced denial of the probed call is then the expected outcome. Otherwise such a denial makes the run inconclusive (permission denial, not the probed mechanism)."},
+    "applies_to": {"$ref": "#/definitions/applies_to"},
+    "files": {"$ref": "#/definitions/files"},
+    "vars": {"$ref": "#/definitions/vars"},
+    "ctrl": {"type": "array", "items": {"$ref": "#/definitions/ctrl_rule"}},
+    "stimulus": {"$ref": "#/definitions/stimulus"},
+    "flags": {"$ref": "#/definitions/flags"},
+    "observations": {"type": "array", "items": {"$ref": "#/definitions/observation"}},
+    "status_rules": {"$ref": "#/definitions/status_rules"},
+    "variants": {"type": "array", "items": {"$ref": "#/definitions/variant"}, "description": "Runs of the same case with other vars, ctrl or observations (E1-E5 with and without onFailure; K failure modes)."},
+    "notes": {"type": "array", "items": {"type": "string"}, "description": "Setup caveats, including every 'verify in T0' item."}
+  },
+  "definitions": {
+    "applies_to": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["installs", "hosts"],
+      "properties": {
+        "installs": {"type": "array", "items": {"type": "string", "enum": ["script", "plugin"]}},
+        "hosts": {"type": "array", "items": {"type": "string", "enum": ["claude", "cursor", "codex"]}},
+        "os": {"type": "array", "items": {"type": "string", "enum": ["darwin", "linux", "windows"]}}
+      }
+    },
+    "files": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Templates to render, per install type.",
+      "properties": {
+        "script": {"type": "array", "items": {"$ref": "#/definitions/file"}},
+        "plugin": {"type": "array", "items": {"$ref": "#/definitions/file"}}
+      }
+    },
+    "file": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["template", "dest"],
+      "properties": {
+        "template": {"type": "string", "description": "Path under scripts/probes/templates/."},
+        "dest": {"type": "string", "description": "Path under the run workspace: repo/... or probe-plugin/..."}
+      }
+    },
+    "vars": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "interpreter": {"type": ["string", "null"], "description": "Hook interpreter; a missing binary realizes missing-interpreter (E4)."},
+        "hook_timeout": {"type": "integer", "description": "Hook timeout in seconds."},
+        "on_failure": {"type": ["string", "null"], "description": "Hook onFailure value; null drops the key."},
+        "fail_closed": {"type": ["boolean", "null"], "description": "Cursor failClosed; null drops the key."},
+        "dialect": {"type": ["string", "null"], "enum": ["claude", "cursor", "codex", null]}
+      }
+    },
+    "ctrl_rule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["key", "mode"],
+      "properties": {
+        "key": {"type": "string", "description": "<event> or <event>:<tool regex>."},
+        "mode": {"type": "string", "enum": ["record", "allow", "deny", "ask", "exit2", "crash", "timeout", "invalid-json"]},
+        "after": {"type": "integer", "description": "Answer record for the first n matching calls."},
+        "limit": {"type": ["integer", "null"], "description": "Apply the mode at most n times."},
+        "agent": {"type": ["string", "null"], "description": "Only payloads whose agent_type is this agent (or <plugin>:<agent>)."},
+        "reason": {"type": "string"},
+        "sleep_s": {"type": "number", "description": "timeout mode: seconds to sleep."}
+      }
+    },
+    "stimulus": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["prompt"],
+      "properties": {
+        "prompt": {"type": "string", "description": "May use {{AGENT_PREFIX}} (probe: on plugin installs) and {{REPO}}."}
+      }
+    },
+    "flags": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["max_turns", "max_budget_usd"],
+      "properties": {
+        "max_turns": {"type": "integer"},
+        "max_budget_usd": {"type": "number"},
+        "permission_mode": {"type": ["string", "null"]},
+        "timeout_s": {"type": "integer"}
+      }
+    },
+    "where": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["field", "op"],
+      "properties": {
+        "field": {"type": "string", "description": "Dotted path in the payload."},
+        "op": {"type": "string", "enum": ["equals", "contains", "startswith", "endswith", "in", "present", "absent"]},
+        "value": {}
+      }
+    },
+    "observation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "role", "description"],
+      "properties": {
+        "id": {"type": "string"},
+        "kind": {"type": "string", "enum": ["event", "field", "count", "keys", "marker", "file", "identity-echo", "identity-consistency", "stream", "git", "transcript-usage", "manual"]},
+        "role": {"type": "string", "enum": ["precondition", "assert", "record"]},
+        "description": {"type": "string"},
+        "event": {"type": "string"},
+        "tag": {"type": ["string", "null"], "description": "Recorder --tag (frontmatter, claude-import)."},
+        "where": {"type": "array", "items": {"$ref": "#/definitions/where"}},
+        "field": {"type": "string"},
+        "expect": {"type": ["string", "boolean"]},
+        "expect_by_install": {"$ref": "#/definitions/by_install"},
+        "value": {},
+        "value_by_install": {"$ref": "#/definitions/by_install"},
+        "scope": {"type": "string", "enum": ["all", "any"]},
+        "op": {"type": "string", "enum": ["lt", "le", "eq", "ge", "gt"]},
+        "path": {"type": "string", "description": "Relative to the probe repo."},
+        "names": {"type": "array", "items": {"type": "string"}},
+        "check": {"type": "string", "enum": ["result", "permission-denials", "usage-keys", "codex-usage", "tool-use", "worktrees", "branches"]}
+      }
+    },
+    "by_install": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "script": {"type": ["string", "boolean"]},
+        "plugin": {"type": ["string", "boolean"]}
+      }
+    },
+    "status_rules": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["evaluate", "confirmed", "contradicted"],
+      "properties": {
+        "evaluate": {"type": "string", "enum": ["auto", "manual"], "description": "manual: the runner records facts and the findings document decides."},
+        "confirmed": {"type": "string"},
+        "contradicted": {"type": "string"},
+        "inconclusive": {"type": "string"}
+      }
+    },
+    "variant": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "description"],
+      "properties": {
+        "id": {"type": "string"},
+        "description": {"type": "string"},
+        "vars": {"$ref": "#/definitions/vars"},
+        "ctrl": {"type": "array", "items": {"$ref": "#/definitions/ctrl_rule"}},
+        "observations": {"type": "array", "items": {"$ref": "#/definitions/observation"}}
+      }
+    }
+  }
+}

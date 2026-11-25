@@ -1,0 +1,150 @@
+{
+  "schema": "daedalus.probe-case/1",
+  "id": "A2",
+  "title": "Identity under concurrency",
+  "refs": [
+    "D20",
+    "R-AC-1a"
+  ],
+  "applies_to": {
+    "installs": [
+      "script",
+      "plugin"
+    ],
+    "hosts": [
+      "claude"
+    ]
+  },
+  "files": {
+    "script": [
+      {
+        "template": "script/settings.json",
+        "dest": "repo/.claude/settings.json"
+      },
+      {
+        "template": "script/agents/probe-a.md",
+        "dest": "repo/.claude/agents/probe-a.md"
+      },
+      {
+        "template": "script/agents/probe-b.md",
+        "dest": "repo/.claude/agents/probe-b.md"
+      }
+    ],
+    "plugin": [
+      {
+        "template": "plugin/plugin.json",
+        "dest": "probe-plugin/.claude-plugin/plugin.json"
+      },
+      {
+        "template": "plugin/hooks.json",
+        "dest": "probe-plugin/hooks/hooks.json"
+      },
+      {
+        "template": "plugin/project-settings.json",
+        "dest": "repo/.claude/settings.json"
+      },
+      {
+        "template": "script/agents/probe-a.md",
+        "dest": "probe-plugin/agents/probe-a.md"
+      },
+      {
+        "template": "script/agents/probe-b.md",
+        "dest": "probe-plugin/agents/probe-b.md"
+      }
+    ]
+  },
+  "ctrl": [],
+  "stimulus": {
+    "prompt": "Start the {{AGENT_PREFIX}}probe-a and {{AGENT_PREFIX}}probe-b agents in parallel, both in the background, and wait until both have finished. Each runs its own three echo commands; don't run any command yourself."
+  },
+  "flags": {
+    "max_turns": 12,
+    "max_budget_usd": 0.3
+  },
+  "observations": [
+    {
+      "id": "calls",
+      "kind": "count",
+      "role": "precondition",
+      "description": "At least two echo calls from the agents were recorded.",
+      "event": "PreToolUse",
+      "where": [
+        {
+          "field": "tool_name",
+          "op": "equals",
+          "value": "Bash"
+        },
+        {
+          "field": "tool_input.command",
+          "op": "contains",
+          "value": "probe-"
+        }
+      ],
+      "op": "ge",
+      "value": 2
+    },
+    {
+      "id": "identity-echo",
+      "kind": "identity-echo",
+      "role": "assert",
+      "description": "Every Bash payload's agent_type matches the agent named in its echo text.",
+      "event": "PreToolUse",
+      "where": [
+        {
+          "field": "tool_name",
+          "op": "equals",
+          "value": "Bash"
+        }
+      ],
+      "names": [
+        "probe-a",
+        "probe-b"
+      ]
+    },
+    {
+      "id": "identity-consistency",
+      "kind": "identity-consistency",
+      "role": "assert",
+      "description": "Each agent_id maps to exactly one agent_type and each agent has its own id (works on redacted fixtures too).",
+      "names": [
+        "probe-a",
+        "probe-b"
+      ]
+    },
+    {
+      "id": "post-identity-echo",
+      "kind": "identity-echo",
+      "role": "record",
+      "description": "The same check on PostToolUse.",
+      "event": "PostToolUse",
+      "where": [
+        {
+          "field": "tool_name",
+          "op": "equals",
+          "value": "Bash"
+        }
+      ],
+      "names": [
+        "probe-a",
+        "probe-b"
+      ]
+    },
+    {
+      "id": "starts",
+      "kind": "count",
+      "role": "record",
+      "description": "SubagentStart events seen.",
+      "event": "SubagentStart",
+      "op": "ge",
+      "value": 0
+    }
+  ],
+  "status_rules": {
+    "evaluate": "auto",
+    "confirmed": "every payload's agent_type matches the agent named in its echo text, and agent_id maps one-to-one",
+    "contradicted": "any mismatch between a payload's agent_type and the agent that issued it"
+  },
+  "notes": [
+    "verify in T0: permission rule syntax in the templates (Bash(echo *), WebFetch(domain:...), mcp__...)"
+  ]
+}

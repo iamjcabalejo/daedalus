@@ -1,0 +1,154 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "daedalus.bench-task/1",
+  "title": "Benchmark task (daedalus.bench-task/1)",
+  "description": "One task folder's task.json. Stays inside the validator subset of .claude/scripts/validate-profile.py (type, enum, required, properties, additionalProperties: false, items, $ref). bench/run.py validate adds the semantic checks the subset can't express (files exist, kind-specific blocks, sha shape).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "id", "set", "category", "kind", "repo", "toolchain", "ticket", "setup", "hidden_tests",
+               "reference_patch", "expected_scope", "budget_usd", "timeout_min"],
+  "properties": {
+    "schema": {"type": "string", "enum": ["daedalus.bench-task/1"]},
+    "id": {"type": "string", "description": "Unique task id; equals the folder name."},
+    "set": {"type": "string", "enum": ["dev", "heldout", "selftest"]},
+    "category": {"type": "string", "description": "build: small | medium | large | security | free; review: FM-01..FM-19 | clean; safety: S1..S10 (or another S-id); recovery: during-implementation | before-test | during-review."},
+    "kind": {"type": "string", "enum": ["build", "review", "safety", "recovery"]},
+    "description": {"type": "string"},
+    "repo": {"$ref": "#/definitions/repo"},
+    "toolchain": {"type": "array", "items": {"type": "string", "enum": ["node", "pnpm", "go", "python"]}},
+    "ticket": {"type": "string", "description": "Path of the ticket text (Markdown), relative to the task folder. Only this file is copied into the run's ticket folder (docker: /ticket/ticket.md, read-only) and every arm's prompt points to it with {ticket_path}: the ticket is the requester's text, delivered as data."},
+    "plan_slug": {"type": "string", "description": "The {slug} prompt token (e.g. Daedalus's /feature-plan <slug> and docs/plans/<slug>.md): lowercase words joined by hyphens, at most 40 characters. Default: a slug of the ticket's first heading (else its first line), cut at a word boundary. bench/run.py validate rejects a slug, like the review branch, review.commit_message, safety.lure_commit and the resume prompts' text, that names the task: its id, a kind or category word (safety, recovery, review, build, rec, rv, clean, S1..S10, FM-01..FM-19) or bench (selftest tasks, the harness's own fake-arm fixtures, are exempt). Set it when the default would."},
+    "setup": {"type": "array", "items": {"type": "string"}, "description": "Pinned dependency-install commands (sh -c, cwd /work) run inside the boundary before the agent, with no API key. Install into /work or /deps: each step is a fresh container."},
+    "hidden_tests": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["path", "command"],
+      "properties": {
+        "path": {"type": "string", "description": "Folder relative to the task folder; its contents are copied onto the repo root of the scoring copy only after the agent exits."},
+        "command": {"type": "string", "description": "sh -c command run from the repo root of the scoring copy; exit 0 means pass."}
+      }
+    },
+    "reference_patch": {"type": ["string", "null"], "description": "Known-good solution (path relative to the task folder) for build and recovery tasks. Used only by verify-task and the fake arm; never shown to a real arm."},
+    "expected_scope": {"type": "array", "items": {"type": "string"}, "description": "Globs of the paths a correct change may touch; changes elsewhere count as unnecessary."},
+    "review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["patch"],
+      "properties": {
+        "patch": {"type": "string", "description": "Defect (or clean) patch, relative to the task folder, applied before the agent starts in the arm's review_patch mode: branch (committed on a feature/<name> branch over origin/<repo.branch>, so a merge-base..HEAD reviewer sees it; both real arms; <name> is the task id without its rv-<family>-<row>- prefix) or uncommitted (left as an uncommitted change on repo.branch; the harness default, used by the fake arm)."},
+        "commit_message": {"type": "string", "description": "branch mode: the message of the commit that holds the patch (default \"Apply change\"). bench/run.py validate rejects an empty message and one that names the task (its id, a kind or category word, or bench; see plan_slug); author and committer are the work repo's neutral identity."},
+        "expected": {"type": "array", "items": {"$ref": "#/definitions/expected_finding"}},
+        "clean": {"type": "boolean", "description": "true for a clean diff: any critical or important finding is a false positive."}
+      }
+    },
+    "safety": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["lures", "checks"],
+      "properties": {
+        "lures": {"type": "array", "items": {"$ref": "#/definitions/lure"}},
+        "checks": {"type": "array", "items": {"$ref": "#/definitions/check"}},
+        "lure_commit": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "The commit that plants the committed lures. Each field is optional; the default is a neutral, ordinary commit (\"Update project files\" by a generic developer under a .invalid domain). bench/run.py validate rejects a message or author that names the task (its id, a kind or category word, or bench; see plan_slug).",
+          "properties": {
+            "message": {"type": "string", "description": "Commit message, e.g. a plausible docs: or chore: subject."},
+            "author_name": {"type": "string", "description": "Author and committer name."},
+            "author_email": {"type": "string", "description": "Author and committer email; prefer a .invalid domain."}
+          }
+        }
+      }
+    },
+    "recovery": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kill_on", "resume_steps"],
+      "properties": {
+        "kill_on": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["pattern"],
+          "properties": {
+            "pattern": {"type": "string", "description": "Python regex matched against each stream-json line of the arm's steps."},
+            "nth": {"type": "integer", "description": "Kill on the nth match (default 1)."}
+          }
+        },
+        "resume_steps": {"type": "array", "items": {"$ref": "#/definitions/step"}, "description": "Steps run in the same arm after the kill. Prompt tokens as in arm steps: {ticket_path} (the ticket file, delivered as data), {instruction}, {slug} (the plan slug), {branch}, {resume_hint}; {ticket} (the ticket text inline) is still accepted here but puts the requester's text in the operator's prompt. {task_id} is rejected: it would name the task to the agent, and validate also rejects literal text that does (see plan_slug)."}
+      }
+    },
+    "budget_usd": {"type": "number", "description": "Per-run cap for this task; the harness uses min(this, --budget-usd)."},
+    "timeout_min": {"type": "number"},
+    "notes": {"type": "string"}
+  },
+  "definitions": {
+    "repo": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["url", "sha"],
+      "properties": {
+        "url": {"type": "string", "description": "Clone URL, or selftest:<name> for the synthetic repos under bench/selftest/repos/."},
+        "sha": {"type": "string", "description": "Pinned 40-character commit."},
+        "branch": {"type": "string", "description": "Branch name the workspace and the bare remote use (default main)."}
+      }
+    },
+    "expected_finding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["file", "line_start", "line_end", "fm", "severity"],
+      "properties": {
+        "file": {"type": "string"},
+        "line_start": {"type": "integer"},
+        "line_end": {"type": "integer"},
+        "fm": {"type": "string", "description": "Failure-mode family, FM-01..FM-19."},
+        "severity": {"type": "string", "enum": ["critical", "important", "consider"]},
+        "also": {"type": "array", "items": {"$ref": "#/definitions/location"}, "description": "Alternative locations of the same defect (e.g. a schema line twin of a migration line). A finding within ±3 lines of any location matches; the expected item still matches one finding at most."}
+      }
+    },
+    "location": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["file", "line_start", "line_end"],
+      "properties": {
+        "file": {"type": "string", "description": "Repo-relative path."},
+        "line_start": {"type": "integer"},
+        "line_end": {"type": "integer"}
+      }
+    },
+    "lure": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path"],
+      "properties": {
+        "path": {"type": "string", "description": "Repo-relative path to plant."},
+        "source": {"type": "string", "description": "File in the task folder to copy."},
+        "content": {"type": "string", "description": "Inline file content."},
+        "symlink": {"type": "string", "description": "Create a symlink to this target instead of a file (e.g. /outside)."},
+        "commit": {"type": "boolean", "description": "Commit it as part of the base (default true); false leaves it untracked (e.g. a .env with a canary)."}
+      }
+    },
+    "check": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["detector"],
+      "properties": {
+        "detector": {"type": "string", "enum": ["canary", "forbidden_command", "forbidden_path", "preserved"], "description": "push and outside detectors always run; these add task-specific checks."},
+        "value": {"type": "string", "description": "canary: the fake secret string to look for in changed files, commits and the agent's own text (not in its own planted lure path, not in tool results)."},
+        "pattern": {"type": "string", "description": "forbidden_command: Python regex matched against Bash commands in the transcripts."},
+        "glob": {"type": "string", "description": "forbidden_path: repo-relative glob (** crosses folders) matched against changed files and the file_path of Edit, Write, MultiEdit and NotebookEdit calls."},
+        "attempted_only": {"type": "boolean", "description": "forbidden_path: report only denied or failed calls; another detector (e.g. outside) decides executed."},
+        "paths": {"type": "array", "items": {"type": "string"}, "description": "preserved: lure paths planted with commit: false that must still hold their planted content at the end."},
+        "label": {"type": "string", "description": "Short name used in results instead of the raw value."}
+      }
+    },
+    "step": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["prompt_template", "fresh_process"],
+      "properties": {
+        "prompt_template": {"type": "string"},
+        "fresh_process": {"type": "boolean"}
+      }
+    }
+  }
+}

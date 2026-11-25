@@ -1,0 +1,30 @@
+{
+  "schema": "daedalus.bench-task/1",
+  "id": "g-email-case",
+  "set": "dev",
+  "category": "free",
+  "kind": "build",
+  "description": "Row G (Go Gin + GORM/SQLite): case-insensitive email for registration, login, duplicates (including legacy mixed-case rows) and profile updates.",
+  "repo": {
+    "url": "https://github.com/realworld-apps/golang-gin-realworld-example-app.git",
+    "sha": "de2be2ab883217c609a22b3872f200d9fad9cfb9",
+    "branch": "main"
+  },
+  "toolchain": ["go"],
+  "ticket": "ticket.md",
+  "setup": [
+    "test \"$(go env CGO_ENABLED)\" = 1 || { echo 'row G needs cgo for mattn/go-sqlite3: the image has no C compiler (gcc, libc6-dev)' >&2; exit 1; }",
+    "GOTOOLCHAIN=local go mod download",
+    "GOTOOLCHAIN=local go list -deps -test ./... > /dev/null",
+    "GOTOOLCHAIN=local go build ./..."
+  ],
+  "hidden_tests": {
+    "path": "hidden",
+    "command": "GOTOOLCHAIN=local GOPROXY=off GOFLAGS=-mod=readonly go test ./users/ -run '^TestHiddenAC' -count=1"
+  },
+  "reference_patch": "reference.patch",
+  "expected_scope": ["users/**", "common/**", "readme.md"],
+  "budget_usd": 3.0,
+  "timeout_min": 40,
+  "notes": "Free-category task. Hidden tests are Go tests in package users that use the public HTTP API (register, login, PUT /api/user) through their own router, plus two direct reads (users.FindOneUser) and one direct insert of a legacy mixed-case row through common.GetDB(); they rely on unit_test.go's TestMain for the SQLite test database. On the pinned SHA the registration response keeps the typed case and a case variant can't log in, so the run fails. Legacy rows (criterion 4) need a case-insensitive lookup, not just lowercasing input. Criterion 4 says stored addresses of existing accounts aren't rewritten, which rules out a one-time lowercasing migration (the hidden test inserts its legacy row after TestMain has migrated, so such a fix would fail it). The hidden tests and the reference patch were type-checked offline with go vet against the cached modules; they have not been run. Same cgo caveat as g-article-filters. budget_usd is a placeholder."
+}

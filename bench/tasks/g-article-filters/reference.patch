@@ -1,0 +1,73 @@
+diff --git a/articles/models.go b/articles/models.go
+index 590d6c3..d30a6a0 100644
+--- a/articles/models.go
++++ b/articles/models.go
+@@ -175,6 +175,21 @@ func getAllTags() ([]TagModel, error) {
+ 	return models, err
+ }
+ 
++// findArticleUserID resolves a username to its ArticleUserModel id. It reports
++// false when the user, or their article-side record, doesn't exist.
++func findArticleUserID(username string) (uint, bool) {
++	db := common.GetDB()
++	var userModel users.UserModel
++	if err := db.Where(users.UserModel{Username: username}).First(&userModel).Error; err != nil {
++		return 0, false
++	}
++	var articleUserModel ArticleUserModel
++	if err := db.Where(ArticleUserModel{UserModelID: userModel.ID}).First(&articleUserModel).Error; err != nil {
++		return 0, false
++	}
++	return articleUserModel.ID, true
++}
++
+ func FindManyArticle(tag, author, limit, offset, favorited string) ([]ArticleModel, int, error) {
+ 	db := common.GetDB()
+ 	models := make([]ArticleModel, 0)
+@@ -194,6 +209,7 @@ func FindManyArticle(tag, author, limit, offset, favorited string) ([]ArticleMod
+ 	// filter target (tag or user) does not exist, meaning an empty result.
+ 	buildQuery := func() (*gorm.DB, bool) {
+ 		query := db.Model(&ArticleModel{})
++		// Filters combine: an article must match every filter given.
+ 		if tag != "" {
+ 			var tagModel TagModel
+ 			if err := db.Where(TagModel{Tag: tag}).First(&tagModel).Error; err != nil {
+@@ -202,28 +218,22 @@ func FindManyArticle(tag, author, limit, offset, favorited string) ([]ArticleMod
+ 			query = query.
+ 				Joins("JOIN article_tags ON article_tags.article_model_id = article_models.id").
+ 				Where("article_tags.tag_model_id = ?", tagModel.ID)
+-		} else if author != "" {
+-			var userModel users.UserModel
+-			if err := db.Where(users.UserModel{Username: author}).First(&userModel).Error; err != nil {
+-				return nil, false
+-			}
+-			var articleUserModel ArticleUserModel
+-			if err := db.Where(ArticleUserModel{UserModelID: userModel.ID}).First(&articleUserModel).Error; err != nil {
+-				return nil, false
+-			}
+-			query = query.Where("author_id = ?", articleUserModel.ID)
+-		} else if favorited != "" {
+-			var userModel users.UserModel
+-			if err := db.Where(users.UserModel{Username: favorited}).First(&userModel).Error; err != nil {
++		}
++		if author != "" {
++			authorID, ok := findArticleUserID(author)
++			if !ok {
+ 				return nil, false
+ 			}
+-			var articleUserModel ArticleUserModel
+-			if err := db.Where(ArticleUserModel{UserModelID: userModel.ID}).First(&articleUserModel).Error; err != nil {
++			query = query.Where("article_models.author_id = ?", authorID)
++		}
++		if favorited != "" {
++			favoritedByID, ok := findArticleUserID(favorited)
++			if !ok {
+ 				return nil, false
+ 			}
+ 			query = query.
+ 				Joins("JOIN favorite_models ON favorite_models.favorite_id = article_models.id").
+-				Where("favorite_models.favorite_by_id = ? AND favorite_models.deleted_at IS NULL", articleUserModel.ID)
++				Where("favorite_models.favorite_by_id = ? AND favorite_models.deleted_at IS NULL", favoritedByID)
+ 		}
+ 		return query, true
+ 	}

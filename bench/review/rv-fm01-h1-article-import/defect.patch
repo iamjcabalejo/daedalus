@@ -1,0 +1,91 @@
+diff --git a/README.md b/README.md
+index a90f2e3..a0bbacf 100644
+--- a/README.md
++++ b/README.md
+@@ -22,3 +22,14 @@ If all went well then your command line prompt should now start with `(productio
+ If your command line prompt does not start with `(productionready)` at this point, try running `pyenv activate productionready` or `cd ../productionready-django-api`. 
+ 
+ If pyenv is still not working, visit us in the Thinkster Slack channel so we can help you out.
++
++## Importing articles
++
++To import articles from a JSON export (a list of `{author, title, description, body, tagList}` objects whose
++`author` is an existing username), run:
++
++```
++python manage.py import_articles path/to/export.json
++```
++
++Rows with a missing field or an unknown author are skipped with a warning.
+diff --git a/conduit/apps/articles/management/__init__.py b/conduit/apps/articles/management/__init__.py
+new file mode 100644
+index 0000000..e69de29
+diff --git a/conduit/apps/articles/management/commands/__init__.py b/conduit/apps/articles/management/commands/__init__.py
+new file mode 100644
+index 0000000..e69de29
+diff --git a/conduit/apps/articles/management/commands/import_articles.py b/conduit/apps/articles/management/commands/import_articles.py
+new file mode 100644
+index 0000000..7ac6362
+--- /dev/null
++++ b/conduit/apps/articles/management/commands/import_articles.py
+@@ -0,0 +1,60 @@
++import json
++import logging
++
++from django.core.management.base import BaseCommand, CommandError
++from django.db import transaction
++
++from conduit.apps.articles.models import Article, Tag
++from conduit.apps.profiles.models import Profile
++
++logger = logging.getLogger(__name__)
++
++REQUIRED_FIELDS = ('author', 'title', 'description', 'body')
++
++
++class Command(BaseCommand):
++    help = 'Import articles from a JSON export: a list of {author, title, description, body, tagList}.'
++
++    def add_arguments(self, parser):
++        parser.add_argument('path', help='Path to the JSON export.')
++
++    def handle(self, *args, **options):
++        rows = self._load(options['path'])
++        imported = 0
++
++        try:
++            with transaction.atomic():
++                for row in rows:
++                    self._import_row(row)
++                    imported += 1
++        except (Profile.DoesNotExist, KeyError) as exc:
++            logger.warning('Skipping article %r: %s', row.get('title'), exc)
++
++        self.stdout.write(self.style.SUCCESS('Imported %d articles.' % imported))
++
++    def _load(self, path):
++        try:
++            with open(path) as export:
++                rows = json.load(export)
++        except (OSError, ValueError) as exc:
++            raise CommandError('Cannot read %s: %s' % (path, exc))
++        if not isinstance(rows, list):
++            raise CommandError('%s must contain a JSON list of articles.' % path)
++        return rows
++
++    def _import_row(self, row):
++        missing = [field for field in REQUIRED_FIELDS if not row.get(field)]
++        if missing:
++            raise KeyError('missing %s' % ', '.join(missing))
++        author = Profile.objects.get(user__username=row['author'])
++        article = Article.objects.create(
++            author=author,
++            title=row['title'],
++            description=row['description'],
++            body=row['body'],
++        )
++        for name in row.get('tagList', []):
++            tag, _ = Tag.objects.get_or_create(
++                slug=name.lower(), defaults={'tag': name}
++            )
++            article.tags.add(tag)

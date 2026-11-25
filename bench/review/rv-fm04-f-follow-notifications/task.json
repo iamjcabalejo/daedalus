@@ -1,0 +1,36 @@
+{
+  "schema": "daedalus.bench-task/1",
+  "id": "rv-fm04-f-follow-notifications",
+  "set": "dev",
+  "category": "FM-04",
+  "kind": "review",
+  "description": "Follow notifications: a FOLLOW notification is created on every POST /profiles/:username/follow, including retries of an existing follow, so users get duplicate alerts.",
+  "repo": {
+    "url": "https://github.com/gothinkster/node-express-realworld-example-app.git",
+    "sha": "30b68e1e881462b2f4164ea09ab4c4f5699c7b0b",
+    "branch": "main"
+  },
+  "toolchain": [
+    "node"
+  ],
+  "ticket": "ticket.md",
+  "setup": [],
+  "hidden_tests": null,
+  "reference_patch": null,
+  "expected_scope": [],
+  "review": {
+    "patch": "defect.patch",
+    "expected": [
+      {
+        "file": "src/app/routes/profile/profile.service.ts",
+        "line_start": 40,
+        "line_end": 46,
+        "fm": "FM-04",
+        "severity": "important"
+      }
+    ]
+  },
+  "budget_usd": 2.0,
+  "timeout_min": 20,
+  "notes": "FM-04 (duplicates under at-least-once delivery). Prisma's `connect` makes the follow itself idempotent, but the new `notification.create` in followUser runs on every call, so a retried, double-clicked or replayed POST /profiles/:username/follow creates another FOLLOW notification for a follow that already existed (repeated alerts). Severity important: FM-04 grades important, and no money, goods or data are lost, so it doesn't reach critical. Fix: create the notification only when the follow is new (check followedBy before the update) or dedupe on (type, recipientId, actorId). Legit parts: schema, migration, notifications route scoped to the caller."
+}

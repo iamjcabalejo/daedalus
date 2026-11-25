@@ -1,0 +1,29 @@
+{
+  "schema": "daedalus.bench-task/1",
+  "id": "i-post-authorship",
+  "set": "dev",
+  "category": "large",
+  "kind": "build",
+  "description": "Row I (pnpm/turbo monorepo: Drizzle db package, tRPC api package, Next.js app): post authorship across db, api and ui, with author-only delete.",
+  "repo": {
+    "url": "https://github.com/t3-oss/create-t3-turbo.git",
+    "sha": "8f945b7bb3bfb3ca8358d48b1ff0214079bc11ee",
+    "branch": "main"
+  },
+  "toolchain": ["node", "pnpm"],
+  "ticket": "ticket.md",
+  "setup": [
+    "CI=1 pnpm install --frozen-lockfile --ignore-scripts",
+    "mkdir -p /deps/testkit && npm install --prefix /deps/testkit --no-audit --no-fund --no-package-lock tsx@4.20.6 @electric-sql/pglite@0.2.17",
+    "/deps/testkit/node_modules/.bin/tsx --version"
+  ],
+  "hidden_tests": {
+    "path": "hidden",
+    "command": "NODE_ENV=production BENCH_TESTKIT=/deps/testkit POSTGRES_URL=postgres://bench:bench@bench-pooler.invalid:5432/bench /deps/testkit/node_modules/.bin/tsx --test packages/api/src/router/post-authorship.test.ts"
+  },
+  "reference_patch": "reference.patch",
+  "expected_scope": ["packages/db/**", "packages/api/**", "packages/validators/**", "apps/nextjs/**"],
+  "budget_usd": 8.0,
+  "timeout_min": 90,
+  "notes": "Large multi-layer task (db schema, api router, Next.js UI). The repo has no test framework, so the hidden tests use the Node test runner through tsx, installed with PGlite outside the repo in /deps/testkit (versions pinned in setup; their transitive dependencies are resolved at install time). The tests call appRouter through a tRPC caller with signed-in and signed-out contexts against a real in-process Postgres (PGlite) driven by Drizzle's pg-proxy driver; packages/db/test/pglite-proxy.ts creates the tables from whatever the Drizzle schema exports at scoring time (snake_case columns, no foreign keys), so column names and query style are free. They require the router to use ctx.db (as the existing procedures do) and the session at ctx.session.user. Criteria 1-5 are tested; criteria 6 (UI) and 7 (push) aren't covered by hidden tests. On the pinned SHA posts have no author and anyone can delete, so the run fails. Setup skips install scripts on purpose: the root postinstall runs `pnpm dlx sherif@latest`, an unpinned network fetch. T0 should pin Node 22 (>= 22.21, the repo's .nvmrc and engines) and pnpm 10.19.0 (packageManager), or pnpm switches versions by download during setup. budget_usd is a placeholder sized for a large task."
+}

@@ -1,0 +1,5442 @@
+{
+  "schema": "daedalus.probe-result/1",
+  "host": "claude",
+  "host_version": "2.1.325",
+  "generated_at": "2026-11-25T17:46:15Z",
+  "entries": [
+    {
+      "case": "A1",
+      "variant": null,
+      "install": "plugin",
+      "host": "claude",
+      "host_version": "2.1.325",
+      "os": "darwin-27.2.0",
+      "status": "confirmed",
+      "observations": [
+        {
+          "check": "bash-seen",
+          "expected": "present",
+          "actual": {
+            "count": 1
+          },
+          "outcome": "pass",
+          "role": "precondition"
+        },
+        {
+          "check": "agent-id",
+          "expected": "present",
+          "actual": {
+            "matched": 1,
+            "with_field": 1
+          },
+          "outcome": "pass",
+          "role": "assert"
+        },
+        {
+          "check": "agent-type",
+          "expected": "equals probe:probe-reader",
+          "actual": {
+            "matched": 1,
+            "equal": 1,
+            "values": [
+              "\"probe:probe-reader\""
+            ]
+          },
+          "outcome": "pass",
+          "role": "assert"
+        },
+        {
+          "check": "agent-type-after",
+          "expected": "equals probe:probe-reader",
+          "actual": {
+            "matched": 1,
+            "equal": 1,
+            "values": [
+              "\"probe:probe-reader\""
+            ]
+          },
+          "outcome": "pass",
+          "role": "assert"
+        },
+        {
+          "check": "read-agent-type",
+          "expected": "value",
+          "actual": [
+            "\"probe:probe-reader\""
+          ],
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "denial-sources",
+          "expected": "recorded",
+          "actual": {
+            "hook": 0,
+            "permission": 0,
+            "unknown": 0,
+            "denials": []
+          },
+          "outcome": "recorded",
+          "role": "record"
+        }
+      ],
+      "fixture_ids": [
+        "claude-2.1.325/A1/plugin/UserPromptSubmit-1",
+        "claude-2.1.325/A1/plugin/PreToolUse-1",
+        "claude-2.1.325/A1/plugin/PostToolUse-1",
+        "claude-2.1.325/A1/plugin/SubagentStart-1",
+        "claude-2.1.325/A1/plugin/Stop-1",
+        "claude-2.1.325/A1/plugin/PreToolUse-2",
+        "claude-2.1.325/A1/plugin/PostToolUse-2",
+        "claude-2.1.325/A1/plugin/PreToolUse-3",
+        "claude-2.1.325/A1/plugin/PostToolUse-3",
+        "claude-2.1.325/A1/plugin/SubagentStop-1",
+        "claude-2.1.325/A1/plugin/UserPromptSubmit-2",
+        "claude-2.1.325/A1/plugin/Stop-2"
+      ],
+      "cost_usd": 0.015025924999999999,
+      "plugins_enabled": [
+        "daedalus"
+      ],
+      "notes": [
+        "accepted but hidden from `claude --help` (verified by a parse check): --max-turns",
+        "untrusted workspace: project allow rules ignored (recorded only: the same rules were passed with --allowedTools)"
+      ],
+      "run_at": "2026-11-25T17:36:13Z"
+    },
+    {
+      "case": "A1",
+      "variant": null,
+      "install": "script",
+      "host": "claude",
+      "host_version": "2.1.325",
+      "os": "darwin-27.2.0",
+      "status": "confirmed",
+      "observations": [
+        {
+          "check": "bash-seen",
+          "expected": "present",
+          "actual": {
+            "count": 1
+          },
+          "outcome": "pass",
+          "role": "precondition"
+        },
+        {
+          "check": "agent-id",
+          "expected": "present",
+          "actual": {
+            "matched": 1,
+            "with_field": 1
+          },
+          "outcome": "pass",
+          "role": "assert"
+        },
+        {
+          "check": "agent-type",
+          "expected": "equals probe-reader",
+          "actual": {
+            "matched": 1,
+            "equal": 1,
+            "values": [
+              "\"probe-reader\""
+            ]
+          },
+          "outcome": "pass",
+          "role": "assert"
+        },
+        {
+          "check": "agent-type-after",
+          "expected": "equals probe-reader",
+          "actual": {
+            "matched": 1,
+            "equal": 1,
+            "values": [
+              "\"probe-reader\""
+            ]
+          },
+          "outcome": "pass",
+          "role": "assert"
+        },
+        {
+          "check": "read-agent-type",
+          "expected": "value",
+          "actual": [
+            "\"probe-reader\""
+          ],
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "denial-sources",
+          "expected": "recorded",
+          "actual": {
+            "hook": 0,
+            "permission": 0,
+            "unknown": 0,
+            "denials": []
+          },
+          "outcome": "recorded",
+          "role": "record"
+        }
+      ],
+      "fixture_ids": [
+        "claude-2.1.325/A1/script/UserPromptSubmit-1",
+        "claude-2.1.325/A1/script/PreToolUse-1",
+        "claude-2.1.325/A1/script/SubagentStart-1",
+        "claude-2.1.325/A1/script/PreToolUse-2",
+        "claude-2.1.325/A1/script/PostToolUse-1",
+        "claude-2.1.325/A1/script/PreToolUse-3",
+        "claude-2.1.325/A1/script/PostToolUse-2",
+        "claude-2.1.325/A1/script/SubagentStop-1",
+        "claude-2.1.325/A1/script/PostToolUse-3",
+        "claude-2.1.325/A1/script/Stop-1"
+      ],
+      "cost_usd": 0.01931487,
+      "plugins_enabled": [
+        "daedalus"
+      ],
+      "notes": [
+        "accepted but hidden from `claude --help` (verified by a parse check): --max-turns",
+        "untrusted workspace: project allow rules ignored (recorded only: the same rules were passed with --allowedTools)"
+      ],
+      "run_at": "2026-11-25T17:36:03Z"
+    },
+    {
+      "case": "A2",
+      "variant": null,
+      "install": "plugin",
+      "host": "claude",
+      "host_version": "2.1.325",
+      "os": "darwin-27.2.0",
+      "status": "confirmed",
+      "observations": [
+        {
+          "check": "calls",
+          "expected": "ge 2",
+          "actual": 6,
+          "outcome": "pass",
+          "role": "precondition"
+        },
+        {
+          "check": "identity-echo",
+          "expected": "consistent for probe-a, probe-b",
+          "actual": {
+            "checked": 6,
+            "mismatches": 0
+          },
+          "outcome": "pass",
+          "role": "assert"
+        },
+        {
+          "check": "identity-consistency",
+          "expected": "consistent for probe-a, probe-b",
+          "actual": {
+            "agent_ids": 2,
+            "conflicts": 0,
+            "names_seen": [
+              "probe-a",
+              "probe-b"
+            ]
+          },
+          "outcome": "pass",
+          "role": "assert"
+        },
+        {
+          "check": "post-identity-echo",
+          "expected": "consistent for probe-a, probe-b",
+          "actual": {
+            "checked": 6,
+            "mismatches": 0
+          },
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "starts",
+          "expected": "ge 0",
+          "actual": 2,
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "denial-sources",
+          "expected": "recorded",
+          "actual": {
+            "hook": 0,
+            "permission": 0,
+            "unknown": 0,
+            "denials": []
+          },
+          "outcome": "recorded",
+          "role": "record"
+        }
+      ],
+      "fixture_ids": [
+        "claude-2.1.325/A2/plugin/UserPromptSubmit-1",
+        "claude-2.1.325/A2/plugin/PreToolUse-1",
+        "claude-2.1.325/A2/plugin/SubagentStart-1",
+        "claude-2.1.325/A2/plugin/PostToolUse-1",
+        "claude-2.1.325/A2/plugin/PreToolUse-2",
+        "claude-2.1.325/A2/plugin/PostToolUse-2",
+        "claude-2.1.325/A2/plugin/SubagentStart-2",
+        "claude-2.1.325/A2/plugin/PreToolUse-3",
+        "claude-2.1.325/A2/plugin/PostToolUse-3",
+        "claude-2.1.325/A2/plugin/PreToolUse-4",
+        "claude-2.1.325/A2/plugin/Stop-1",
+        "claude-2.1.325/A2/plugin/PostToolUse-4",
+        "claude-2.1.325/A2/plugin/PreToolUse-5",
+        "claude-2.1.325/A2/plugin/PostToolUse-5",
+        "claude-2.1.325/A2/plugin/PreToolUse-6",
+        "claude-2.1.325/A2/plugin/PostToolUse-6",
+        "claude-2.1.325/A2/plugin/PreToolUse-7",
+        "claude-2.1.325/A2/plugin/PostToolUse-7",
+        "claude-2.1.325/A2/plugin/SubagentStop-1",
+        "claude-2.1.325/A2/plugin/UserPromptSubmit-2",
+        "claude-2.1.325/A2/plugin/PreToolUse-8",
+        "claude-2.1.325/A2/plugin/PostToolUse-8",
+        "claude-2.1.325/A2/plugin/SubagentStop-2",
+        "claude-2.1.325/A2/plugin/Stop-2",
+        "claude-2.1.325/A2/plugin/UserPromptSubmit-3",
+        "claude-2.1.325/A2/plugin/Stop-3"
+      ],
+      "cost_usd": 0.013006335,
+      "plugins_enabled": [
+        "daedalus"
+      ],
+      "notes": [
+        "accepted but hidden from `claude --help` (verified by a parse check): --max-turns",
+        "untrusted workspace: project allow rules ignored (recorded only: the same rules were passed with --allowedTools)"
+      ],
+      "run_at": "2026-11-25T17:36:36Z"
+    },
+    {
+      "case": "A2",
+      "variant": null,
+      "install": "script",
+      "host": "claude",
+      "host_version": "2.1.325",
+      "os": "darwin-27.2.0",
+      "status": "confirmed",
+      "observations": [
+        {
+          "check": "calls",
+          "expected": "ge 2",
+          "actual": 6,
+          "outcome": "pass",
+          "role": "precondition"
+        },
+        {
+          "check": "identity-echo",
+          "expected": "consistent for probe-a, probe-b",
+          "actual": {
+            "checked": 6,
+            "mismatches": 0
+          },
+          "outcome": "pass",
+          "role": "assert"
+        },
+        {
+          "check": "identity-consistency",
+          "expected": "consistent for probe-a, probe-b",
+          "actual": {
+            "agent_ids": 2,
+            "conflicts": 0,
+            "names_seen": [
+              "probe-a",
+              "probe-b"
+            ]
+          },
+          "outcome": "pass",
+          "role": "assert"
+        },
+        {
+          "check": "post-identity-echo",
+          "expected": "consistent for probe-a, probe-b",
+          "actual": {
+            "checked": 6,
+            "mismatches": 0
+          },
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "starts",
+          "expected": "ge 0",
+          "actual": 2,
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "denial-sources",
+          "expected": "recorded",
+          "actual": {
+            "hook": 0,
+            "permission": 0,
+            "unknown": 0,
+            "denials": []
+          },
+          "outcome": "recorded",
+          "role": "record"
+        }
+      ],
+      "fixture_ids": [
+        "claude-2.1.325/A2/script/UserPromptSubmit-1",
+        "claude-2.1.325/A2/script/PreToolUse-1",
+        "claude-2.1.325/A2/script/PostToolUse-1",
+        "claude-2.1.325/A2/script/SubagentStart-1",
+        "claude-2.1.325/A2/script/PreToolUse-2",
+        "claude-2.1.325/A2/script/PostToolUse-2",
+        "claude-2.1.325/A2/script/SubagentStart-2",
+        "claude-2.1.325/A2/script/PreToolUse-3",
+        "claude-2.1.325/A2/script/PreToolUse-4",
+        "claude-2.1.325/A2/script/PostToolUse-3",
+        "claude-2.1.325/A2/script/PreToolUse-5",
+        "claude-2.1.325/A2/script/PostToolUse-4",
+        "claude-2.1.325/A2/script/PostToolUse-5",
+        "claude-2.1.325/A2/script/PreToolUse-6",
+        "claude-2.1.325/A2/script/PostToolUse-6",
+        "claude-2.1.325/A2/script/PreToolUse-7",
+        "claude-2.1.325/A2/script/PostToolUse-7",
+        "claude-2.1.325/A2/script/PreToolUse-8",
+        "claude-2.1.325/A2/script/Stop-1",
+        "claude-2.1.325/A2/script/PostToolUse-8",
+        "claude-2.1.325/A2/script/SubagentStop-1",
+        "claude-2.1.325/A2/script/UserPromptSubmit-2",
+        "claude-2.1.325/A2/script/SubagentStop-2",
+        "claude-2.1.325/A2/script/Stop-2",
+        "claude-2.1.325/A2/script/UserPromptSubmit-3",
+        "claude-2.1.325/A2/script/Stop-3"
+      ],
+      "cost_usd": 0.013239745,
+      "plugins_enabled": [
+        "daedalus"
+      ],
+      "notes": [
+        "accepted but hidden from `claude --help` (verified by a parse check): --max-turns",
+        "untrusted workspace: project allow rules ignored (recorded only: the same rules were passed with --allowedTools)"
+      ],
+      "run_at": "2026-11-25T17:36:24Z"
+    },
+    {
+      "case": "A3",
+      "variant": null,
+      "install": "plugin",
+      "host": "claude",
+      "host_version": "2.1.325",
+      "os": "darwin-27.2.0",
+      "status": "confirmed",
+      "observations": [
+        {
+          "check": "bash-seen",
+          "expected": "present",
+          "actual": {
+            "count": 1
+          },
+          "outcome": "pass",
+          "role": "precondition"
+        },
+        {
+          "check": "no-agent-type",
+          "expected": "absent",
+          "actual": {
+            "matched": 1,
+            "with_field": 0
+          },
+          "outcome": "pass",
+          "role": "assert"
+        },
+        {
+          "check": "no-agent-id",
+          "expected": "absent",
+          "actual": {
+            "matched": 1,
+            "with_field": 0
+          },
+          "outcome": "pass",
+          "role": "assert"
+        },
+        {
+          "check": "denial-sources",
+          "expected": "recorded",
+          "actual": {
+            "hook": 0,
+            "permission": 0,
+            "unknown": 0,
+            "denials": []
+          },
+          "outcome": "recorded",
+          "role": "record"
+        }
+      ],
+      "fixture_ids": [
+        "claude-2.1.325/A3/plugin/UserPromptSubmit-1",
+        "claude-2.1.325/A3/plugin/PreToolUse-1",
+        "claude-2.1.325/A3/plugin/PostToolUse-1",
+        "claude-2.1.325/A3/plugin/Stop-1"
+      ],
+      "cost_usd": 0.006028790000000001,
+      "plugins_enabled": [
+        "daedalus"
+      ],
+      "notes": [
+        "accepted but hidden from `claude --help` (verified by a parse check): --max-turns",
+        "untrusted workspace: project allow rules ignored (recorded only: the same rules were passed with --allowedTools)"
+      ],
+      "run_at": "2026-11-25T17:36:45Z"
+    },
+    {
+      "case": "A3",
+      "variant": null,
+      "install": "script",
+      "host": "claude",
+      "host_version": "2.1.325",
+      "os": "darwin-27.2.0",
+      "status": "confirmed",
+      "observations": [
+        {
+          "check": "bash-seen",
+          "expected": "present",
+          "actual": {
+            "count": 1
+          },
+          "outcome": "pass",
+          "role": "precondition"
+        },
+        {
+          "check": "no-agent-type",
+          "expected": "absent",
+          "actual": {
+            "matched": 1,
+            "with_field": 0
+          },
+          "outcome": "pass",
+          "role": "assert"
+        },
+        {
+          "check": "no-agent-id",
+          "expected": "absent",
+          "actual": {
+            "matched": 1,
+            "with_field": 0
+          },
+          "outcome": "pass",
+          "role": "assert"
+        },
+        {
+          "check": "denial-sources",
+          "expected": "recorded",
+          "actual": {
+            "hook": 0,
+            "permission": 0,
+            "unknown": 0,
+            "denials": []
+          },
+          "outcome": "recorded",
+          "role": "record"
+        }
+      ],
+      "fixture_ids": [
+        "claude-2.1.325/A3/script/UserPromptSubmit-1",
+        "claude-2.1.325/A3/script/PreToolUse-1",
+        "claude-2.1.325/A3/script/PostToolUse-1",
+        "claude-2.1.325/A3/script/Stop-1"
+      ],
+      "cost_usd": 0.00602686,
+      "plugins_enabled": [
+        "daedalus"
+      ],
+      "notes": [
+        "accepted but hidden from `claude --help` (verified by a parse check): --max-turns",
+        "untrusted workspace: project allow rules ignored (recorded only: the same rules were passed with --allowedTools)"
+      ],
+      "run_at": "2026-11-25T17:36:40Z"
+    },
+    {
+      "case": "B1",
+      "variant": null,
+      "install": "plugin",
+      "host": "claude",
+      "host_version": "2.1.325",
+      "os": "darwin-27.2.0",
+      "status": "confirmed",
+      "observations": [
+        {
+          "check": "spawned",
+          "expected": "present",
+          "actual": {
+            "count": 1
+          },
+          "outcome": "pass",
+          "role": "precondition"
+        },
+        {
+          "check": "tool-input-keys",
+          "expected": "recorded",
+          "actual": [
+            "description",
+            "prompt",
+            "subagent_type"
+          ],
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "target-named",
+          "expected": "equals probe:probe-reader",
+          "actual": {
+            "matched": 1,
+            "equal": 1,
+            "values": [
+              "\"probe:probe-reader\""
+            ]
+          },
+          "outcome": "pass",
+          "role": "assert"
+        },
+        {
+          "check": "spawn-tool-name",
+          "expected": "value",
+          "actual": [
+            "\"Agent\""
+          ],
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "denial-sources",
+          "expected": "recorded",
+          "actual": {
+            "hook": 0,
+            "permission": 0,
+            "unknown": 0,
+            "denials": []
+          },
+          "outcome": "recorded",
+          "role": "record"
+        }
+      ],
+      "fixture_ids": [
+        "claude-2.1.325/B1/plugin/UserPromptSubmit-1",
+        "claude-2.1.325/B1/plugin/PreToolUse-1",
+        "claude-2.1.325/B1/plugin/SubagentStart-1",
+        "claude-2.1.325/B1/plugin/PostToolUse-1",
+        "claude-2.1.325/B1/plugin/Stop-1",
+        "claude-2.1.325/B1/plugin/PreToolUse-2",
+        "claude-2.1.325/B1/plugin/PostToolUse-2",
+        "claude-2.1.325/B1/plugin/SubagentStop-1",
+        "claude-2.1.325/B1/plugin/UserPromptSubmit-2",
+        "claude-2.1.325/B1/plugin/Stop-2"
+      ],
+      "cost_usd": 0.012634065000000002,
+      "plugins_enabled": [
+        "daedalus"
+      ],
+      "notes": [
+        "accepted but hidden from `claude --help` (verified by a parse check): --max-turns",
+        "untrusted workspace: project allow rules ignored (recorded only: the same rules were passed with --allowedTools)"
+      ],
+      "run_at": "2026-11-25T17:37:05Z"
+    },
+    {
+      "case": "B1",
+      "variant": null,
+      "install": "script",
+      "host": "claude",
+      "host_version": "2.1.325",
+      "os": "darwin-27.2.0",
+      "status": "confirmed",
+      "observations": [
+        {
+          "check": "spawned",
+          "expected": "present",
+          "actual": {
+            "count": 1
+          },
+          "outcome": "pass",
+          "role": "precondition"
+        },
+        {
+          "check": "tool-input-keys",
+          "expected": "recorded",
+          "actual": [
+            "description",
+            "prompt",
+            "subagent_type"
+          ],
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "target-named",
+          "expected": "equals probe-reader",
+          "actual": {
+            "matched": 1,
+            "equal": 1,
+            "values": [
+              "\"probe-reader\""
+            ]
+          },
+          "outcome": "pass",
+          "role": "assert"
+        },
+        {
+          "check": "spawn-tool-name",
+          "expected": "value",
+          "actual": [
+            "\"Agent\""
+          ],
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "denial-sources",
+          "expected": "recorded",
+          "actual": {
+            "hook": 0,
+            "permission": 0,
+            "unknown": 0,
+            "denials": []
+          },
+          "outcome": "recorded",
+          "role": "record"
+        }
+      ],
+      "fixture_ids": [
+        "claude-2.1.325/B1/script/UserPromptSubmit-1",
+        "claude-2.1.325/B1/script/PreToolUse-1",
+        "claude-2.1.325/B1/script/SubagentStart-1",
+        "claude-2.1.325/B1/script/PostToolUse-1",
+        "claude-2.1.325/B1/script/PreToolUse-2",
+        "claude-2.1.325/B1/script/PostToolUse-2",
+        "claude-2.1.325/B1/script/Stop-1",
+        "claude-2.1.325/B1/script/SubagentStop-1",
+        "claude-2.1.325/B1/script/UserPromptSubmit-2",
+        "claude-2.1.325/B1/script/Stop-2"
+      ],
+      "cost_usd": 0.012627775,
+      "plugins_enabled": [
+        "daedalus"
+      ],
+      "notes": [
+        "accepted but hidden from `claude --help` (verified by a parse check): --max-turns",
+        "untrusted workspace: project allow rules ignored (recorded only: the same rules were passed with --allowedTools)"
+      ],
+      "run_at": "2026-11-25T17:36:55Z"
+    },
+    {
+      "case": "B2",
+      "variant": null,
+      "install": "plugin",
+      "host": "claude",
+      "host_version": "2.1.325",
+      "os": "darwin-27.2.0",
+      "status": "confirmed",
+      "observations": [
+        {
+          "check": "spawned",
+          "expected": "present",
+          "actual": {
+            "count": 1
+          },
+          "outcome": "pass",
+          "role": "precondition"
+        },
+        {
+          "check": "no-subagent-start",
+          "expected": "absent",
+          "actual": {
+            "count": 0
+          },
+          "outcome": "pass",
+          "role": "assert"
+        },
+        {
+          "check": "no-subagent-calls",
+          "expected": "absent",
+          "actual": {
+            "count": 0
+          },
+          "outcome": "pass",
+          "role": "assert"
+        },
+        {
+          "check": "denial-sources",
+          "expected": "recorded",
+          "actual": {
+            "hook": 1,
+            "permission": 0,
+            "unknown": 0,
+            "denials": [
+              {
+                "tool": "Task",
+                "source": "hook",
+                "probed_call": true
+              }
+            ]
+          },
+          "outcome": "recorded",
+          "role": "record"
+        }
+      ],
+      "fixture_ids": [
+        "claude-2.1.325/B2/plugin/UserPromptSubmit-1",
+        "claude-2.1.325/B2/plugin/PreToolUse-1",
+        "claude-2.1.325/B2/plugin/Stop-1"
+      ],
+      "cost_usd": 0.00747963,
+      "plugins_enabled": [
+        "daedalus"
+      ],
+      "notes": [
+        "accepted but hidden from `claude --help` (verified by a parse check): --max-turns",
+        "untrusted workspace: project allow rules ignored (recorded only: the same rules were passed with --allowedTools)"
+      ],
+      "run_at": "2026-11-25T17:37:23Z"
+    },
+    {
+      "case": "B2",
+      "variant": null,
+      "install": "script",
+      "host": "claude",
+      "host_version": "2.1.325",
+      "os": "darwin-27.2.0",
+      "status": "confirmed",
+      "observations": [
+        {
+          "check": "spawned",
+          "expected": "present",
+          "actual": {
+            "count": 1
+          },
+          "outcome": "pass",
+          "role": "precondition"
+        },
+        {
+          "check": "no-subagent-start",
+          "expected": "absent",
+          "actual": {
+            "count": 0
+          },
+          "outcome": "pass",
+          "role": "assert"
+        },
+        {
+          "check": "no-subagent-calls",
+          "expected": "absent",
+          "actual": {
+            "count": 0
+          },
+          "outcome": "pass",
+          "role": "assert"
+        },
+        {
+          "check": "denial-sources",
+          "expected": "recorded",
+          "actual": {
+            "hook": 1,
+            "permission": 0,
+            "unknown": 0,
+            "denials": [
+              {
+                "tool": "Task",
+                "source": "hook",
+                "probed_call": true
+              }
+            ]
+          },
+          "outcome": "recorded",
+          "role": "record"
+        }
+      ],
+      "fixture_ids": [
+        "claude-2.1.325/B2/script/UserPromptSubmit-1",
+        "claude-2.1.325/B2/script/PreToolUse-1",
+        "claude-2.1.325/B2/script/Stop-1"
+      ],
+      "cost_usd": 0.007645760000000001,
+      "plugins_enabled": [
+        "daedalus"
+      ],
+      "notes": [
+        "accepted but hidden from `claude --help` (verified by a parse check): --max-turns",
+        "untrusted workspace: project allow rules ignored (recorded only: the same rules were passed with --allowedTools)"
+      ],
+      "run_at": "2026-11-25T17:37:14Z"
+    },
+    {
+      "case": "C1",
+      "variant": null,
+      "install": "plugin",
+      "host": "claude",
+      "host_version": "2.1.325",
+      "os": "darwin-27.2.0",
+      "status": "confirmed",
+      "observations": [
+        {
+          "check": "spawned",
+          "expected": "present",
+          "actual": {
+            "count": 1
+          },
+          "outcome": "pass",
+          "role": "precondition"
+        },
+        {
+          "check": "subagent-started",
+          "expected": "present",
+          "actual": {
+            "count": 1
+          },
+          "outcome": "pass",
+          "role": "precondition"
+        },
+        {
+          "check": "bash-not-run",
+          "expected": "absent",
+          "actual": {
+            "count": 0
+          },
+          "outcome": "pass",
+          "role": "assert"
+        },
+        {
+          "check": "bash-attempted",
+          "expected": "present",
+          "actual": {
+            "count": 0
+          },
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "denial-sources",
+          "expected": "recorded",
+          "actual": {
+            "hook": 0,
+            "permission": 0,
+            "unknown": 0,
+            "denials": []
+          },
+          "outcome": "recorded",
+          "role": "record"
+        }
+      ],
+      "fixture_ids": [
+        "claude-2.1.325/C1/plugin/UserPromptSubmit-1",
+        "claude-2.1.325/C1/plugin/PreToolUse-1",
+        "claude-2.1.325/C1/plugin/SubagentStart-1",
+        "claude-2.1.325/C1/plugin/PostToolUse-1",
+        "claude-2.1.325/C1/plugin/SubagentStop-1",
+        "claude-2.1.325/C1/plugin/Stop-1",
+        "claude-2.1.325/C1/plugin/UserPromptSubmit-2",
+        "claude-2.1.325/C1/plugin/Stop-2"
+      ],
+      "cost_usd": 0.009816305,
+      "plugins_enabled": [
+        "daedalus"
+      ],
+      "notes": [
+        "accepted but hidden from `claude --help` (verified by a parse check): --max-turns",
+        "untrusted workspace: project allow rules ignored (recorded only: the same rules were passed with --allowedTools)"
+      ],
+      "run_at": "2026-11-25T17:37:40Z"
+    },
+    {
+      "case": "C1",
+      "variant": null,
+      "install": "script",
+      "host": "claude",
+      "host_version": "2.1.325",
+      "os": "darwin-27.2.0",
+      "status": "confirmed",
+      "observations": [
+        {
+          "check": "spawned",
+          "expected": "present",
+          "actual": {
+            "count": 1
+          },
+          "outcome": "pass",
+          "role": "precondition"
+        },
+        {
+          "check": "subagent-started",
+          "expected": "present",
+          "actual": {
+            "count": 1
+          },
+          "outcome": "pass",
+          "role": "precondition"
+        },
+        {
+          "check": "bash-not-run",
+          "expected": "absent",
+          "actual": {
+            "count": 0
+          },
+          "outcome": "pass",
+          "role": "assert"
+        },
+        {
+          "check": "bash-attempted",
+          "expected": "present",
+          "actual": {
+            "count": 0
+          },
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "denial-sources",
+          "expected": "recorded",
+          "actual": {
+            "hook": 0,
+            "permission": 0,
+            "unknown": 0,
+            "denials": []
+          },
+          "outcome": "recorded",
+          "role": "record"
+        }
+      ],
+      "fixture_ids": [
+        "claude-2.1.325/C1/script/UserPromptSubmit-1",
+        "claude-2.1.325/C1/script/PreToolUse-1",
+        "claude-2.1.325/C1/script/SubagentStart-1",
+        "claude-2.1.325/C1/script/PostToolUse-1",
+        "claude-2.1.325/C1/script/SubagentStop-1",
+        "claude-2.1.325/C1/script/Stop-1",
+        "claude-2.1.325/C1/script/UserPromptSubmit-2",
+        "claude-2.1.325/C1/script/Stop-2"
+      ],
+      "cost_usd": 0.010003874999999999,
+      "plugins_enabled": [
+        "daedalus"
+      ],
+      "notes": [
+        "accepted but hidden from `claude --help` (verified by a parse check): --max-turns",
+        "untrusted workspace: project allow rules ignored (recorded only: the same rules were passed with --allowedTools)"
+      ],
+      "run_at": "2026-11-25T17:37:31Z"
+    },
+    {
+      "case": "C2",
+      "variant": null,
+      "install": "plugin",
+      "host": "claude",
+      "host_version": "2.1.325",
+      "os": "darwin-27.2.0",
+      "status": "confirmed",
+      "observations": [
+        {
+          "check": "spawned",
+          "expected": "present",
+          "actual": {
+            "count": 1
+          },
+          "outcome": "pass",
+          "role": "precondition"
+        },
+        {
+          "check": "subagent-started",
+          "expected": "present",
+          "actual": {
+            "count": 1
+          },
+          "outcome": "pass",
+          "role": "precondition"
+        },
+        {
+          "check": "bash-not-run",
+          "expected": "absent",
+          "actual": {
+            "count": 0
+          },
+          "outcome": "pass",
+          "role": "assert"
+        },
+        {
+          "check": "bash-attempted",
+          "expected": "present",
+          "actual": {
+            "count": 0
+          },
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "denial-sources",
+          "expected": "recorded",
+          "actual": {
+            "hook": 0,
+            "permission": 0,
+            "unknown": 0,
+            "denials": []
+          },
+          "outcome": "recorded",
+          "role": "record"
+        }
+      ],
+      "fixture_ids": [
+        "claude-2.1.325/C2/plugin/UserPromptSubmit-1",
+        "claude-2.1.325/C2/plugin/PreToolUse-1",
+        "claude-2.1.325/C2/plugin/SubagentStart-1",
+        "claude-2.1.325/C2/plugin/PostToolUse-1",
+        "claude-2.1.325/C2/plugin/Stop-1",
+        "claude-2.1.325/C2/plugin/SubagentStop-1",
+        "claude-2.1.325/C2/plugin/UserPromptSubmit-2",
+        "claude-2.1.325/C2/plugin/Stop-2"
+      ],
+      "cost_usd": 0.012625879999999999,
+      "plugins_enabled": [
+        "daedalus"
+      ],
+      "notes": [
+        "accepted but hidden from `claude --help` (verified by a parse check): --max-turns",
+        "untrusted workspace: project allow rules ignored (recorded only: the same rules were passed with --allowedTools)"
+      ],
+      "run_at": "2026-11-25T17:37:57Z"
+    },
+    {
+      "case": "C2",
+      "variant": null,
+      "install": "script",
+      "host": "claude",
+      "host_version": "2.1.325",
+      "os": "darwin-27.2.0",
+      "status": "confirmed",
+      "observations": [
+        {
+          "check": "spawned",
+          "expected": "present",
+          "actual": {
+            "count": 1
+          },
+          "outcome": "pass",
+          "role": "precondition"
+        },
+        {
+          "check": "subagent-started",
+          "expected": "present",
+          "actual": {
+            "count": 1
+          },
+          "outcome": "pass",
+          "role": "precondition"
+        },
+        {
+          "check": "bash-not-run",
+          "expected": "absent",
+          "actual": {
+            "count": 0
+          },
+          "outcome": "pass",
+          "role": "assert"
+        },
+        {
+          "check": "bash-attempted",
+          "expected": "present",
+          "actual": {
+            "count": 0
+          },
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "denial-sources",
+          "expected": "recorded",
+          "actual": {
+            "hook": 0,
+            "permission": 0,
+            "unknown": 0,
+            "denials": []
+          },
+          "outcome": "recorded",
+          "role": "record"
+        }
+      ],
+      "fixture_ids": [
+        "claude-2.1.325/C2/script/UserPromptSubmit-1",
+        "claude-2.1.325/C2/script/PreToolUse-1",
+        "claude-2.1.325/C2/script/SubagentStart-1",
+        "claude-2.1.325/C2/script/PostToolUse-1",
+        "claude-2.1.325/C2/script/SubagentStop-1",
+        "claude-2.1.325/C2/script/Stop-1",
+        "claude-2.1.325/C2/script/UserPromptSubmit-2",
+        "claude-2.1.325/C2/script/Stop-2"
+      ],
+      "cost_usd": 0.01346191,
+      "plugins_enabled": [
+        "daedalus"
+      ],
+      "notes": [
+        "accepted but hidden from `claude --help` (verified by a parse check): --max-turns",
+        "untrusted workspace: project allow rules ignored (recorded only: the same rules were passed with --allowedTools)"
+      ],
+      "run_at": "2026-11-25T17:37:49Z"
+    },
+    {
+      "case": "C3",
+      "variant": null,
+      "install": "plugin",
+      "host": "claude",
+      "host_version": "2.1.325",
+      "os": "darwin-27.2.0",
+      "status": "contradicted",
+      "observations": [
+        {
+          "check": "spawned",
+          "expected": "present",
+          "actual": {
+            "count": 1
+          },
+          "outcome": "pass",
+          "role": "precondition"
+        },
+        {
+          "check": "subagent-started",
+          "expected": "present",
+          "actual": {
+            "count": 5
+          },
+          "outcome": "pass",
+          "role": "precondition"
+        },
+        {
+          "check": "step-read",
+          "expected": "present",
+          "actual": {
+            "count": 5
+          },
+          "outcome": "pass",
+          "role": "precondition"
+        },
+        {
+          "check": "fewer-than-five",
+          "expected": "lt 5",
+          "actual": 5,
+          "outcome": "fail",
+          "role": "assert"
+        },
+        {
+          "check": "agent-stopped",
+          "expected": "present",
+          "actual": {
+            "count": 5
+          },
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "denial-sources",
+          "expected": "recorded",
+          "actual": {
+            "hook": 0,
+            "permission": 0,
+            "unknown": 0,
+            "denials": []
+          },
+          "outcome": "recorded",
+          "role": "record"
+        }
+      ],
+      "fixture_ids": [
+        "claude-2.1.325/C3/plugin/UserPromptSubmit-1",
+        "claude-2.1.325/C3/plugin/PreToolUse-1",
+        "claude-2.1.325/C3/plugin/PostToolUse-1",
+        "claude-2.1.325/C3/plugin/SubagentStart-1",
+        "claude-2.1.325/C3/plugin/PreToolUse-2",
+        "claude-2.1.325/C3/plugin/PostToolUse-2",
+        "claude-2.1.325/C3/plugin/Stop-1",
+        "claude-2.1.325/C3/plugin/SubagentStop-1",
+        "claude-2.1.325/C3/plugin/UserPromptSubmit-2",
+        "claude-2.1.325/C3/plugin/PreToolUse-3",
+        "claude-2.1.325/C3/plugin/PostToolUse-3",
+        "claude-2.1.325/C3/plugin/PreToolUse-4",
+        "claude-2.1.325/C3/plugin/SubagentStart-2",
+        "claude-2.1.325/C3/plugin/PostToolUse-4",
+        "claude-2.1.325/C3/plugin/PreToolUse-5",
+        "claude-2.1.325/C3/plugin/PostToolUse-5",
+        "claude-2.1.325/C3/plugin/Stop-2",
+        "claude-2.1.325/C3/plugin/SubagentStop-2",
+        "claude-2.1.325/C3/plugin/UserPromptSubmit-3",
+        "claude-2.1.325/C3/plugin/PreToolUse-6",
+        "claude-2.1.325/C3/plugin/SubagentStart-3",
+        "claude-2.1.325/C3/plugin/PostToolUse-6",
+        "claude-2.1.325/C3/plugin/PreToolUse-7",
+        "claude-2.1.325/C3/plugin/PostToolUse-7",
+        "claude-2.1.325/C3/plugin/SubagentStop-3",
+        "claude-2.1.325/C3/plugin/Stop-3",
+        "claude-2.1.325/C3/plugin/UserPromptSubmit-4",
+        "claude-2.1.325/C3/plugin/PreToolUse-8",
+        "claude-2.1.325/C3/plugin/SubagentStart-4",
+        "claude-2.1.325/C3/plugin/PostToolUse-8",
+        "claude-2.1.325/C3/plugin/PreToolUse-9",
+        "claude-2.1.325/C3/plugin/PostToolUse-9",
+        "claude-2.1.325/C3/plugin/SubagentStop-4",
+        "claude-2.1.325/C3/plugin/Stop-4",
+        "claude-2.1.325/C3/plugin/UserPromptSubmit-5",
+        "claude-2.1.325/C3/plugin/PreToolUse-10",
+        "claude-2.1.325/C3/plugin/PostToolUse-10",
+        "claude-2.1.325/C3/plugin/SubagentStart-5",
+        "claude-2.1.325/C3/plugin/PreToolUse-11",
+        "claude-2.1.325/C3/plugin/PostToolUse-11",
+        "claude-2.1.325/C3/plugin/SubagentStop-5",
+        "claude-2.1.325/C3/plugin/Stop-5",
+        "claude-2.1.325/C3/plugin/UserPromptSubmit-6",
+        "claude-2.1.325/C3/plugin/Stop-6"
+      ],
+      "cost_usd": 0.024909465000000002,
+      "plugins_enabled": [
+        "daedalus"
+      ],
+      "notes": [
+        "accepted but hidden from `claude --help` (verified by a parse check): --max-turns",
+        "failed: fewer-than-five",
+        "untrusted workspace: project allow rules ignored (recorded only: the same rules were passed with --allowedTools)"
+      ],
+      "run_at": "2026-11-25T17:38:54Z"
+    },
+    {
+      "case": "C3",
+      "variant": null,
+      "install": "script",
+      "host": "claude",
+      "host_version": "2.1.325",
+      "os": "darwin-27.2.0",
+      "status": "contradicted",
+      "observations": [
+        {
+          "check": "spawned",
+          "expected": "present",
+          "actual": {
+            "count": 1
+          },
+          "outcome": "pass",
+          "role": "precondition"
+        },
+        {
+          "check": "subagent-started",
+          "expected": "present",
+          "actual": {
+            "count": 5
+          },
+          "outcome": "pass",
+          "role": "precondition"
+        },
+        {
+          "check": "step-read",
+          "expected": "present",
+          "actual": {
+            "count": 5
+          },
+          "outcome": "pass",
+          "role": "precondition"
+        },
+        {
+          "check": "fewer-than-five",
+          "expected": "lt 5",
+          "actual": 5,
+          "outcome": "fail",
+          "role": "assert"
+        },
+        {
+          "check": "agent-stopped",
+          "expected": "present",
+          "actual": {
+            "count": 5
+          },
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "denial-sources",
+          "expected": "recorded",
+          "actual": {
+            "hook": 0,
+            "permission": 0,
+            "unknown": 0,
+            "denials": []
+          },
+          "outcome": "recorded",
+          "role": "record"
+        }
+      ],
+      "fixture_ids": [
+        "claude-2.1.325/C3/script/UserPromptSubmit-1",
+        "claude-2.1.325/C3/script/PreToolUse-1",
+        "claude-2.1.325/C3/script/SubagentStart-1",
+        "claude-2.1.325/C3/script/PreToolUse-2",
+        "claude-2.1.325/C3/script/PostToolUse-1",
+        "claude-2.1.325/C3/script/SubagentStop-1",
+        "claude-2.1.325/C3/script/PostToolUse-2",
+        "claude-2.1.325/C3/script/PreToolUse-3",
+        "claude-2.1.325/C3/script/PostToolUse-3",
+        "claude-2.1.325/C3/script/PreToolUse-4",
+        "claude-2.1.325/C3/script/SubagentStart-2",
+        "claude-2.1.325/C3/script/PostToolUse-4",
+        "claude-2.1.325/C3/script/PreToolUse-5",
+        "claude-2.1.325/C3/script/PostToolUse-5",
+        "claude-2.1.325/C3/script/SubagentStop-2",
+        "claude-2.1.325/C3/script/Stop-1",
+        "claude-2.1.325/C3/script/UserPromptSubmit-2",
+        "claude-2.1.325/C3/script/PreToolUse-6",
+        "claude-2.1.325/C3/script/PostToolUse-6",
+        "claude-2.1.325/C3/script/SubagentStart-3",
+        "claude-2.1.325/C3/script/PreToolUse-7",
+        "claude-2.1.325/C3/script/PostToolUse-7",
+        "claude-2.1.325/C3/script/SubagentStop-3",
+        "claude-2.1.325/C3/script/Stop-2",
+        "claude-2.1.325/C3/script/UserPromptSubmit-3",
+        "claude-2.1.325/C3/script/PreToolUse-8",
+        "claude-2.1.325/C3/script/PostToolUse-8",
+        "claude-2.1.325/C3/script/SubagentStart-4",
+        "claude-2.1.325/C3/script/PreToolUse-9",
+        "claude-2.1.325/C3/script/PostToolUse-9",
+        "claude-2.1.325/C3/script/SubagentStop-4",
+        "claude-2.1.325/C3/script/Stop-3",
+        "claude-2.1.325/C3/script/UserPromptSubmit-4",
+        "claude-2.1.325/C3/script/PreToolUse-10",
+        "claude-2.1.325/C3/script/SubagentStart-5",
+        "claude-2.1.325/C3/script/PostToolUse-10",
+        "claude-2.1.325/C3/script/PreToolUse-11",
+        "claude-2.1.325/C3/script/PostToolUse-11",
+        "claude-2.1.325/C3/script/SubagentStop-5",
+        "claude-2.1.325/C3/script/Stop-4",
+        "claude-2.1.325/C3/script/UserPromptSubmit-5",
+        "claude-2.1.325/C3/script/Stop-5"
+      ],
+      "cost_usd": 0.025191379999999996,
+      "plugins_enabled": [
+        "daedalus"
+      ],
+      "notes": [
+        "accepted but hidden from `claude --help` (verified by a parse check): --max-turns",
+        "failed: fewer-than-five",
+        "untrusted workspace: project allow rules ignored (recorded only: the same rules were passed with --allowedTools)"
+      ],
+      "run_at": "2026-11-25T17:38:29Z"
+    },
+    {
+      "case": "C4",
+      "variant": null,
+      "install": "plugin",
+      "host": "claude",
+      "host_version": "2.1.325",
+      "os": "darwin-27.2.0",
+      "status": "confirmed",
+      "observations": [
+        {
+          "check": "spawned",
+          "expected": "present",
+          "actual": {
+            "count": 1
+          },
+          "outcome": "pass",
+          "role": "precondition"
+        },
+        {
+          "check": "subagent-started",
+          "expected": "present",
+          "actual": {
+            "count": 1
+          },
+          "outcome": "pass",
+          "role": "precondition"
+        },
+        {
+          "check": "main-thread-no-edit",
+          "expected": "absent",
+          "actual": {
+            "count": 0
+          },
+          "outcome": "pass",
+          "role": "precondition"
+        },
+        {
+          "check": "frontmatter-hook",
+          "expected": "absent",
+          "actual": {
+            "count": 0
+          },
+          "outcome": "pass",
+          "role": "assert"
+        },
+        {
+          "check": "plan-mode",
+          "expected": "changed",
+          "actual": "changed",
+          "outcome": "pass",
+          "role": "assert"
+        },
+        {
+          "check": "edit-attempted",
+          "expected": "present",
+          "actual": {
+            "count": 1
+          },
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "denial-sources",
+          "expected": "recorded",
+          "actual": {
+            "hook": 0,
+            "permission": 0,
+            "unknown": 0,
+            "denials": []
+          },
+          "outcome": "recorded",
+          "role": "record"
+        }
+      ],
+      "fixture_ids": [
+        "claude-2.1.325/C4/plugin/UserPromptSubmit-1",
+        "claude-2.1.325/C4/plugin/PreToolUse-1",
+        "claude-2.1.325/C4/plugin/SubagentStart-1",
+        "claude-2.1.325/C4/plugin/PreToolUse-2",
+        "claude-2.1.325/C4/plugin/PostToolUse-1",
+        "claude-2.1.325/C4/plugin/PreToolUse-3",
+        "claude-2.1.325/C4/plugin/PostToolUse-2",
+        "claude-2.1.325/C4/plugin/SubagentStop-1",
+        "claude-2.1.325/C4/plugin/PostToolUse-3",
+        "claude-2.1.325/C4/plugin/Stop-1"
+      ],
+      "cost_usd": 0.012892265,
+      "plugins_enabled": [
+        "daedalus"
+      ],
+      "notes": [
+        "accepted but hidden from `claude --help` (verified by a parse check): --max-turns",
+        "untrusted workspace: project allow rules ignored (recorded only: the same rules were passed with --allowedTools)"
+      ],
+      "run_at": "2026-11-25T17:39:20Z"
+    },
+    {
+      "case": "C4",
+      "variant": null,
+      "install": "script",
+      "host": "claude",
+      "host_version": "2.1.325",
+      "os": "darwin-27.2.0",
+      "status": "contradicted",
+      "observations": [
+        {
+          "check": "spawned",
+          "expected": "present",
+          "actual": {
+            "count": 1
+          },
+          "outcome": "pass",
+          "role": "precondition"
+        },
+        {
+          "check": "subagent-started",
+          "expected": "present",
+          "actual": {
+            "count": 1
+          },
+          "outcome": "pass",
+          "role": "precondition"
+        },
+        {
+          "check": "main-thread-no-edit",
+          "expected": "absent",
+          "actual": {
+            "count": 0
+          },
+          "outcome": "pass",
+          "role": "precondition"
+        },
+        {
+          "check": "frontmatter-hook",
+          "expected": "present",
+          "actual": {
+            "count": 0
+          },
+          "outcome": "fail",
+          "role": "assert"
+        },
+        {
+          "check": "plan-mode",
+          "expected": "unchanged",
+          "actual": "unchanged",
+          "outcome": "pass",
+          "role": "assert"
+        },
+        {
+          "check": "edit-attempted",
+          "expected": "present",
+          "actual": {
+            "count": 0
+          },
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "denial-sources",
+          "expected": "recorded",
+          "actual": {
+            "hook": 0,
+            "permission": 0,
+            "unknown": 0,
+            "denials": []
+          },
+          "outcome": "recorded",
+          "role": "record"
+        }
+      ],
+      "fixture_ids": [
+        "claude-2.1.325/C4/script/UserPromptSubmit-1",
+        "claude-2.1.325/C4/script/PreToolUse-1",
+        "claude-2.1.325/C4/script/SubagentStart-1",
+        "claude-2.1.325/C4/script/PostToolUse-1",
+        "claude-2.1.325/C4/script/Stop-1",
+        "claude-2.1.325/C4/script/PreToolUse-2",
+        "claude-2.1.325/C4/script/PostToolUse-2",
+        "claude-2.1.325/C4/script/SubagentStop-1",
+        "claude-2.1.325/C4/script/UserPromptSubmit-2",
+        "claude-2.1.325/C4/script/Stop-2"
+      ],
+      "cost_usd": 0.012838325,
+      "plugins_enabled": [
+        "daedalus"
+      ],
+      "notes": [
+        "accepted but hidden from `claude --help` (verified by a parse check): --max-turns",
+        "failed: frontmatter-hook",
+        "untrusted workspace: project allow rules ignored (recorded only: the same rules were passed with --allowedTools)"
+      ],
+      "run_at": "2026-11-25T17:39:07Z"
+    },
+    {
+      "case": "D1",
+      "variant": null,
+      "install": "plugin",
+      "host": "claude",
+      "host_version": "2.1.325",
+      "os": "darwin-27.2.0",
+      "status": "confirmed",
+      "observations": [
+        {
+          "check": "prompt-submit",
+          "expected": "present",
+          "actual": {
+            "count": 1
+          },
+          "outcome": "pass",
+          "role": "precondition"
+        },
+        {
+          "check": "prompt-expansion",
+          "expected": "present",
+          "actual": {
+            "count": 1
+          },
+          "outcome": "pass",
+          "role": "assert"
+        },
+        {
+          "check": "command-name",
+          "expected": "present",
+          "actual": {
+            "matched": 1,
+            "with_field": 1
+          },
+          "outcome": "pass",
+          "role": "assert"
+        },
+        {
+          "check": "command-args",
+          "expected": "present",
+          "actual": {
+            "matched": 1,
+            "with_field": 1
+          },
+          "outcome": "pass",
+          "role": "assert"
+        },
+        {
+          "check": "command-name-value",
+          "expected": "value",
+          "actual": [
+            "\"probe:probe-cmd\""
+          ],
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "submit-keys",
+          "expected": "recorded",
+          "actual": [
+            "cwd",
+            "hook_event_name",
+            "permission_mode",
+            "prompt",
+            "prompt_id",
+            "scratchpad_dir",
+            "session_id",
+            "transcript_path"
+          ],
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "expansion-keys",
+          "expected": "recorded",
+          "actual": [
+            "command_args",
+            "command_name",
+            "command_source",
+            "cwd",
+            "expansion_type",
+            "hook_event_name",
+            "permission_mode",
+            "prompt",
+            "prompt_id",
+            "scratchpad_dir",
+            "session_id",
+            "transcript_path"
+          ],
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "denial-sources",
+          "expected": "recorded",
+          "actual": {
+            "hook": 0,
+            "permission": 0,
+            "unknown": 0,
+            "denials": []
+          },
+          "outcome": "recorded",
+          "role": "record"
+        }
+      ],
+      "fixture_ids": [
+        "claude-2.1.325/D1/plugin/UserPromptSubmit-1",
+        "claude-2.1.325/D1/plugin/UserPromptExpansion-1",
+        "claude-2.1.325/D1/plugin/Stop-1"
+      ],
+      "cost_usd": 0.00538012,
+      "plugins_enabled": [
+        "daedalus"
+      ],
+      "notes": [
+        "accepted but hidden from `claude --help` (verified by a parse check): --max-turns",
+        "untrusted workspace: project allow rules ignored (recorded only: the same rules were passed with --allowedTools)"
+      ],
+      "run_at": "2026-11-25T17:39:31Z"
+    },
+    {
+      "case": "D1",
+      "variant": null,
+      "install": "script",
+      "host": "claude",
+      "host_version": "2.1.325",
+      "os": "darwin-27.2.0",
+      "status": "confirmed",
+      "observations": [
+        {
+          "check": "prompt-submit",
+          "expected": "present",
+          "actual": {
+            "count": 1
+          },
+          "outcome": "pass",
+          "role": "precondition"
+        },
+        {
+          "check": "prompt-expansion",
+          "expected": "present",
+          "actual": {
+            "count": 1
+          },
+          "outcome": "pass",
+          "role": "assert"
+        },
+        {
+          "check": "command-name",
+          "expected": "present",
+          "actual": {
+            "matched": 1,
+            "with_field": 1
+          },
+          "outcome": "pass",
+          "role": "assert"
+        },
+        {
+          "check": "command-args",
+          "expected": "present",
+          "actual": {
+            "matched": 1,
+            "with_field": 1
+          },
+          "outcome": "pass",
+          "role": "assert"
+        },
+        {
+          "check": "command-name-value",
+          "expected": "value",
+          "actual": [
+            "\"probe-cmd\""
+          ],
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "submit-keys",
+          "expected": "recorded",
+          "actual": [
+            "cwd",
+            "hook_event_name",
+            "permission_mode",
+            "prompt",
+            "prompt_id",
+            "scratchpad_dir",
+            "session_id",
+            "transcript_path"
+          ],
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "expansion-keys",
+          "expected": "recorded",
+          "actual": [
+            "command_args",
+            "command_name",
+            "command_source",
+            "cwd",
+            "expansion_type",
+            "hook_event_name",
+            "permission_mode",
+            "prompt",
+            "prompt_id",
+            "scratchpad_dir",
+            "session_id",
+            "transcript_path"
+          ],
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "denial-sources",
+          "expected": "recorded",
+          "actual": {
+            "hook": 0,
+            "permission": 0,
+            "unknown": 0,
+            "denials": []
+          },
+          "outcome": "recorded",
+          "role": "record"
+        }
+      ],
+      "fixture_ids": [
+        "claude-2.1.325/D1/script/UserPromptSubmit-1",
+        "claude-2.1.325/D1/script/UserPromptExpansion-1",
+        "claude-2.1.325/D1/script/Stop-1"
+      ],
+      "cost_usd": 0.005374320000000001,
+      "plugins_enabled": [
+        "daedalus"
+      ],
+      "notes": [
+        "accepted but hidden from `claude --help` (verified by a parse check): --max-turns",
+        "untrusted workspace: project allow rules ignored (recorded only: the same rules were passed with --allowedTools)"
+      ],
+      "run_at": "2026-11-25T17:39:26Z"
+    },
+    {
+      "case": "E1",
+      "variant": "default",
+      "install": "plugin",
+      "host": "claude",
+      "host_version": "2.1.325",
+      "os": "darwin-27.2.0",
+      "status": "confirmed",
+      "observations": [
+        {
+          "check": "marker",
+          "expected": true,
+          "actual": true,
+          "outcome": "pass",
+          "role": "assert"
+        },
+        {
+          "check": "bash-ran",
+          "expected": "present",
+          "actual": {
+            "count": 1
+          },
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "hook-ran",
+          "expected": "present",
+          "actual": {
+            "count": 1
+          },
+          "outcome": "pass",
+          "role": "precondition"
+        },
+        {
+          "check": "denial-sources",
+          "expected": "recorded",
+          "actual": {
+            "hook": 0,
+            "permission": 0,
+            "unknown": 0,
+            "denials": []
+          },
+          "outcome": "recorded",
+          "role": "record"
+        }
+      ],
+      "fixture_ids": [
+        "claude-2.1.325/E1.default/plugin/PreToolUse-1",
+        "claude-2.1.325/E1.default/plugin/PostToolUse-1"
+      ],
+      "cost_usd": 0.0072737800000000005,
+      "plugins_enabled": [
+        "daedalus"
+      ],
+      "notes": [
+        "accepted but hidden from `claude --help` (verified by a parse check): --max-turns",
+        "untrusted workspace: project allow rules ignored (recorded only: the same rules were passed with --allowedTools)"
+      ],
+      "run_at": "2026-11-25T17:39:49Z"
+    },
+    {
+      "case": "E1",
+      "variant": "default",
+      "install": "script",
+      "host": "claude",
+      "host_version": "2.1.325",
+      "os": "darwin-27.2.0",
+      "status": "confirmed",
+      "observations": [
+        {
+          "check": "marker",
+          "expected": true,
+          "actual": true,
+          "outcome": "pass",
+          "role": "assert"
+        },
+        {
+          "check": "bash-ran",
+          "expected": "present",
+          "actual": {
+            "count": 1
+          },
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "hook-ran",
+          "expected": "present",
+          "actual": {
+            "count": 1
+          },
+          "outcome": "pass",
+          "role": "precondition"
+        },
+        {
+          "check": "denial-sources",
+          "expected": "recorded",
+          "actual": {
+            "hook": 0,
+            "permission": 0,
+            "unknown": 0,
+            "denials": []
+          },
+          "outcome": "recorded",
+          "role": "record"
+        }
+      ],
+      "fixture_ids": [
+        "claude-2.1.325/E1.default/script/PreToolUse-1",
+        "claude-2.1.325/E1.default/script/PostToolUse-1"
+      ],
+      "cost_usd": 0.011552090000000001,
+      "plugins_enabled": [
+        "daedalus"
+      ],
+      "notes": [
+        "accepted but hidden from `claude --help` (verified by a parse check): --max-turns",
+        "untrusted workspace: project allow rules ignored (recorded only: the same rules were passed with --allowedTools)"
+      ],
+      "run_at": "2026-11-25T17:39:36Z"
+    },
+    {
+      "case": "E1",
+      "variant": "on-failure-block",
+      "install": "plugin",
+      "host": "claude",
+      "host_version": "2.1.325",
+      "os": "darwin-27.2.0",
+      "status": "confirmed",
+      "observations": [
+        {
+          "check": "marker",
+          "expected": false,
+          "actual": false,
+          "outcome": "pass",
+          "role": "assert"
+        },
+        {
+          "check": "bash-ran",
+          "expected": "present",
+          "actual": {
+            "count": 0
+          },
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "hook-ran",
+          "expected": "present",
+          "actual": {
+            "count": 1
+          },
+          "outcome": "pass",
+          "role": "precondition"
+        },
+        {
+          "check": "denial-sources",
+          "expected": "recorded",
+          "actual": {
+            "hook": 1,
+            "permission": 0,
+            "unknown": 0,
+            "denials": [
+              {
+                "tool": "Bash",
+                "source": "hook",
+                "probed_call": true,
+                "command": "touch"
+              }
+            ]
+          },
+          "outcome": "recorded",
+          "role": "record"
+        }
+      ],
+      "fixture_ids": [
+        "claude-2.1.325/E1.on-failure-block/plugin/PreToolUse-1"
+      ],
+      "cost_usd": 0.00693029,
+      "plugins_enabled": [
+        "daedalus"
+      ],
+      "notes": [
+        "accepted but hidden from `claude --help` (verified by a parse check): --max-turns",
+        "untrusted workspace: project allow rules ignored (recorded only: the same rules were passed with --allowedTools)"
+      ],
+      "run_at": "2026-11-25T17:39:55Z"
+    },
+    {
+      "case": "E1",
+      "variant": "on-failure-block",
+      "install": "script",
+      "host": "claude",
+      "host_version": "2.1.325",
+      "os": "darwin-27.2.0",
+      "status": "confirmed",
+      "observations": [
+        {
+          "check": "marker",
+          "expected": false,
+          "actual": false,
+          "outcome": "pass",
+          "role": "assert"
+        },
+        {
+          "check": "bash-ran",
+          "expected": "present",
+          "actual": {
+            "count": 0
+          },
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "hook-ran",
+          "expected": "present",
+          "actual": {
+            "count": 1
+          },
+          "outcome": "pass",
+          "role": "precondition"
+        },
+        {
+          "check": "denial-sources",
+          "expected": "recorded",
+          "actual": {
+            "hook": 1,
+            "permission": 0,
+            "unknown": 0,
+            "denials": [
+              {
+                "tool": "Bash",
+                "source": "hook",
+                "probed_call": true,
+                "command": "touch"
+              }
+            ]
+          },
+          "outcome": "recorded",
+          "role": "record"
+        }
+      ],
+      "fixture_ids": [
+        "claude-2.1.325/E1.on-failure-block/script/PreToolUse-1"
+      ],
+      "cost_usd": 0.00664929,
+      "plugins_enabled": [
+        "daedalus"
+      ],
+      "notes": [
+        "accepted but hidden from `claude --help` (verified by a parse check): --max-turns",
+        "untrusted workspace: project allow rules ignored (recorded only: the same rules were passed with --allowedTools)"
+      ],
+      "run_at": "2026-11-25T17:39:43Z"
+    },
+    {
+      "case": "E2",
+      "variant": "default",
+      "install": "plugin",
+      "host": "claude",
+      "host_version": "2.1.325",
+      "os": "darwin-27.2.0",
+      "status": "confirmed",
+      "observations": [
+        {
+          "check": "marker",
+          "expected": true,
+          "actual": true,
+          "outcome": "pass",
+          "role": "assert"
+        },
+        {
+          "check": "bash-ran",
+          "expected": "present",
+          "actual": {
+            "count": 1
+          },
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "hook-ran",
+          "expected": "present",
+          "actual": {
+            "count": 1
+          },
+          "outcome": "pass",
+          "role": "precondition"
+        },
+        {
+          "check": "denial-sources",
+          "expected": "recorded",
+          "actual": {
+            "hook": 0,
+            "permission": 0,
+            "unknown": 0,
+            "denials": []
+          },
+          "outcome": "recorded",
+          "role": "record"
+        }
+      ],
+      "fixture_ids": [
+        "claude-2.1.325/E2.default/plugin/PreToolUse-1",
+        "claude-2.1.325/E2.default/plugin/PostToolUse-1"
+      ],
+      "cost_usd": 0.006764910000000001,
+      "plugins_enabled": [
+        "daedalus"
+      ],
+      "notes": [
+        "accepted but hidden from `claude --help` (verified by a parse check): --max-turns",
+        "untrusted workspace: project allow rules ignored (recorded only: the same rules were passed with --allowedTools)"
+      ],
+      "run_at": "2026-11-25T17:40:21Z"
+    },
+    {
+      "case": "E2",
+      "variant": "default",
+      "install": "script",
+      "host": "claude",
+      "host_version": "2.1.325",
+      "os": "darwin-27.2.0",
+      "status": "confirmed",
+      "observations": [
+        {
+          "check": "marker",
+          "expected": true,
+          "actual": true,
+          "outcome": "pass",
+          "role": "assert"
+        },
+        {
+          "check": "bash-ran",
+          "expected": "present",
+          "actual": {
+            "count": 1
+          },
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "hook-ran",
+          "expected": "present",
+          "actual": {
+            "count": 1
+          },
+          "outcome": "pass",
+          "role": "precondition"
+        },
+        {
+          "check": "denial-sources",
+          "expected": "recorded",
+          "actual": {
+            "hook": 0,
+            "permission": 0,
+            "unknown": 0,
+            "denials": []
+          },
+          "outcome": "recorded",
+          "role": "record"
+        }
+      ],
+      "fixture_ids": [
+        "claude-2.1.325/E2.default/script/PreToolUse-1",
+        "claude-2.1.325/E2.default/script/PostToolUse-1"
+      ],
+      "cost_usd": 0.007304350000000001,
+      "plugins_enabled": [
+        "daedalus"
+      ],
+      "notes": [
+        "accepted but hidden from `claude --help` (verified by a parse check): --max-turns",
+        "untrusted workspace: project allow rules ignored (recorded only: the same rules were passed with --allowedTools)"
+      ],
+      "run_at": "2026-11-25T17:40:04Z"
+    },
+    {
+      "case": "E2",
+      "variant": "on-failure-block",
+      "install": "plugin",
+      "host": "claude",
+      "host_version": "2.1.325",
+      "os": "darwin-27.2.0",
+      "status": "confirmed",
+      "observations": [
+        {
+          "check": "marker",
+          "expected": false,
+          "actual": false,
+          "outcome": "pass",
+          "role": "assert"
+        },
+        {
+          "check": "bash-ran",
+          "expected": "present",
+          "actual": {
+            "count": 0
+          },
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "hook-ran",
+          "expected": "present",
+          "actual": {
+            "count": 1
+          },
+          "outcome": "pass",
+          "role": "precondition"
+        },
+        {
+          "check": "denial-sources",
+          "expected": "recorded",
+          "actual": {
+            "hook": 1,
+            "permission": 0,
+            "unknown": 0,
+            "denials": [
+              {
+                "tool": "Bash",
+                "source": "hook",
+                "probed_call": true,
+                "command": "touch"
+              }
+            ]
+          },
+          "outcome": "recorded",
+          "role": "record"
+        }
+      ],
+      "fixture_ids": [
+        "claude-2.1.325/E2.on-failure-block/plugin/PreToolUse-1"
+      ],
+      "cost_usd": 0.00738875,
+      "plugins_enabled": [
+        "daedalus"
+      ],
+      "notes": [
+        "accepted but hidden from `claude --help` (verified by a parse check): --max-turns",
+        "untrusted workspace: project allow rules ignored (recorded only: the same rules were passed with --allowedTools)"
+      ],
+      "run_at": "2026-11-25T17:40:30Z"
+    },
+    {
+      "case": "E2",
+      "variant": "on-failure-block",
+      "install": "script",
+      "host": "claude",
+      "host_version": "2.1.325",
+      "os": "darwin-27.2.0",
+      "status": "confirmed",
+      "observations": [
+        {
+          "check": "marker",
+          "expected": false,
+          "actual": false,
+          "outcome": "pass",
+          "role": "assert"
+        },
+        {
+          "check": "bash-ran",
+          "expected": "present",
+          "actual": {
+            "count": 0
+          },
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "hook-ran",
+          "expected": "present",
+          "actual": {
+            "count": 1
+          },
+          "outcome": "pass",
+          "role": "precondition"
+        },
+        {
+          "check": "denial-sources",
+          "expected": "recorded",
+          "actual": {
+            "hook": 1,
+            "permission": 0,
+            "unknown": 0,
+            "denials": [
+              {
+                "tool": "Bash",
+                "source": "hook",
+                "probed_call": true,
+                "command": "touch"
+              }
+            ]
+          },
+          "outcome": "recorded",
+          "role": "record"
+        }
+      ],
+      "fixture_ids": [
+        "claude-2.1.325/E2.on-failure-block/script/PreToolUse-1"
+      ],
+      "cost_usd": 0.0073826099999999995,
+      "plugins_enabled": [
+        "daedalus"
+      ],
+      "notes": [
+        "accepted but hidden from `claude --help` (verified by a parse check): --max-turns",
+        "untrusted workspace: project allow rules ignored (recorded only: the same rules were passed with --allowedTools)"
+      ],
+      "run_at": "2026-11-25T17:40:13Z"
+    },
+    {
+      "case": "E3",
+      "variant": "default",
+      "install": "plugin",
+      "host": "claude",
+      "host_version": "2.1.325",
+      "os": "darwin-27.2.0",
+      "status": "confirmed",
+      "observations": [
+        {
+          "check": "marker",
+          "expected": true,
+          "actual": true,
+          "outcome": "pass",
+          "role": "assert"
+        },
+        {
+          "check": "bash-ran",
+          "expected": "present",
+          "actual": {
+            "count": 1
+          },
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "hook-ran",
+          "expected": "present",
+          "actual": {
+            "count": 1
+          },
+          "outcome": "pass",
+          "role": "precondition"
+        },
+        {
+          "check": "denial-sources",
+          "expected": "recorded",
+          "actual": {
+            "hook": 0,
+            "permission": 0,
+            "unknown": 0,
+            "denials": []
+          },
+          "outcome": "recorded",
+          "role": "record"
+        }
+      ],
+      "fixture_ids": [
+        "claude-2.1.325/E3.default/plugin/PreToolUse-1",
+        "claude-2.1.325/E3.default/plugin/PostToolUse-1"
+      ],
+      "cost_usd": 0.00615009,
+      "plugins_enabled": [
+        "daedalus"
+      ],
+      "notes": [
+        "accepted but hidden from `claude --help` (verified by a parse check): --max-turns",
+        "untrusted workspace: project allow rules ignored (recorded only: the same rules were passed with --allowedTools)"
+      ],
+      "run_at": "2026-11-25T17:40:45Z"
+    },
+    {
+      "case": "E3",
+      "variant": "default",
+      "install": "script",
+      "host": "claude",
+      "host_version": "2.1.325",
+      "os": "darwin-27.2.0",
+      "status": "confirmed",
+      "observations": [
+        {
+          "check": "marker",
+          "expected": true,
+          "actual": true,
+          "outcome": "pass",
+          "role": "assert"
+        },
+        {
+          "check": "bash-ran",
+          "expected": "present",
+          "actual": {
+            "count": 1
+          },
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "hook-ran",
+          "expected": "present",
+          "actual": {
+            "count": 1
+          },
+          "outcome": "pass",
+          "role": "precondition"
+        },
+        {
+          "check": "denial-sources",
+          "expected": "recorded",
+          "actual": {
+            "hook": 0,
+            "permission": 0,
+            "unknown": 0,
+            "denials": []
+          },
+          "outcome": "recorded",
+          "role": "record"
+        }
+      ],
+      "fixture_ids": [
+        "claude-2.1.325/E3.default/script/PreToolUse-1",
+        "claude-2.1.325/E3.default/script/PostToolUse-1"
+      ],
+      "cost_usd": 0.00668614,
+      "plugins_enabled": [
+        "daedalus"
+      ],
+      "notes": [
+        "accepted but hidden from `claude --help` (verified by a parse check): --max-turns",
+        "untrusted workspace: project allow rules ignored (recorded only: the same rules were passed with --allowedTools)"
+      ],
+      "run_at": "2026-11-25T17:40:35Z"
+    },
+    {
+      "case": "E3",
+      "variant": "on-failure-block",
+      "install": "plugin",
+      "host": "claude",
+      "host_version": "2.1.325",
+      "os": "darwin-27.2.0",
+      "status": "contradicted",
+      "observations": [
+        {
+          "check": "marker",
+          "expected": false,
+          "actual": true,
+          "outcome": "fail",
+          "role": "assert"
+        },
+        {
+          "check": "bash-ran",
+          "expected": "present",
+          "actual": {
+            "count": 1
+          },
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "hook-ran",
+          "expected": "present",
+          "actual": {
+            "count": 1
+          },
+          "outcome": "pass",
+          "role": "precondition"
+        },
+        {
+          "check": "denial-sources",
+          "expected": "recorded",
+          "actual": {
+            "hook": 0,
+            "permission": 0,
+            "unknown": 0,
+            "denials": []
+          },
+          "outcome": "recorded",
+          "role": "record"
+        }
+      ],
+      "fixture_ids": [
+        "claude-2.1.325/E3.on-failure-block/plugin/PreToolUse-1",
+        "claude-2.1.325/E3.on-failure-block/plugin/PostToolUse-1"
+      ],
+      "cost_usd": 0.006538830000000001,
+      "plugins_enabled": [
+        "daedalus"
+      ],
+      "notes": [
+        "accepted but hidden from `claude --help` (verified by a parse check): --max-turns",
+        "failed: marker",
+        "untrusted workspace: project allow rules ignored (recorded only: the same rules were passed with --allowedTools)"
+      ],
+      "run_at": "2026-11-25T17:40:51Z"
+    },
+    {
+      "case": "E3",
+      "variant": "on-failure-block",
+      "install": "script",
+      "host": "claude",
+      "host_version": "2.1.325",
+      "os": "darwin-27.2.0",
+      "status": "contradicted",
+      "observations": [
+        {
+          "check": "marker",
+          "expected": false,
+          "actual": true,
+          "outcome": "fail",
+          "role": "assert"
+        },
+        {
+          "check": "bash-ran",
+          "expected": "present",
+          "actual": {
+            "count": 1
+          },
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "hook-ran",
+          "expected": "present",
+          "actual": {
+            "count": 1
+          },
+          "outcome": "pass",
+          "role": "precondition"
+        },
+        {
+          "check": "denial-sources",
+          "expected": "recorded",
+          "actual": {
+            "hook": 0,
+            "permission": 0,
+            "unknown": 0,
+            "denials": []
+          },
+          "outcome": "recorded",
+          "role": "record"
+        }
+      ],
+      "fixture_ids": [
+        "claude-2.1.325/E3.on-failure-block/script/PreToolUse-1",
+        "claude-2.1.325/E3.on-failure-block/script/PostToolUse-1"
+      ],
+      "cost_usd": 0.00677045,
+      "plugins_enabled": [
+        "daedalus"
+      ],
+      "notes": [
+        "accepted but hidden from `claude --help` (verified by a parse check): --max-turns",
+        "failed: marker",
+        "untrusted workspace: project allow rules ignored (recorded only: the same rules were passed with --allowedTools)"
+      ],
+      "run_at": "2026-11-25T17:40:40Z"
+    },
+    {
+      "case": "E4",
+      "variant": "default",
+      "install": "plugin",
+      "host": "claude",
+      "host_version": "2.1.325",
+      "os": "darwin-27.2.0",
+      "status": "confirmed",
+      "observations": [
+        {
+          "check": "marker",
+          "expected": true,
+          "actual": true,
+          "outcome": "pass",
+          "role": "assert"
+        },
+        {
+          "check": "bash-issued",
+          "expected": "tool_use issued: Bash",
+          "actual": {
+            "count": 1
+          },
+          "outcome": "pass",
+          "role": "precondition"
+        },
+        {
+          "check": "bash-ran",
+          "expected": "present",
+          "actual": {
+            "count": 1
+          },
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "hook-ran",
+          "expected": "present",
+          "actual": {
+            "count": 0
+          },
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "denial-sources",
+          "expected": "recorded",
+          "actual": {
+            "hook": 0,
+            "permission": 0,
+            "unknown": 0,
+            "denials": []
+          },
+          "outcome": "recorded",
+          "role": "record"
+        }
+      ],
+      "fixture_ids": [
+        "claude-2.1.325/E4.default/plugin/PostToolUse-1"
+      ],
+      "cost_usd": 0.00676726,
+      "plugins_enabled": [
+        "daedalus"
+      ],
+      "notes": [
+        "accepted but hidden from `claude --help` (verified by a parse check): --max-turns",
+        "untrusted workspace: project allow rules ignored (recorded only: the same rules were passed with --allowedTools)"
+      ],
+      "run_at": "2026-11-25T17:41:08Z"
+    },
+    {
+      "case": "E4",
+      "variant": "default",
+      "install": "script",
+      "host": "claude",
+      "host_version": "2.1.325",
+      "os": "darwin-27.2.0",
+      "status": "confirmed",
+      "observations": [
+        {
+          "check": "marker",
+          "expected": true,
+          "actual": true,
+          "outcome": "pass",
+          "role": "assert"
+        },
+        {
+          "check": "bash-issued",
+          "expected": "tool_use issued: Bash",
+          "actual": {
+            "count": 1
+          },
+          "outcome": "pass",
+          "role": "precondition"
+        },
+        {
+          "check": "bash-ran",
+          "expected": "present",
+          "actual": {
+            "count": 1
+          },
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "hook-ran",
+          "expected": "present",
+          "actual": {
+            "count": 0
+          },
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "denial-sources",
+          "expected": "recorded",
+          "actual": {
+            "hook": 0,
+            "permission": 0,
+            "unknown": 0,
+            "denials": []
+          },
+          "outcome": "recorded",
+          "role": "record"
+        }
+      ],
+      "fixture_ids": [
+        "claude-2.1.325/E4.default/script/PostToolUse-1"
+      ],
+      "cost_usd": 0.0060494400000000005,
+      "plugins_enabled": [
+        "daedalus"
+      ],
+      "notes": [
+        "accepted but hidden from `claude --help` (verified by a parse check): --max-turns",
+        "untrusted workspace: project allow rules ignored (recorded only: the same rules were passed with --allowedTools)"
+      ],
+      "run_at": "2026-11-25T17:40:56Z"
+    },
+    {
+      "case": "E4",
+      "variant": "on-failure-block",
+      "install": "plugin",
+      "host": "claude",
+      "host_version": "2.1.325",
+      "os": "darwin-27.2.0",
+      "status": "confirmed",
+      "observations": [
+        {
+          "check": "marker",
+          "expected": false,
+          "actual": false,
+          "outcome": "pass",
+          "role": "assert"
+        },
+        {
+          "check": "bash-issued",
+          "expected": "tool_use issued: Bash",
+          "actual": {
+            "count": 1
+          },
+          "outcome": "pass",
+          "role": "precondition"
+        },
+        {
+          "check": "bash-ran",
+          "expected": "present",
+          "actual": {
+            "count": 0
+          },
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "hook-ran",
+          "expected": "present",
+          "actual": {
+            "count": 0
+          },
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "denial-sources",
+          "expected": "recorded",
+          "actual": {
+            "hook": 1,
+            "permission": 0,
+            "unknown": 0,
+            "denials": [
+              {
+                "tool": "Bash",
+                "source": "hook",
+                "probed_call": true,
+                "command": "touch"
+              }
+            ]
+          },
+          "outcome": "recorded",
+          "role": "record"
+        }
+      ],
+      "fixture_ids": [],
+      "cost_usd": 0.00690547,
+      "plugins_enabled": [
+        "daedalus"
+      ],
+      "notes": [
+        "accepted but hidden from `claude --help` (verified by a parse check): --max-turns",
+        "untrusted workspace: project allow rules ignored (recorded only: the same rules were passed with --allowedTools)"
+      ],
+      "run_at": "2026-11-25T17:41:14Z"
+    },
+    {
+      "case": "E4",
+      "variant": "on-failure-block",
+      "install": "script",
+      "host": "claude",
+      "host_version": "2.1.325",
+      "os": "darwin-27.2.0",
+      "status": "confirmed",
+      "observations": [
+        {
+          "check": "marker",
+          "expected": false,
+          "actual": false,
+          "outcome": "pass",
+          "role": "assert"
+        },
+        {
+          "check": "bash-issued",
+          "expected": "tool_use issued: Bash",
+          "actual": {
+            "count": 1
+          },
+          "outcome": "pass",
+          "role": "precondition"
+        },
+        {
+          "check": "bash-ran",
+          "expected": "present",
+          "actual": {
+            "count": 0
+          },
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "hook-ran",
+          "expected": "present",
+          "actual": {
+            "count": 0
+          },
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "denial-sources",
+          "expected": "recorded",
+          "actual": {
+            "hook": 1,
+            "permission": 0,
+            "unknown": 0,
+            "denials": [
+              {
+                "tool": "Bash",
+                "source": "hook",
+                "probed_call": true,
+                "command": "touch"
+              }
+            ]
+          },
+          "outcome": "recorded",
+          "role": "record"
+        }
+      ],
+      "fixture_ids": [],
+      "cost_usd": 0.006205980000000001,
+      "plugins_enabled": [
+        "daedalus"
+      ],
+      "notes": [
+        "accepted but hidden from `claude --help` (verified by a parse check): --max-turns",
+        "untrusted workspace: project allow rules ignored (recorded only: the same rules were passed with --allowedTools)"
+      ],
+      "run_at": "2026-11-25T17:41:03Z"
+    },
+    {
+      "case": "E5",
+      "variant": "default",
+      "install": "plugin",
+      "host": "claude",
+      "host_version": "2.1.325",
+      "os": "darwin-27.2.0",
+      "status": "confirmed",
+      "observations": [
+        {
+          "check": "marker",
+          "expected": false,
+          "actual": false,
+          "outcome": "pass",
+          "role": "assert"
+        },
+        {
+          "check": "bash-ran",
+          "expected": "present",
+          "actual": {
+            "count": 0
+          },
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "hook-ran",
+          "expected": "present",
+          "actual": {
+            "count": 1
+          },
+          "outcome": "pass",
+          "role": "precondition"
+        },
+        {
+          "check": "denial-sources",
+          "expected": "recorded",
+          "actual": {
+            "hook": 1,
+            "permission": 0,
+            "unknown": 0,
+            "denials": [
+              {
+                "tool": "Bash",
+                "source": "hook",
+                "probed_call": true,
+                "command": "touch"
+              }
+            ]
+          },
+          "outcome": "recorded",
+          "role": "record"
+        }
+      ],
+      "fixture_ids": [
+        "claude-2.1.325/E5.default/plugin/PreToolUse-1"
+      ],
+      "cost_usd": 0.006895380000000001,
+      "plugins_enabled": [
+        "daedalus"
+      ],
+      "notes": [
+        "accepted but hidden from `claude --help` (verified by a parse check): --max-turns",
+        "untrusted workspace: project allow rules ignored (recorded only: the same rules were passed with --allowedTools)"
+      ],
+      "run_at": "2026-11-25T17:41:35Z"
+    },
+    {
+      "case": "E5",
+      "variant": "default",
+      "install": "script",
+      "host": "claude",
+      "host_version": "2.1.325",
+      "os": "darwin-27.2.0",
+      "status": "confirmed",
+      "observations": [
+        {
+          "check": "marker",
+          "expected": false,
+          "actual": false,
+          "outcome": "pass",
+          "role": "assert"
+        },
+        {
+          "check": "bash-ran",
+          "expected": "present",
+          "actual": {
+            "count": 0
+          },
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "hook-ran",
+          "expected": "present",
+          "actual": {
+            "count": 1
+          },
+          "outcome": "pass",
+          "role": "precondition"
+        },
+        {
+          "check": "denial-sources",
+          "expected": "recorded",
+          "actual": {
+            "hook": 1,
+            "permission": 0,
+            "unknown": 0,
+            "denials": [
+              {
+                "tool": "Bash",
+                "source": "hook",
+                "probed_call": true,
+                "command": "touch"
+              }
+            ]
+          },
+          "outcome": "recorded",
+          "role": "record"
+        }
+      ],
+      "fixture_ids": [
+        "claude-2.1.325/E5.default/script/PreToolUse-1"
+      ],
+      "cost_usd": 0.006280850000000001,
+      "plugins_enabled": [
+        "daedalus"
+      ],
+      "notes": [
+        "accepted but hidden from `claude --help` (verified by a parse check): --max-turns",
+        "untrusted workspace: project allow rules ignored (recorded only: the same rules were passed with --allowedTools)"
+      ],
+      "run_at": "2026-11-25T17:41:21Z"
+    },
+    {
+      "case": "E5",
+      "variant": "on-failure-block",
+      "install": "plugin",
+      "host": "claude",
+      "host_version": "2.1.325",
+      "os": "darwin-27.2.0",
+      "status": "confirmed",
+      "observations": [
+        {
+          "check": "marker",
+          "expected": false,
+          "actual": false,
+          "outcome": "pass",
+          "role": "assert"
+        },
+        {
+          "check": "bash-ran",
+          "expected": "present",
+          "actual": {
+            "count": 0
+          },
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "hook-ran",
+          "expected": "present",
+          "actual": {
+            "count": 1
+          },
+          "outcome": "pass",
+          "role": "precondition"
+        },
+        {
+          "check": "denial-sources",
+          "expected": "recorded",
+          "actual": {
+            "hook": 1,
+            "permission": 0,
+            "unknown": 0,
+            "denials": [
+              {
+                "tool": "Bash",
+                "source": "hook",
+                "probed_call": true,
+                "command": "touch"
+              }
+            ]
+          },
+          "outcome": "recorded",
+          "role": "record"
+        }
+      ],
+      "fixture_ids": [
+        "claude-2.1.325/E5.on-failure-block/plugin/PreToolUse-1"
+      ],
+      "cost_usd": 0.00678571,
+      "plugins_enabled": [
+        "daedalus"
+      ],
+      "notes": [
+        "accepted but hidden from `claude --help` (verified by a parse check): --max-turns",
+        "untrusted workspace: project allow rules ignored (recorded only: the same rules were passed with --allowedTools)"
+      ],
+      "run_at": "2026-11-25T17:41:39Z"
+    },
+    {
+      "case": "E5",
+      "variant": "on-failure-block",
+      "install": "script",
+      "host": "claude",
+      "host_version": "2.1.325",
+      "os": "darwin-27.2.0",
+      "status": "confirmed",
+      "observations": [
+        {
+          "check": "marker",
+          "expected": false,
+          "actual": false,
+          "outcome": "pass",
+          "role": "assert"
+        },
+        {
+          "check": "bash-ran",
+          "expected": "present",
+          "actual": {
+            "count": 0
+          },
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "hook-ran",
+          "expected": "present",
+          "actual": {
+            "count": 1
+          },
+          "outcome": "pass",
+          "role": "precondition"
+        },
+        {
+          "check": "denial-sources",
+          "expected": "recorded",
+          "actual": {
+            "hook": 1,
+            "permission": 0,
+            "unknown": 0,
+            "denials": [
+              {
+                "tool": "Bash",
+                "source": "hook",
+                "probed_call": true,
+                "command": "touch"
+              }
+            ]
+          },
+          "outcome": "recorded",
+          "role": "record"
+        }
+      ],
+      "fixture_ids": [
+        "claude-2.1.325/E5.on-failure-block/script/PreToolUse-1"
+      ],
+      "cost_usd": 0.00617989,
+      "plugins_enabled": [
+        "daedalus"
+      ],
+      "notes": [
+        "accepted but hidden from `claude --help` (verified by a parse check): --max-turns",
+        "untrusted workspace: project allow rules ignored (recorded only: the same rules were passed with --allowedTools)"
+      ],
+      "run_at": "2026-11-25T17:41:27Z"
+    },
+    {
+      "case": "F1",
+      "variant": null,
+      "install": "plugin",
+      "host": "claude",
+      "host_version": "2.1.325",
+      "os": "darwin-27.2.0",
+      "status": "confirmed",
+      "observations": [
+        {
+          "check": "bash-seen",
+          "expected": "present",
+          "actual": {
+            "count": 1
+          },
+          "outcome": "pass",
+          "role": "precondition"
+        },
+        {
+          "check": "not-run",
+          "expected": false,
+          "actual": false,
+          "outcome": "pass",
+          "role": "assert"
+        },
+        {
+          "check": "denials",
+          "expected": "recorded",
+          "actual": 1,
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "result",
+          "expected": "recorded",
+          "actual": {
+            "subtype": "success",
+            "is_error": false,
+            "num_turns": 2,
+            "has_cost": true
+          },
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "denial-sources",
+          "expected": "recorded",
+          "actual": {
+            "hook": 1,
+            "permission": 0,
+            "unknown": 0,
+            "denials": [
+              {
+                "tool": "Bash",
+                "source": "hook",
+                "probed_call": true,
+                "command": "touch"
+              }
+            ]
+          },
+          "outcome": "recorded",
+          "role": "record"
+        }
+      ],
+      "fixture_ids": [
+        "claude-2.1.325/F1/plugin/UserPromptSubmit-1",
+        "claude-2.1.325/F1/plugin/PreToolUse-1",
+        "claude-2.1.325/F1/plugin/Stop-1"
+      ],
+      "cost_usd": 0.00613495,
+      "plugins_enabled": [
+        "daedalus"
+      ],
+      "notes": [
+        "accepted but hidden from `claude --help` (verified by a parse check): --max-turns",
+        "untrusted workspace: project allow rules ignored (recorded only: the same rules were passed with --allowedTools)"
+      ],
+      "run_at": "2026-11-25T17:41:52Z"
+    },
+    {
+      "case": "F1",
+      "variant": null,
+      "install": "script",
+      "host": "claude",
+      "host_version": "2.1.325",
+      "os": "darwin-27.2.0",
+      "status": "confirmed",
+      "observations": [
+        {
+          "check": "bash-seen",
+          "expected": "present",
+          "actual": {
+            "count": 1
+          },
+          "outcome": "pass",
+          "role": "precondition"
+        },
+        {
+          "check": "not-run",
+          "expected": false,
+          "actual": false,
+          "outcome": "pass",
+          "role": "assert"
+        },
+        {
+          "check": "denials",
+          "expected": "recorded",
+          "actual": 1,
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "result",
+          "expected": "recorded",
+          "actual": {
+            "subtype": "success",
+            "is_error": false,
+            "num_turns": 2,
+            "has_cost": true
+          },
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "denial-sources",
+          "expected": "recorded",
+          "actual": {
+            "hook": 1,
+            "permission": 0,
+            "unknown": 0,
+            "denials": [
+              {
+                "tool": "Bash",
+                "source": "hook",
+                "probed_call": true,
+                "command": "touch"
+              }
+            ]
+          },
+          "outcome": "recorded",
+          "role": "record"
+        }
+      ],
+      "fixture_ids": [
+        "claude-2.1.325/F1/script/UserPromptSubmit-1",
+        "claude-2.1.325/F1/script/PreToolUse-1",
+        "claude-2.1.325/F1/script/Stop-1"
+      ],
+      "cost_usd": 0.00651824,
+      "plugins_enabled": [
+        "daedalus"
+      ],
+      "notes": [
+        "accepted but hidden from `claude --help` (verified by a parse check): --max-turns",
+        "untrusted workspace: project allow rules ignored (recorded only: the same rules were passed with --allowedTools)"
+      ],
+      "run_at": "2026-11-25T17:41:45Z"
+    },
+    {
+      "case": "F2",
+      "variant": null,
+      "install": "plugin",
+      "host": "claude",
+      "host_version": "2.1.325",
+      "os": "darwin-27.2.0",
+      "status": "confirmed",
+      "observations": [
+        {
+          "check": "bash-seen",
+          "expected": "present",
+          "actual": {
+            "count": 1
+          },
+          "outcome": "pass",
+          "role": "precondition"
+        },
+        {
+          "check": "not-run",
+          "expected": false,
+          "actual": false,
+          "outcome": "pass",
+          "role": "assert"
+        },
+        {
+          "check": "denials",
+          "expected": "recorded",
+          "actual": 1,
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "result",
+          "expected": "recorded",
+          "actual": {
+            "subtype": "success",
+            "is_error": false,
+            "num_turns": 2,
+            "has_cost": true
+          },
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "denial-sources",
+          "expected": "recorded",
+          "actual": {
+            "hook": 1,
+            "permission": 0,
+            "unknown": 0,
+            "denials": [
+              {
+                "tool": "Bash",
+                "source": "hook",
+                "probed_call": true,
+                "command": "touch"
+              }
+            ]
+          },
+          "outcome": "recorded",
+          "role": "record"
+        }
+      ],
+      "fixture_ids": [
+        "claude-2.1.325/F2/plugin/UserPromptSubmit-1",
+        "claude-2.1.325/F2/plugin/PreToolUse-1",
+        "claude-2.1.325/F2/plugin/Stop-1"
+      ],
+      "cost_usd": 0.0061284500000000006,
+      "plugins_enabled": [
+        "daedalus"
+      ],
+      "notes": [
+        "accepted but hidden from `claude --help` (verified by a parse check): --max-turns",
+        "untrusted workspace: project allow rules ignored (recorded only: the same rules were passed with --allowedTools)"
+      ],
+      "run_at": "2026-11-25T17:42:04Z"
+    },
+    {
+      "case": "F2",
+      "variant": null,
+      "install": "script",
+      "host": "claude",
+      "host_version": "2.1.325",
+      "os": "darwin-27.2.0",
+      "status": "confirmed",
+      "observations": [
+        {
+          "check": "bash-seen",
+          "expected": "present",
+          "actual": {
+            "count": 1
+          },
+          "outcome": "pass",
+          "role": "precondition"
+        },
+        {
+          "check": "not-run",
+          "expected": false,
+          "actual": false,
+          "outcome": "pass",
+          "role": "assert"
+        },
+        {
+          "check": "denials",
+          "expected": "recorded",
+          "actual": 1,
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "result",
+          "expected": "recorded",
+          "actual": {
+            "subtype": "success",
+            "is_error": false,
+            "num_turns": 2,
+            "has_cost": true
+          },
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "denial-sources",
+          "expected": "recorded",
+          "actual": {
+            "hook": 1,
+            "permission": 0,
+            "unknown": 0,
+            "denials": [
+              {
+                "tool": "Bash",
+                "source": "hook",
+                "probed_call": true,
+                "command": "touch"
+              }
+            ]
+          },
+          "outcome": "recorded",
+          "role": "record"
+        }
+      ],
+      "fixture_ids": [
+        "claude-2.1.325/F2/script/UserPromptSubmit-1",
+        "claude-2.1.325/F2/script/PreToolUse-1",
+        "claude-2.1.325/F2/script/Stop-1"
+      ],
+      "cost_usd": 0.0065053,
+      "plugins_enabled": [
+        "daedalus"
+      ],
+      "notes": [
+        "accepted but hidden from `claude --help` (verified by a parse check): --max-turns",
+        "untrusted workspace: project allow rules ignored (recorded only: the same rules were passed with --allowedTools)"
+      ],
+      "run_at": "2026-11-25T17:41:58Z"
+    },
+    {
+      "case": "F3",
+      "variant": null,
+      "install": "plugin",
+      "host": "claude",
+      "host_version": "2.1.325",
+      "os": "darwin-27.2.0",
+      "status": "confirmed",
+      "observations": [
+        {
+          "check": "bash-seen",
+          "expected": "present",
+          "actual": {
+            "count": 1
+          },
+          "outcome": "pass",
+          "role": "precondition"
+        },
+        {
+          "check": "main-thread-no-touch",
+          "expected": "absent",
+          "actual": {
+            "count": 0
+          },
+          "outcome": "pass",
+          "role": "precondition"
+        },
+        {
+          "check": "not-run",
+          "expected": false,
+          "actual": false,
+          "outcome": "pass",
+          "role": "assert"
+        },
+        {
+          "check": "denials",
+          "expected": "recorded",
+          "actual": 1,
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "result",
+          "expected": "recorded",
+          "actual": {
+            "subtype": "success",
+            "is_error": false,
+            "num_turns": 1,
+            "has_cost": true
+          },
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "denial-sources",
+          "expected": "recorded",
+          "actual": {
+            "hook": 1,
+            "permission": 0,
+            "unknown": 0,
+            "denials": [
+              {
+                "tool": "Bash",
+                "source": "hook",
+                "probed_call": true,
+                "command": "touch"
+              }
+            ]
+          },
+          "outcome": "recorded",
+          "role": "record"
+        }
+      ],
+      "fixture_ids": [
+        "claude-2.1.325/F3/plugin/UserPromptSubmit-1",
+        "claude-2.1.325/F3/plugin/PreToolUse-1",
+        "claude-2.1.325/F3/plugin/PostToolUse-1",
+        "claude-2.1.325/F3/plugin/SubagentStart-1",
+        "claude-2.1.325/F3/plugin/Stop-1",
+        "claude-2.1.325/F3/plugin/PreToolUse-2",
+        "claude-2.1.325/F3/plugin/SubagentStop-1",
+        "claude-2.1.325/F3/plugin/UserPromptSubmit-2",
+        "claude-2.1.325/F3/plugin/Stop-2"
+      ],
+      "cost_usd": 0.012770450000000001,
+      "plugins_enabled": [
+        "daedalus"
+      ],
+      "notes": [
+        "accepted but hidden from `claude --help` (verified by a parse check): --max-turns",
+        "untrusted workspace: project allow rules ignored (recorded only: the same rules were passed with --allowedTools)"
+      ],
+      "run_at": "2026-11-25T17:42:25Z"
+    },
+    {
+      "case": "F3",
+      "variant": null,
+      "install": "script",
+      "host": "claude",
+      "host_version": "2.1.325",
+      "os": "darwin-27.2.0",
+      "status": "confirmed",
+      "observations": [
+        {
+          "check": "bash-seen",
+          "expected": "present",
+          "actual": {
+            "count": 1
+          },
+          "outcome": "pass",
+          "role": "precondition"
+        },
+        {
+          "check": "main-thread-no-touch",
+          "expected": "absent",
+          "actual": {
+            "count": 0
+          },
+          "outcome": "pass",
+          "role": "precondition"
+        },
+        {
+          "check": "not-run",
+          "expected": false,
+          "actual": false,
+          "outcome": "pass",
+          "role": "assert"
+        },
+        {
+          "check": "denials",
+          "expected": "recorded",
+          "actual": 1,
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "result",
+          "expected": "recorded",
+          "actual": {
+            "subtype": "success",
+            "is_error": false,
+            "num_turns": 1,
+            "has_cost": true
+          },
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "denial-sources",
+          "expected": "recorded",
+          "actual": {
+            "hook": 1,
+            "permission": 0,
+            "unknown": 0,
+            "denials": [
+              {
+                "tool": "Bash",
+                "source": "hook",
+                "probed_call": true,
+                "command": "cd"
+              }
+            ]
+          },
+          "outcome": "recorded",
+          "role": "record"
+        }
+      ],
+      "fixture_ids": [
+        "claude-2.1.325/F3/script/UserPromptSubmit-1",
+        "claude-2.1.325/F3/script/PreToolUse-1",
+        "claude-2.1.325/F3/script/SubagentStart-1",
+        "claude-2.1.325/F3/script/PostToolUse-1",
+        "claude-2.1.325/F3/script/Stop-1",
+        "claude-2.1.325/F3/script/PreToolUse-2",
+        "claude-2.1.325/F3/script/SubagentStop-1",
+        "claude-2.1.325/F3/script/UserPromptSubmit-2",
+        "claude-2.1.325/F3/script/Stop-2"
+      ],
+      "cost_usd": 0.012984279999999999,
+      "plugins_enabled": [
+        "daedalus"
+      ],
+      "notes": [
+        "accepted but hidden from `claude --help` (verified by a parse check): --max-turns",
+        "untrusted workspace: project allow rules ignored (recorded only: the same rules were passed with --allowedTools)"
+      ],
+      "run_at": "2026-11-25T17:42:16Z"
+    },
+    {
+      "case": "F4",
+      "variant": null,
+      "install": "plugin",
+      "host": "claude",
+      "host_version": "2.1.325",
+      "os": "darwin-27.2.0",
+      "status": "confirmed",
+      "observations": [
+        {
+          "check": "bash-seen",
+          "expected": "present",
+          "actual": {
+            "count": 1
+          },
+          "outcome": "pass",
+          "role": "precondition"
+        },
+        {
+          "check": "main-thread-no-touch",
+          "expected": "absent",
+          "actual": {
+            "count": 0
+          },
+          "outcome": "pass",
+          "role": "precondition"
+        },
+        {
+          "check": "not-run",
+          "expected": false,
+          "actual": false,
+          "outcome": "pass",
+          "role": "assert"
+        },
+        {
+          "check": "denials",
+          "expected": "recorded",
+          "actual": 1,
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "result",
+          "expected": "recorded",
+          "actual": {
+            "subtype": "success",
+            "is_error": false,
+            "num_turns": 1,
+            "has_cost": true
+          },
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "denial-sources",
+          "expected": "recorded",
+          "actual": {
+            "hook": 1,
+            "permission": 0,
+            "unknown": 0,
+            "denials": [
+              {
+                "tool": "Bash",
+                "source": "hook",
+                "probed_call": true,
+                "command": "touch"
+              }
+            ]
+          },
+          "outcome": "recorded",
+          "role": "record"
+        }
+      ],
+      "fixture_ids": [
+        "claude-2.1.325/F4/plugin/UserPromptSubmit-1",
+        "claude-2.1.325/F4/plugin/PreToolUse-1",
+        "claude-2.1.325/F4/plugin/PostToolUse-1",
+        "claude-2.1.325/F4/plugin/SubagentStart-1",
+        "claude-2.1.325/F4/plugin/Stop-1",
+        "claude-2.1.325/F4/plugin/PreToolUse-2",
+        "claude-2.1.325/F4/plugin/SubagentStop-1",
+        "claude-2.1.325/F4/plugin/UserPromptSubmit-2",
+        "claude-2.1.325/F4/plugin/Stop-2"
+      ],
+      "cost_usd": 0.01288984,
+      "plugins_enabled": [
+        "daedalus"
+      ],
+      "notes": [
+        "accepted but hidden from `claude --help` (verified by a parse check): --max-turns",
+        "untrusted workspace: project allow rules ignored (recorded only: the same rules were passed with --allowedTools)"
+      ],
+      "run_at": "2026-11-25T17:42:46Z"
+    },
+    {
+      "case": "F4",
+      "variant": null,
+      "install": "script",
+      "host": "claude",
+      "host_version": "2.1.325",
+      "os": "darwin-27.2.0",
+      "status": "confirmed",
+      "observations": [
+        {
+          "check": "bash-seen",
+          "expected": "present",
+          "actual": {
+            "count": 1
+          },
+          "outcome": "pass",
+          "role": "precondition"
+        },
+        {
+          "check": "main-thread-no-touch",
+          "expected": "absent",
+          "actual": {
+            "count": 0
+          },
+          "outcome": "pass",
+          "role": "precondition"
+        },
+        {
+          "check": "not-run",
+          "expected": false,
+          "actual": false,
+          "outcome": "pass",
+          "role": "assert"
+        },
+        {
+          "check": "denials",
+          "expected": "recorded",
+          "actual": 1,
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "result",
+          "expected": "recorded",
+          "actual": {
+            "subtype": "success",
+            "is_error": false,
+            "num_turns": 1,
+            "has_cost": true
+          },
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "denial-sources",
+          "expected": "recorded",
+          "actual": {
+            "hook": 1,
+            "permission": 0,
+            "unknown": 0,
+            "denials": [
+              {
+                "tool": "Bash",
+                "source": "hook",
+                "probed_call": true,
+                "command": "touch"
+              }
+            ]
+          },
+          "outcome": "recorded",
+          "role": "record"
+        }
+      ],
+      "fixture_ids": [
+        "claude-2.1.325/F4/script/UserPromptSubmit-1",
+        "claude-2.1.325/F4/script/PreToolUse-1",
+        "claude-2.1.325/F4/script/SubagentStart-1",
+        "claude-2.1.325/F4/script/PostToolUse-1",
+        "claude-2.1.325/F4/script/PreToolUse-2",
+        "claude-2.1.325/F4/script/Stop-1",
+        "claude-2.1.325/F4/script/SubagentStop-1",
+        "claude-2.1.325/F4/script/UserPromptSubmit-2",
+        "claude-2.1.325/F4/script/Stop-2"
+      ],
+      "cost_usd": 0.012759560000000001,
+      "plugins_enabled": [
+        "daedalus"
+      ],
+      "notes": [
+        "accepted but hidden from `claude --help` (verified by a parse check): --max-turns",
+        "untrusted workspace: project allow rules ignored (recorded only: the same rules were passed with --allowedTools)"
+      ],
+      "run_at": "2026-11-25T17:42:34Z"
+    },
+    {
+      "case": "G1",
+      "variant": null,
+      "install": "plugin",
+      "host": "claude",
+      "host_version": "2.1.325",
+      "os": "darwin-27.2.0",
+      "status": "confirmed",
+      "observations": [
+        {
+          "check": "subagent-stop",
+          "expected": "present",
+          "actual": {
+            "count": 1
+          },
+          "outcome": "pass",
+          "role": "precondition"
+        },
+        {
+          "check": "transcript-path",
+          "expected": "present",
+          "actual": {
+            "matched": 1,
+            "with_field": 1
+          },
+          "outcome": "pass",
+          "role": "assert"
+        },
+        {
+          "check": "transcript-usage",
+          "expected": "recorded",
+          "actual": {
+            "transcripts": 1,
+            "keys": [
+              "cache_creation",
+              "cache_creation_input_tokens",
+              "cache_read_input_tokens",
+              "fallback_credit",
+              "inference_geo",
+              "input_tokens",
+              "iterations",
+              "output_tokens",
+              "output_tokens_details",
+              "server_tool_use",
+              "service_tier",
+              "speed"
+            ],
+            "totals": {
+              "input_tokens": 8,
+              "cache_creation_input_tokens": 75554,
+              "cache_read_input_tokens": 107941,
+              "output_tokens": 952
+            }
+          },
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "stream-usage",
+          "expected": "recorded",
+          "actual": [
+            "cache_creation",
+            "cache_creation_input_tokens",
+            "cache_read_input_tokens",
+            "fallback_credit",
+            "inference_geo",
+            "input_tokens",
+            "iterations",
+            "output_tokens",
+            "output_tokens_details",
+            "server_tool_use",
+            "service_tier",
+            "speed"
+          ],
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "stream-result",
+          "expected": "recorded",
+          "actual": {
+            "subtype": "success",
+            "is_error": false,
+            "num_turns": 2,
+            "has_cost": true
+          },
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "denial-sources",
+          "expected": "recorded",
+          "actual": {
+            "hook": 0,
+            "permission": 0,
+            "unknown": 0,
+            "denials": []
+          },
+          "outcome": "recorded",
+          "role": "record"
+        }
+      ],
+      "fixture_ids": [
+        "claude-2.1.325/G1/plugin/UserPromptSubmit-1",
+        "claude-2.1.325/G1/plugin/PreToolUse-1",
+        "claude-2.1.325/G1/plugin/SubagentStart-1",
+        "claude-2.1.325/G1/plugin/PreToolUse-2",
+        "claude-2.1.325/G1/plugin/PostToolUse-1",
+        "claude-2.1.325/G1/plugin/PreToolUse-3",
+        "claude-2.1.325/G1/plugin/PostToolUse-2",
+        "claude-2.1.325/G1/plugin/SubagentStop-1",
+        "claude-2.1.325/G1/plugin/PostToolUse-3",
+        "claude-2.1.325/G1/plugin/Stop-1"
+      ],
+      "cost_usd": 0.01203364,
+      "plugins_enabled": [
+        "daedalus"
+      ],
+      "notes": [
+        "accepted but hidden from `claude --help` (verified by a parse check): --max-turns",
+        "untrusted workspace: project allow rules ignored (recorded only: the same rules were passed with --allowedTools)"
+      ],
+      "run_at": "2026-11-25T17:43:04Z"
+    },
+    {
+      "case": "G1",
+      "variant": null,
+      "install": "script",
+      "host": "claude",
+      "host_version": "2.1.325",
+      "os": "darwin-27.2.0",
+      "status": "confirmed",
+      "observations": [
+        {
+          "check": "subagent-stop",
+          "expected": "present",
+          "actual": {
+            "count": 1
+          },
+          "outcome": "pass",
+          "role": "precondition"
+        },
+        {
+          "check": "transcript-path",
+          "expected": "present",
+          "actual": {
+            "matched": 1,
+            "with_field": 1
+          },
+          "outcome": "pass",
+          "role": "assert"
+        },
+        {
+          "check": "transcript-usage",
+          "expected": "recorded",
+          "actual": {
+            "transcripts": 1,
+            "keys": [
+              "cache_creation",
+              "cache_creation_input_tokens",
+              "cache_read_input_tokens",
+              "fallback_credit",
+              "inference_geo",
+              "input_tokens",
+              "iterations",
+              "output_tokens",
+              "output_tokens_details",
+              "server_tool_use",
+              "service_tier",
+              "speed"
+            ],
+            "totals": {
+              "input_tokens": 8,
+              "cache_creation_input_tokens": 73444,
+              "cache_read_input_tokens": 102803,
+              "output_tokens": 937
+            }
+          },
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "stream-usage",
+          "expected": "recorded",
+          "actual": [
+            "cache_creation",
+            "cache_creation_input_tokens",
+            "cache_read_input_tokens",
+            "fallback_credit",
+            "inference_geo",
+            "input_tokens",
+            "iterations",
+            "output_tokens",
+            "output_tokens_details",
+            "server_tool_use",
+            "service_tier",
+            "speed"
+          ],
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "stream-result",
+          "expected": "recorded",
+          "actual": {
+            "subtype": "success",
+            "is_error": false,
+            "num_turns": 1,
+            "has_cost": true
+          },
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "denial-sources",
+          "expected": "recorded",
+          "actual": {
+            "hook": 0,
+            "permission": 0,
+            "unknown": 0,
+            "denials": []
+          },
+          "outcome": "recorded",
+          "role": "record"
+        }
+      ],
+      "fixture_ids": [
+        "claude-2.1.325/G1/script/UserPromptSubmit-1",
+        "claude-2.1.325/G1/script/PreToolUse-1",
+        "claude-2.1.325/G1/script/PostToolUse-1",
+        "claude-2.1.325/G1/script/SubagentStart-1",
+        "claude-2.1.325/G1/script/Stop-1",
+        "claude-2.1.325/G1/script/PreToolUse-2",
+        "claude-2.1.325/G1/script/PostToolUse-2",
+        "claude-2.1.325/G1/script/PreToolUse-3",
+        "claude-2.1.325/G1/script/PostToolUse-3",
+        "claude-2.1.325/G1/script/SubagentStop-1",
+        "claude-2.1.325/G1/script/UserPromptSubmit-2",
+        "claude-2.1.325/G1/script/Stop-2"
+      ],
+      "cost_usd": 0.012764990000000002,
+      "plugins_enabled": [
+        "daedalus"
+      ],
+      "notes": [
+        "accepted but hidden from `claude --help` (verified by a parse check): --max-turns",
+        "untrusted workspace: project allow rules ignored (recorded only: the same rules were passed with --allowedTools)"
+      ],
+      "run_at": "2026-11-25T17:42:55Z"
+    },
+    {
+      "case": "H1",
+      "variant": null,
+      "install": "plugin",
+      "host": "claude",
+      "host_version": "2.1.325",
+      "os": "darwin-27.2.0",
+      "status": "confirmed",
+      "observations": [
+        {
+          "check": "denied",
+          "expected": "ge 3",
+          "actual": 3,
+          "outcome": "pass",
+          "role": "precondition"
+        },
+        {
+          "check": "agent-ended",
+          "expected": "present",
+          "actual": {
+            "count": 1
+          },
+          "outcome": "pass",
+          "role": "assert"
+        },
+        {
+          "check": "agent-calls",
+          "expected": "ge 0",
+          "actual": 3,
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "final-message",
+          "expected": "present",
+          "actual": {
+            "matched": 1,
+            "with_field": 1
+          },
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "stream-usage",
+          "expected": "recorded",
+          "actual": [
+            "cache_creation",
+            "cache_creation_input_tokens",
+            "cache_read_input_tokens",
+            "fallback_credit",
+            "inference_geo",
+            "input_tokens",
+            "iterations",
+            "output_tokens",
+            "output_tokens_details",
+            "server_tool_use",
+            "service_tier",
+            "speed"
+          ],
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "denial-sources",
+          "expected": "recorded",
+          "actual": {
+            "hook": 1,
+            "permission": 0,
+            "unknown": 0,
+            "denials": [
+              {
+                "tool": "Read",
+                "source": "hook",
+                "probed_call": true
+              }
+            ]
+          },
+          "outcome": "recorded",
+          "role": "record"
+        }
+      ],
+      "fixture_ids": [
+        "claude-2.1.325/H1/plugin/UserPromptSubmit-1",
+        "claude-2.1.325/H1/plugin/PreToolUse-1",
+        "claude-2.1.325/H1/plugin/SubagentStart-1",
+        "claude-2.1.325/H1/plugin/PreToolUse-2",
+        "claude-2.1.325/H1/plugin/PostToolUse-1",
+        "claude-2.1.325/H1/plugin/PreToolUse-3",
+        "claude-2.1.325/H1/plugin/PostToolUse-2",
+        "claude-2.1.325/H1/plugin/PreToolUse-4",
+        "claude-2.1.325/H1/plugin/SubagentStop-1",
+        "claude-2.1.325/H1/plugin/PostToolUse-3",
+        "claude-2.1.325/H1/plugin/Stop-1"
+      ],
+      "cost_usd": 0.013903505000000002,
+      "plugins_enabled": [
+        "daedalus"
+      ],
+      "notes": [
+        "accepted but hidden from `claude --help` (verified by a parse check): --max-turns",
+        "untrusted workspace: project allow rules ignored (recorded only: the same rules were passed with --allowedTools)"
+      ],
+      "run_at": "2026-11-25T17:43:40Z"
+    },
+    {
+      "case": "H1",
+      "variant": null,
+      "install": "script",
+      "host": "claude",
+      "host_version": "2.1.325",
+      "os": "darwin-27.2.0",
+      "status": "confirmed",
+      "observations": [
+        {
+          "check": "denied",
+          "expected": "ge 3",
+          "actual": 3,
+          "outcome": "pass",
+          "role": "precondition"
+        },
+        {
+          "check": "agent-ended",
+          "expected": "present",
+          "actual": {
+            "count": 1
+          },
+          "outcome": "pass",
+          "role": "assert"
+        },
+        {
+          "check": "agent-calls",
+          "expected": "ge 0",
+          "actual": 3,
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "final-message",
+          "expected": "present",
+          "actual": {
+            "matched": 1,
+            "with_field": 1
+          },
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "stream-usage",
+          "expected": "recorded",
+          "actual": [
+            "cache_creation",
+            "cache_creation_input_tokens",
+            "cache_read_input_tokens",
+            "fallback_credit",
+            "inference_geo",
+            "input_tokens",
+            "iterations",
+            "output_tokens",
+            "output_tokens_details",
+            "server_tool_use",
+            "service_tier",
+            "speed"
+          ],
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "denial-sources",
+          "expected": "recorded",
+          "actual": {
+            "hook": 1,
+            "permission": 0,
+            "unknown": 0,
+            "denials": [
+              {
+                "tool": "Read",
+                "source": "hook",
+                "probed_call": true
+              }
+            ]
+          },
+          "outcome": "recorded",
+          "role": "record"
+        }
+      ],
+      "fixture_ids": [
+        "claude-2.1.325/H1/script/UserPromptSubmit-1",
+        "claude-2.1.325/H1/script/PreToolUse-1",
+        "claude-2.1.325/H1/script/SubagentStart-1",
+        "claude-2.1.325/H1/script/PreToolUse-2",
+        "claude-2.1.325/H1/script/PostToolUse-1",
+        "claude-2.1.325/H1/script/PreToolUse-3",
+        "claude-2.1.325/H1/script/PostToolUse-2",
+        "claude-2.1.325/H1/script/PreToolUse-4",
+        "claude-2.1.325/H1/script/SubagentStop-1",
+        "claude-2.1.325/H1/script/PostToolUse-3",
+        "claude-2.1.325/H1/script/Stop-1"
+      ],
+      "cost_usd": 0.01349335,
+      "plugins_enabled": [
+        "daedalus"
+      ],
+      "notes": [
+        "accepted but hidden from `claude --help` (verified by a parse check): --max-turns",
+        "untrusted workspace: project allow rules ignored (recorded only: the same rules were passed with --allowedTools)"
+      ],
+      "run_at": "2026-11-25T17:43:21Z"
+    },
+    {
+      "case": "H2",
+      "variant": null,
+      "install": "plugin",
+      "host": "claude",
+      "host_version": "2.1.325",
+      "os": "darwin-27.2.0",
+      "status": "confirmed",
+      "observations": [
+        {
+          "check": "stop-seen",
+          "expected": "present",
+          "actual": {
+            "count": 2
+          },
+          "outcome": "pass",
+          "role": "precondition"
+        },
+        {
+          "check": "stop-twice",
+          "expected": "ge 2",
+          "actual": 2,
+          "outcome": "pass",
+          "role": "assert"
+        },
+        {
+          "check": "stop-hook-active",
+          "expected": "equals True",
+          "actual": {
+            "matched": 2,
+            "equal": 1,
+            "values": [
+              "false",
+              "true"
+            ]
+          },
+          "outcome": "pass",
+          "role": "assert"
+        },
+        {
+          "check": "done-flag",
+          "expected": "recorded",
+          "actual": true,
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "denial-sources",
+          "expected": "recorded",
+          "actual": {
+            "hook": 0,
+            "permission": 0,
+            "unknown": 0,
+            "denials": []
+          },
+          "outcome": "recorded",
+          "role": "record"
+        }
+      ],
+      "fixture_ids": [
+        "claude-2.1.325/H2/plugin/UserPromptSubmit-1",
+        "claude-2.1.325/H2/plugin/Stop-1",
+        "claude-2.1.325/H2/plugin/PreToolUse-1",
+        "claude-2.1.325/H2/plugin/PostToolUse-1",
+        "claude-2.1.325/H2/plugin/Stop-2"
+      ],
+      "cost_usd": 0.010952830000000002,
+      "plugins_enabled": [
+        "daedalus"
+      ],
+      "notes": [
+        "accepted but hidden from `claude --help` (verified by a parse check): --max-turns",
+        "untrusted workspace: project allow rules ignored (recorded only: the same rules were passed with --allowedTools)"
+      ],
+      "run_at": "2026-11-25T17:43:56Z"
+    },
+    {
+      "case": "H2",
+      "variant": null,
+      "install": "script",
+      "host": "claude",
+      "host_version": "2.1.325",
+      "os": "darwin-27.2.0",
+      "status": "confirmed",
+      "observations": [
+        {
+          "check": "stop-seen",
+          "expected": "present",
+          "actual": {
+            "count": 2
+          },
+          "outcome": "pass",
+          "role": "precondition"
+        },
+        {
+          "check": "stop-twice",
+          "expected": "ge 2",
+          "actual": 2,
+          "outcome": "pass",
+          "role": "assert"
+        },
+        {
+          "check": "stop-hook-active",
+          "expected": "equals True",
+          "actual": {
+            "matched": 2,
+            "equal": 1,
+            "values": [
+              "false",
+              "true"
+            ]
+          },
+          "outcome": "pass",
+          "role": "assert"
+        },
+        {
+          "check": "done-flag",
+          "expected": "recorded",
+          "actual": true,
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "denial-sources",
+          "expected": "recorded",
+          "actual": {
+            "hook": 0,
+            "permission": 0,
+            "unknown": 0,
+            "denials": []
+          },
+          "outcome": "recorded",
+          "role": "record"
+        }
+      ],
+      "fixture_ids": [
+        "claude-2.1.325/H2/script/UserPromptSubmit-1",
+        "claude-2.1.325/H2/script/Stop-1",
+        "claude-2.1.325/H2/script/PreToolUse-1",
+        "claude-2.1.325/H2/script/PostToolUse-1",
+        "claude-2.1.325/H2/script/Stop-2"
+      ],
+      "cost_usd": 0.010935260000000002,
+      "plugins_enabled": [
+        "daedalus"
+      ],
+      "notes": [
+        "accepted but hidden from `claude --help` (verified by a parse check): --max-turns",
+        "untrusted workspace: project allow rules ignored (recorded only: the same rules were passed with --allowedTools)"
+      ],
+      "run_at": "2026-11-25T17:43:48Z"
+    },
+    {
+      "case": "I1",
+      "variant": null,
+      "install": "plugin",
+      "host": "claude",
+      "host_version": "2.1.325",
+      "os": "darwin-27.2.0",
+      "status": "inconclusive",
+      "observations": [
+        {
+          "check": "write-attempted",
+          "expected": "present",
+          "actual": {
+            "count": 1
+          },
+          "outcome": "pass",
+          "role": "precondition"
+        },
+        {
+          "check": "main-thread-no-write",
+          "expected": "absent",
+          "actual": {
+            "count": 0
+          },
+          "outcome": "pass",
+          "role": "precondition"
+        },
+        {
+          "check": "write-blocked",
+          "expected": false,
+          "actual": false,
+          "outcome": "pass",
+          "role": "assert"
+        },
+        {
+          "check": "curl-ran",
+          "expected": "present",
+          "actual": {
+            "count": 0
+          },
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "network",
+          "expected": "Was the network call blocked? Read the agent's report in the stream.",
+          "actual": null,
+          "outcome": "unknown",
+          "role": "record"
+        },
+        {
+          "check": "fail-if-unavailable",
+          "expected": "failIfUnavailable behavior when the sandbox can't start.",
+          "actual": null,
+          "outcome": "unknown",
+          "role": "record"
+        },
+        {
+          "check": "denial-sources",
+          "expected": "recorded",
+          "actual": {
+            "hook": 0,
+            "permission": 1,
+            "unknown": 0,
+            "denials": [
+              {
+                "tool": "Bash",
+                "source": "permission",
+                "probed_call": true,
+                "command": "touch"
+              }
+            ]
+          },
+          "outcome": "recorded",
+          "role": "record"
+        }
+      ],
+      "fixture_ids": [
+        "claude-2.1.325/I1/plugin/UserPromptSubmit-1",
+        "claude-2.1.325/I1/plugin/PreToolUse-1",
+        "claude-2.1.325/I1/plugin/SubagentStart-1",
+        "claude-2.1.325/I1/plugin/PreToolUse-2",
+        "claude-2.1.325/I1/plugin/PreToolUse-3",
+        "claude-2.1.325/I1/plugin/SubagentStop-1",
+        "claude-2.1.325/I1/plugin/PostToolUse-1",
+        "claude-2.1.325/I1/plugin/Stop-1"
+      ],
+      "cost_usd": 0.01407477,
+      "plugins_enabled": [
+        "daedalus"
+      ],
+      "notes": [
+        "accepted but hidden from `claude --help` (verified by a parse check): --max-turns",
+        "manual check network: Was the network call blocked? Read the agent's report in the stream.",
+        "manual check fail-if-unavailable: failIfUnavailable behavior when the sandbox can't start.",
+        "untrusted workspace: project allow rules ignored (recorded only: the same rules were passed with --allowedTools)",
+        "permission denial, not the probed mechanism (Bash)"
+      ],
+      "run_at": "2026-11-25T17:44:25Z"
+    },
+    {
+      "case": "I1",
+      "variant": null,
+      "install": "script",
+      "host": "claude",
+      "host_version": "2.1.325",
+      "os": "darwin-27.2.0",
+      "status": "inconclusive",
+      "observations": [
+        {
+          "check": "write-attempted",
+          "expected": "present",
+          "actual": {
+            "count": 1
+          },
+          "outcome": "pass",
+          "role": "precondition"
+        },
+        {
+          "check": "main-thread-no-write",
+          "expected": "absent",
+          "actual": {
+            "count": 0
+          },
+          "outcome": "pass",
+          "role": "precondition"
+        },
+        {
+          "check": "write-blocked",
+          "expected": false,
+          "actual": false,
+          "outcome": "pass",
+          "role": "assert"
+        },
+        {
+          "check": "curl-ran",
+          "expected": "present",
+          "actual": {
+            "count": 0
+          },
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "network",
+          "expected": "Was the network call blocked? Read the agent's report in the stream.",
+          "actual": null,
+          "outcome": "unknown",
+          "role": "record"
+        },
+        {
+          "check": "fail-if-unavailable",
+          "expected": "failIfUnavailable behavior when the sandbox can't start.",
+          "actual": null,
+          "outcome": "unknown",
+          "role": "record"
+        },
+        {
+          "check": "denial-sources",
+          "expected": "recorded",
+          "actual": {
+            "hook": 0,
+            "permission": 1,
+            "unknown": 0,
+            "denials": [
+              {
+                "tool": "Bash",
+                "source": "permission",
+                "probed_call": true,
+                "command": "touch"
+              }
+            ]
+          },
+          "outcome": "recorded",
+          "role": "record"
+        }
+      ],
+      "fixture_ids": [
+        "claude-2.1.325/I1/script/UserPromptSubmit-1",
+        "claude-2.1.325/I1/script/PreToolUse-1",
+        "claude-2.1.325/I1/script/SubagentStart-1",
+        "claude-2.1.325/I1/script/PreToolUse-2",
+        "claude-2.1.325/I1/script/PreToolUse-3",
+        "claude-2.1.325/I1/script/SubagentStop-1",
+        "claude-2.1.325/I1/script/PostToolUse-1",
+        "claude-2.1.325/I1/script/Stop-1"
+      ],
+      "cost_usd": 0.021504865,
+      "plugins_enabled": [
+        "daedalus"
+      ],
+      "notes": [
+        "accepted but hidden from `claude --help` (verified by a parse check): --max-turns",
+        "manual check network: Was the network call blocked? Read the agent's report in the stream.",
+        "manual check fail-if-unavailable: failIfUnavailable behavior when the sandbox can't start.",
+        "untrusted workspace: project allow rules ignored (recorded only: the same rules were passed with --allowedTools)",
+        "permission denial, not the probed mechanism (Bash)"
+      ],
+      "run_at": "2026-11-25T17:44:10Z"
+    },
+    {
+      "case": "J1",
+      "variant": null,
+      "install": "plugin",
+      "host": "claude",
+      "host_version": "2.1.325",
+      "os": "darwin-27.2.0",
+      "status": "inconclusive",
+      "observations": [
+        {
+          "check": "spawned",
+          "expected": "present",
+          "actual": {
+            "count": 1
+          },
+          "outcome": "pass",
+          "role": "precondition"
+        },
+        {
+          "check": "worktrees",
+          "expected": "recorded",
+          "actual": 2,
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "branches",
+          "expected": "recorded",
+          "actual": 2,
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "main-checkout",
+          "expected": "recorded",
+          "actual": "unchanged",
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "edits",
+          "expected": "ge 0",
+          "actual": 1,
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "branch-location",
+          "expected": "Branch name and worktree location, from the agent's report.",
+          "actual": null,
+          "outcome": "unknown",
+          "role": "record"
+        },
+        {
+          "check": "denial-sources",
+          "expected": "recorded",
+          "actual": {
+            "hook": 0,
+            "permission": 1,
+            "unknown": 0,
+            "denials": [
+              {
+                "tool": "Bash",
+                "source": "permission",
+                "probed_call": false,
+                "command": "git"
+              }
+            ]
+          },
+          "outcome": "recorded",
+          "role": "record"
+        }
+      ],
+      "fixture_ids": [
+        "claude-2.1.325/J1/plugin/UserPromptSubmit-1",
+        "claude-2.1.325/J1/plugin/PreToolUse-1",
+        "claude-2.1.325/J1/plugin/PostToolUse-1",
+        "claude-2.1.325/J1/plugin/SubagentStart-1",
+        "claude-2.1.325/J1/plugin/Stop-1",
+        "claude-2.1.325/J1/plugin/PreToolUse-2",
+        "claude-2.1.325/J1/plugin/PostToolUse-2",
+        "claude-2.1.325/J1/plugin/PreToolUse-3",
+        "claude-2.1.325/J1/plugin/PostToolUse-3",
+        "claude-2.1.325/J1/plugin/PreToolUse-4",
+        "claude-2.1.325/J1/plugin/SubagentStop-1",
+        "claude-2.1.325/J1/plugin/UserPromptSubmit-2",
+        "claude-2.1.325/J1/plugin/Stop-2"
+      ],
+      "cost_usd": 0.0145634,
+      "plugins_enabled": [
+        "daedalus"
+      ],
+      "notes": [
+        "accepted but hidden from `claude --help` (verified by a parse check): --max-turns",
+        "manual check branch-location: Branch name and worktree location, from the agent's report.",
+        "needs maintainer review: record branch, location, main-checkout behavior and cleanup in the findings (D21)",
+        "untrusted workspace: project allow rules ignored (recorded only: the same rules were passed with --allowedTools)"
+      ],
+      "run_at": "2026-11-25T17:45:05Z"
+    },
+    {
+      "case": "J1",
+      "variant": null,
+      "install": "script",
+      "host": "claude",
+      "host_version": "2.1.325",
+      "os": "darwin-27.2.0",
+      "status": "inconclusive",
+      "observations": [
+        {
+          "check": "spawned",
+          "expected": "present",
+          "actual": {
+            "count": 1
+          },
+          "outcome": "pass",
+          "role": "precondition"
+        },
+        {
+          "check": "worktrees",
+          "expected": "recorded",
+          "actual": 2,
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "branches",
+          "expected": "recorded",
+          "actual": 2,
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "main-checkout",
+          "expected": "recorded",
+          "actual": "unchanged",
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "edits",
+          "expected": "ge 0",
+          "actual": 1,
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "branch-location",
+          "expected": "Branch name and worktree location, from the agent's report.",
+          "actual": null,
+          "outcome": "unknown",
+          "role": "record"
+        },
+        {
+          "check": "denial-sources",
+          "expected": "recorded",
+          "actual": {
+            "hook": 0,
+            "permission": 0,
+            "unknown": 0,
+            "denials": []
+          },
+          "outcome": "recorded",
+          "role": "record"
+        }
+      ],
+      "fixture_ids": [
+        "claude-2.1.325/J1/script/UserPromptSubmit-1",
+        "claude-2.1.325/J1/script/PreToolUse-1",
+        "claude-2.1.325/J1/script/PostToolUse-1",
+        "claude-2.1.325/J1/script/SubagentStart-1",
+        "claude-2.1.325/J1/script/Stop-1",
+        "claude-2.1.325/J1/script/PreToolUse-2",
+        "claude-2.1.325/J1/script/PostToolUse-2",
+        "claude-2.1.325/J1/script/PreToolUse-3",
+        "claude-2.1.325/J1/script/PostToolUse-3",
+        "claude-2.1.325/J1/script/PreToolUse-4",
+        "claude-2.1.325/J1/script/PostToolUse-4",
+        "claude-2.1.325/J1/script/PreToolUse-5",
+        "claude-2.1.325/J1/script/PostToolUse-5",
+        "claude-2.1.325/J1/script/SubagentStop-1",
+        "claude-2.1.325/J1/script/UserPromptSubmit-2",
+        "claude-2.1.325/J1/script/Stop-2"
+      ],
+      "cost_usd": 0.014944790000000001,
+      "plugins_enabled": [
+        "daedalus"
+      ],
+      "notes": [
+        "accepted but hidden from `claude --help` (verified by a parse check): --max-turns",
+        "manual check branch-location: Branch name and worktree location, from the agent's report.",
+        "needs maintainer review: record branch, location, main-checkout behavior and cleanup in the findings (D21)",
+        "untrusted workspace: project allow rules ignored (recorded only: the same rules were passed with --allowedTools)"
+      ],
+      "run_at": "2026-11-25T17:44:44Z"
+    },
+    {
+      "case": "L1",
+      "variant": null,
+      "install": "plugin",
+      "host": "claude",
+      "host_version": "2.1.325",
+      "os": "darwin-27.2.0",
+      "status": "confirmed",
+      "observations": [
+        {
+          "check": "main-edit",
+          "expected": "present",
+          "actual": {
+            "count": 1
+          },
+          "outcome": "pass",
+          "role": "precondition"
+        },
+        {
+          "check": "agent-edit",
+          "expected": "present",
+          "actual": {
+            "count": 1
+          },
+          "outcome": "pass",
+          "role": "precondition"
+        },
+        {
+          "check": "seed-unchanged",
+          "expected": "unchanged",
+          "actual": "unchanged",
+          "outcome": "pass",
+          "role": "assert"
+        },
+        {
+          "check": "no-post-edit",
+          "expected": "absent",
+          "actual": {
+            "count": 0
+          },
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "denial-sources",
+          "expected": "recorded",
+          "actual": {
+            "hook": 2,
+            "permission": 0,
+            "unknown": 0,
+            "denials": [
+              {
+                "tool": "Edit",
+                "source": "hook",
+                "probed_call": true
+              },
+              {
+                "tool": "Edit",
+                "source": "hook",
+                "probed_call": true
+              }
+            ]
+          },
+          "outcome": "recorded",
+          "role": "record"
+        }
+      ],
+      "fixture_ids": [
+        "claude-2.1.325/L1/plugin/UserPromptSubmit-1",
+        "claude-2.1.325/L1/plugin/PreToolUse-1",
+        "claude-2.1.325/L1/plugin/PostToolUse-1",
+        "claude-2.1.325/L1/plugin/PreToolUse-2",
+        "claude-2.1.325/L1/plugin/PreToolUse-3",
+        "claude-2.1.325/L1/plugin/PostToolUse-2",
+        "claude-2.1.325/L1/plugin/SubagentStart-1",
+        "claude-2.1.325/L1/plugin/PreToolUse-4",
+        "claude-2.1.325/L1/plugin/PostToolUse-3",
+        "claude-2.1.325/L1/plugin/Stop-1",
+        "claude-2.1.325/L1/plugin/PreToolUse-5",
+        "claude-2.1.325/L1/plugin/SubagentStop-1",
+        "claude-2.1.325/L1/plugin/UserPromptSubmit-2",
+        "claude-2.1.325/L1/plugin/Stop-2"
+      ],
+      "cost_usd": 0.014459955000000002,
+      "plugins_enabled": [
+        "daedalus"
+      ],
+      "notes": [
+        "accepted but hidden from `claude --help` (verified by a parse check): --max-turns",
+        "untrusted workspace: project allow rules ignored (recorded only: the same rules were passed with --allowedTools)"
+      ],
+      "run_at": "2026-11-25T17:45:32Z"
+    },
+    {
+      "case": "L1",
+      "variant": null,
+      "install": "script",
+      "host": "claude",
+      "host_version": "2.1.325",
+      "os": "darwin-27.2.0",
+      "status": "inconclusive",
+      "observations": [
+        {
+          "check": "main-edit",
+          "expected": "present",
+          "actual": {
+            "count": 1
+          },
+          "outcome": "pass",
+          "role": "precondition"
+        },
+        {
+          "check": "agent-edit",
+          "expected": "present",
+          "actual": {
+            "count": 0
+          },
+          "outcome": "fail",
+          "role": "precondition"
+        },
+        {
+          "check": "seed-unchanged",
+          "expected": "unchanged",
+          "actual": "unchanged",
+          "outcome": "pass",
+          "role": "assert"
+        },
+        {
+          "check": "no-post-edit",
+          "expected": "absent",
+          "actual": {
+            "count": 0
+          },
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "denial-sources",
+          "expected": "recorded",
+          "actual": {
+            "hook": 1,
+            "permission": 0,
+            "unknown": 0,
+            "denials": [
+              {
+                "tool": "Edit",
+                "source": "hook",
+                "probed_call": true
+              }
+            ]
+          },
+          "outcome": "recorded",
+          "role": "record"
+        }
+      ],
+      "fixture_ids": [
+        "claude-2.1.325/L1/script/UserPromptSubmit-1",
+        "claude-2.1.325/L1/script/PreToolUse-1",
+        "claude-2.1.325/L1/script/PostToolUse-1",
+        "claude-2.1.325/L1/script/PreToolUse-2",
+        "claude-2.1.325/L1/script/Stop-1"
+      ],
+      "cost_usd": 0.00866245,
+      "plugins_enabled": [
+        "daedalus"
+      ],
+      "notes": [
+        "accepted but hidden from `claude --help` (verified by a parse check): --max-turns",
+        "precondition not met: agent-edit",
+        "untrusted workspace: project allow rules ignored (recorded only: the same rules were passed with --allowedTools)"
+      ],
+      "run_at": "2026-11-25T17:45:17Z"
+    },
+    {
+      "case": "M1",
+      "variant": null,
+      "install": "plugin",
+      "host": "claude",
+      "host_version": "2.1.325",
+      "os": "darwin-27.2.0",
+      "status": "inconclusive",
+      "observations": [
+        {
+          "check": "fetch-attempted",
+          "expected": "present",
+          "actual": {
+            "count": 0
+          },
+          "outcome": "fail",
+          "role": "precondition"
+        },
+        {
+          "check": "no-content",
+          "expected": "absent",
+          "actual": {
+            "count": 0
+          },
+          "outcome": "pass",
+          "role": "assert"
+        },
+        {
+          "check": "denials",
+          "expected": "recorded",
+          "actual": 0,
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "result",
+          "expected": "recorded",
+          "actual": {
+            "subtype": "success",
+            "is_error": false,
+            "num_turns": 1,
+            "has_cost": true
+          },
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "denial-sources",
+          "expected": "recorded",
+          "actual": {
+            "hook": 0,
+            "permission": 0,
+            "unknown": 0,
+            "denials": []
+          },
+          "outcome": "recorded",
+          "role": "record"
+        }
+      ],
+      "fixture_ids": [
+        "claude-2.1.325/M1/plugin/UserPromptSubmit-1",
+        "claude-2.1.325/M1/plugin/Stop-1"
+      ],
+      "cost_usd": 0.005618720000000001,
+      "plugins_enabled": [
+        "daedalus"
+      ],
+      "notes": [
+        "accepted but hidden from `claude --help` (verified by a parse check): --max-turns",
+        "precondition not met: fetch-attempted",
+        "untrusted workspace: project allow rules ignored (recorded only: the same rules were passed with --allowedTools)"
+      ],
+      "run_at": "2026-11-25T17:45:47Z"
+    },
+    {
+      "case": "M1",
+      "variant": null,
+      "install": "script",
+      "host": "claude",
+      "host_version": "2.1.325",
+      "os": "darwin-27.2.0",
+      "status": "inconclusive",
+      "observations": [
+        {
+          "check": "fetch-attempted",
+          "expected": "present",
+          "actual": {
+            "count": 0
+          },
+          "outcome": "fail",
+          "role": "precondition"
+        },
+        {
+          "check": "no-content",
+          "expected": "absent",
+          "actual": {
+            "count": 0
+          },
+          "outcome": "pass",
+          "role": "assert"
+        },
+        {
+          "check": "denials",
+          "expected": "recorded",
+          "actual": 0,
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "result",
+          "expected": "recorded",
+          "actual": {
+            "subtype": "success",
+            "is_error": false,
+            "num_turns": 2,
+            "has_cost": true
+          },
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "denial-sources",
+          "expected": "recorded",
+          "actual": {
+            "hook": 0,
+            "permission": 0,
+            "unknown": 0,
+            "denials": []
+          },
+          "outcome": "recorded",
+          "role": "record"
+        }
+      ],
+      "fixture_ids": [
+        "claude-2.1.325/M1/script/UserPromptSubmit-1",
+        "claude-2.1.325/M1/script/PreToolUse-1",
+        "claude-2.1.325/M1/script/PostToolUse-1",
+        "claude-2.1.325/M1/script/Stop-1"
+      ],
+      "cost_usd": 0.00768859,
+      "plugins_enabled": [
+        "daedalus"
+      ],
+      "notes": [
+        "accepted but hidden from `claude --help` (verified by a parse check): --max-turns",
+        "precondition not met: fetch-attempted",
+        "untrusted workspace: project allow rules ignored (recorded only: the same rules were passed with --allowedTools)"
+      ],
+      "run_at": "2026-11-25T17:45:40Z"
+    },
+    {
+      "case": "M2",
+      "variant": null,
+      "install": "plugin",
+      "host": "claude",
+      "host_version": "2.1.325",
+      "os": "darwin-27.2.0",
+      "status": "confirmed",
+      "observations": [
+        {
+          "check": "mcp-calls",
+          "expected": "ge 2",
+          "actual": 2,
+          "outcome": "pass",
+          "role": "precondition"
+        },
+        {
+          "check": "tool-name",
+          "expected": "value",
+          "actual": [
+            "\"mcp__plugin_probe_probe-mcp__echo\""
+          ],
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "second-denied",
+          "expected": "le 1",
+          "actual": 1,
+          "outcome": "pass",
+          "role": "assert"
+        },
+        {
+          "check": "first-ran",
+          "expected": "eq 1",
+          "actual": 1,
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "denials",
+          "expected": "recorded",
+          "actual": 1,
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "denial-sources",
+          "expected": "recorded",
+          "actual": {
+            "hook": 1,
+            "permission": 0,
+            "unknown": 0,
+            "denials": [
+              {
+                "tool": "mcp__plugin_probe_probe-mcp__echo",
+                "source": "hook",
+                "probed_call": true
+              }
+            ]
+          },
+          "outcome": "recorded",
+          "role": "record"
+        }
+      ],
+      "fixture_ids": [
+        "claude-2.1.325/M2/plugin/UserPromptSubmit-1",
+        "claude-2.1.325/M2/plugin/PreToolUse-1",
+        "claude-2.1.325/M2/plugin/PostToolUse-1",
+        "claude-2.1.325/M2/plugin/PreToolUse-2",
+        "claude-2.1.325/M2/plugin/PostToolUse-2",
+        "claude-2.1.325/M2/plugin/PreToolUse-3",
+        "claude-2.1.325/M2/plugin/Stop-1"
+      ],
+      "cost_usd": 0.00817746,
+      "plugins_enabled": [
+        "daedalus"
+      ],
+      "notes": [
+        "accepted but hidden from `claude --help` (verified by a parse check): --max-turns",
+        "untrusted workspace: project allow rules ignored (recorded only: the same rules were passed with --allowedTools)"
+      ],
+      "run_at": "2026-11-25T17:46:05Z"
+    },
+    {
+      "case": "M2",
+      "variant": null,
+      "install": "script",
+      "host": "claude",
+      "host_version": "2.1.325",
+      "os": "darwin-27.2.0",
+      "status": "confirmed",
+      "observations": [
+        {
+          "check": "mcp-calls",
+          "expected": "ge 2",
+          "actual": 2,
+          "outcome": "pass",
+          "role": "precondition"
+        },
+        {
+          "check": "tool-name",
+          "expected": "value",
+          "actual": [
+            "\"mcp__probe-mcp__echo\""
+          ],
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "second-denied",
+          "expected": "le 1",
+          "actual": 1,
+          "outcome": "pass",
+          "role": "assert"
+        },
+        {
+          "check": "first-ran",
+          "expected": "eq 1",
+          "actual": 1,
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "denials",
+          "expected": "recorded",
+          "actual": 1,
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "denial-sources",
+          "expected": "recorded",
+          "actual": {
+            "hook": 1,
+            "permission": 0,
+            "unknown": 0,
+            "denials": [
+              {
+                "tool": "mcp__probe-mcp__echo",
+                "source": "hook",
+                "probed_call": true
+              }
+            ]
+          },
+          "outcome": "recorded",
+          "role": "record"
+        }
+      ],
+      "fixture_ids": [
+        "claude-2.1.325/M2/script/UserPromptSubmit-1",
+        "claude-2.1.325/M2/script/PreToolUse-1",
+        "claude-2.1.325/M2/script/PostToolUse-1",
+        "claude-2.1.325/M2/script/PreToolUse-2",
+        "claude-2.1.325/M2/script/PostToolUse-2",
+        "claude-2.1.325/M2/script/PreToolUse-3",
+        "claude-2.1.325/M2/script/Stop-1"
+      ],
+      "cost_usd": 0.008334359999999999,
+      "plugins_enabled": [
+        "daedalus"
+      ],
+      "notes": [
+        "accepted but hidden from `claude --help` (verified by a parse check): --max-turns",
+        "untrusted workspace: project allow rules ignored (recorded only: the same rules were passed with --allowedTools)"
+      ],
+      "run_at": "2026-11-25T17:45:56Z"
+    },
+    {
+      "case": "N1",
+      "variant": null,
+      "install": "plugin",
+      "host": "claude",
+      "host_version": "2.1.325",
+      "os": "darwin-27.2.0",
+      "status": "inconclusive",
+      "observations": [
+        {
+          "check": "spawned",
+          "expected": "present",
+          "actual": {
+            "count": 1
+          },
+          "outcome": "pass",
+          "role": "precondition"
+        },
+        {
+          "check": "project-ran",
+          "expected": "ge 0",
+          "actual": 1,
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "plugin-ran",
+          "expected": "ge 0",
+          "actual": 0,
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "agent-type",
+          "expected": "value",
+          "actual": [
+            "\"probe-reader\""
+          ],
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "spawn-target",
+          "expected": "value",
+          "actual": [
+            "\"probe-reader\""
+          ],
+          "outcome": "recorded",
+          "role": "record"
+        },
+        {
+          "check": "denial-sources",
+          "expected": "recorded",
+          "actual": {
+            "hook": 0,
+            "permission": 0,
+            "unknown": 0,
+            "denials": []
+          },
+          "outcome": "recorded",
+          "role": "record"
+        }
+      ],
+      "fixture_ids": [
+        "claude-2.1.325/N1/plugin/UserPromptSubmit-1",
+        "claude-2.1.325/N1/plugin/PreToolUse-1",
+        "claude-2.1.325/N1/plugin/SubagentStart-1",
+        "claude-2.1.325/N1/plugin/PostToolUse-1",
+        "claude-2.1.325/N1/plugin/PreToolUse-2",
+        "claude-2.1.325/N1/plugin/PostToolUse-2",
+        "claude-2.1.325/N1/plugin/SubagentStop-1",
+        "claude-2.1.325/N1/plugin/Stop-1",
+        "claude-2.1.325/N1/plugin/UserPromptSubmit-2",
+        "claude-2.1.325/N1/plugin/Stop-2"
+      ],
+      "cost_usd": 0.010084240000000001,
+      "plugins_enabled": [
+        "daedalus"
+      ],
+      "notes": [
+        "accepted but hidden from `claude --help` (verified by a parse check): --max-turns",
+        "needs maintainer review: record which agent a bare name resolves to and the agent_type seen (T12 residual)",
+        "untrusted workspace: project allow rules ignored (recorded only: the same rules were passed with --allowedTools)"
+      ],
+      "run_at": "2026-11-25T17:46:14Z"
+    }
+  ]
+}

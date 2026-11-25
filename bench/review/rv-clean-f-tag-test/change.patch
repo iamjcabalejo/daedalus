@@ -1,0 +1,47 @@
+diff --git a/src/tests/services/tag.service.test.ts b/src/tests/services/tag.service.test.ts
+index 97bc54d..6e14bbb 100644
+--- a/src/tests/services/tag.service.test.ts
++++ b/src/tests/services/tag.service.test.ts
+@@ -1,6 +1,40 @@
++import prismaMock from '../prisma-mock';
++import getTags from '../../app/routes/tag/tag.service';
++
+ describe('TagService', () => {
+   describe('getTags', () => {
+-    // TODO : prismaMock.tag.groupBy.mockResolvedValue(mockedResponse) doesn't work
+-    test.todo('should return a list of strings');
++    test('should return a list of strings', async () => {
++      // Given
++      // @ts-ignore
++      prismaMock.tag.findMany.mockResolvedValue([{ name: 'dragons' }, { name: 'training' }]);
++
++      // Then
++      await expect(getTags()).resolves.toEqual(['dragons', 'training']);
++    });
++
++    test("should include the current user's own tags", async () => {
++      // Given
++      const id = 123;
++      // @ts-ignore
++      prismaMock.tag.findMany.mockResolvedValue([]);
++
++      // When
++      await getTags(id);
++
++      // Then
++      expect(prismaMock.tag.findMany).toHaveBeenCalledWith(
++        expect.objectContaining({
++          where: {
++            articles: {
++              some: {
++                author: {
++                  OR: [{ demo: true }, { id: { equals: id } }],
++                },
++              },
++            },
++          },
++        }),
++      );
++    });
+   });
+ });

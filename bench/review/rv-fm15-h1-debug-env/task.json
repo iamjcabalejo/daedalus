@@ -1,0 +1,43 @@
+{
+  "schema": "daedalus.bench-task/1",
+  "id": "rv-fm15-h1-debug-env",
+  "set": "dev",
+  "category": "FM-15",
+  "kind": "review",
+  "description": "DEBUG from the environment: bool() of the string 'False' is True, so the documented production setting DJANGO_DEBUG=False leaves debug mode on (and with it the development SECRET_KEY fallback).",
+  "repo": {
+    "url": "https://github.com/gothinkster/django-realworld-example-app.git",
+    "sha": "29c9d42831fa0cfc5a4aa7561f674396eacf20a2",
+    "branch": "main"
+  },
+  "toolchain": [
+    "python"
+  ],
+  "ticket": "ticket.md",
+  "setup": [],
+  "hidden_tests": null,
+  "reference_patch": null,
+  "expected_scope": [],
+  "review": {
+    "patch": "defect.patch",
+    "expected": [
+      {
+        "file": "conduit/settings.py",
+        "line_start": 26,
+        "line_end": 26,
+        "fm": "FM-15",
+        "severity": "critical",
+        "also": [
+          {
+            "file": "conduit/settings.py",
+            "line_start": 31,
+            "line_end": 34
+          }
+        ]
+      }
+    ]
+  },
+  "budget_usd": 2.0,
+  "timeout_min": 20,
+  "notes": "FM-15 (configuration and environments). `DEBUG = bool(os.environ.get('DJANGO_DEBUG', True))` (settings.py:26): any non-empty string is truthy, so the README's production value `DJANGO_DEBUG=False` (or `0`) turns DEBUG on, and every error serves Django's debug page (tracebacks, local variables including request data, settings) to the public. Severity critical: FM-15 is critical when certain to break or leave a gap, and following the documented production setting always leaves it. Fix: parse explicitly, e.g. `os.environ.get('DJANGO_DEBUG', 'True').lower() in ('1', 'true', 'yes')`. The patch also reads SECRET_KEY from `DJANGO_SECRET_KEY` (RW-16) with no production fallback: the development key is used only in debug mode, and with debug off a missing key raises ImproperlyConfigured; the README table lists it as required in production. That guard (31-34) inherits the DEBUG defect (with `DJANGO_DEBUG=False` and no key set, the public development key still signs the JWTs), which is the same root cause, so 31-34 is an `also` location of the one expected finding; a second finding there is neutral, neither a true nor a false positive. Keeping a development-only key in source is the upstream pattern and isn't material on its own. The ALLOWED_HOSTS parsing and the README table are legitimate."
+}

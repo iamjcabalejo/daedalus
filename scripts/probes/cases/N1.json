@@ -1,0 +1,161 @@
+{
+  "schema": "daedalus.probe-case/1",
+  "id": "N1",
+  "title": "Bare-name resolution with a project and a plugin agent",
+  "refs": [
+    "T12"
+  ],
+  "applies_to": {
+    "installs": [
+      "plugin"
+    ],
+    "hosts": [
+      "claude"
+    ]
+  },
+  "files": {
+    "plugin": [
+      {
+        "template": "plugin/plugin.json",
+        "dest": "probe-plugin/.claude-plugin/plugin.json"
+      },
+      {
+        "template": "plugin/hooks.json",
+        "dest": "probe-plugin/hooks/hooks.json"
+      },
+      {
+        "template": "plugin/project-settings.json",
+        "dest": "repo/.claude/settings.json"
+      },
+      {
+        "template": "script/agents/probe-reader-n1.md",
+        "dest": "repo/.claude/agents/probe-reader.md"
+      },
+      {
+        "template": "plugin/agents/probe-reader-n1.md",
+        "dest": "probe-plugin/agents/probe-reader.md"
+      }
+    ]
+  },
+  "ctrl": [],
+  "stimulus": {
+    "prompt": "Use the probe-reader agent to do its task, then reply with what it said. Don't run anything yourself."
+  },
+  "flags": {
+    "max_turns": 8,
+    "max_budget_usd": 0.25
+  },
+  "observations": [
+    {
+      "id": "spawned",
+      "kind": "event",
+      "role": "precondition",
+      "description": "The main thread asked for the agent (an Agent or Task PreToolUse was recorded).",
+      "event": "PreToolUse",
+      "where": [
+        {
+          "field": "tool_name",
+          "op": "in",
+          "value": [
+            "Agent",
+            "Task"
+          ]
+        }
+      ],
+      "expect": "present"
+    },
+    {
+      "id": "project-ran",
+      "kind": "count",
+      "role": "record",
+      "description": "Calls that echoed the project marker (N1-project).",
+      "event": "PreToolUse",
+      "where": [
+        {
+          "field": "tool_name",
+          "op": "equals",
+          "value": "Bash"
+        },
+        {
+          "field": "tool_input.command",
+          "op": "contains",
+          "value": "N1-project"
+        }
+      ],
+      "op": "ge",
+      "value": 0
+    },
+    {
+      "id": "plugin-ran",
+      "kind": "count",
+      "role": "record",
+      "description": "Calls that echoed the plugin marker (N1-plugin).",
+      "event": "PreToolUse",
+      "where": [
+        {
+          "field": "tool_name",
+          "op": "equals",
+          "value": "Bash"
+        },
+        {
+          "field": "tool_input.command",
+          "op": "contains",
+          "value": "N1-plugin"
+        }
+      ],
+      "op": "ge",
+      "value": 0
+    },
+    {
+      "id": "agent-type",
+      "kind": "field",
+      "role": "record",
+      "description": "agent_type on the marker calls.",
+      "event": "PreToolUse",
+      "where": [
+        {
+          "field": "tool_name",
+          "op": "equals",
+          "value": "Bash"
+        },
+        {
+          "field": "tool_input.command",
+          "op": "contains",
+          "value": "N1-"
+        }
+      ],
+      "field": "agent_type",
+      "expect": "value",
+      "scope": "any"
+    },
+    {
+      "id": "spawn-target",
+      "kind": "field",
+      "role": "record",
+      "description": "The subagent_type the main thread asked for.",
+      "event": "PreToolUse",
+      "where": [
+        {
+          "field": "tool_name",
+          "op": "in",
+          "value": [
+            "Agent",
+            "Task"
+          ]
+        }
+      ],
+      "field": "tool_input.subagent_type",
+      "expect": "value",
+      "scope": "any"
+    }
+  ],
+  "status_rules": {
+    "evaluate": "manual",
+    "confirmed": "record which agent a bare name resolves to and the agent_type seen (T12 residual)",
+    "contradicted": "n/a"
+  },
+  "notes": [
+    "S+P together: one run under the plugin install type, with the project agent also in repo/.claude/agents/ (both named probe-reader).",
+    "verify in T0: permission rule syntax in the templates (Bash(echo *), WebFetch(domain:...), mcp__...)"
+  ]
+}

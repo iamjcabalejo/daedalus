@@ -1,0 +1,159 @@
+{
+  "schema": "daedalus.probe-case/1",
+  "id": "C3",
+  "title": "Agent maxTurns is honored",
+  "refs": [
+    "R-AC-1c"
+  ],
+  "requires": [
+    "A1"
+  ],
+  "applies_to": {
+    "installs": [
+      "script",
+      "plugin"
+    ],
+    "hosts": [
+      "claude"
+    ]
+  },
+  "files": {
+    "script": [
+      {
+        "template": "script/settings.json",
+        "dest": "repo/.claude/settings.json"
+      },
+      {
+        "template": "script/agents/probe-maxturns.md",
+        "dest": "repo/.claude/agents/probe-maxturns.md"
+      }
+    ],
+    "plugin": [
+      {
+        "template": "plugin/plugin.json",
+        "dest": "probe-plugin/.claude-plugin/plugin.json"
+      },
+      {
+        "template": "plugin/hooks.json",
+        "dest": "probe-plugin/hooks/hooks.json"
+      },
+      {
+        "template": "plugin/project-settings.json",
+        "dest": "repo/.claude/settings.json"
+      },
+      {
+        "template": "script/agents/probe-maxturns.md",
+        "dest": "probe-plugin/agents/probe-maxturns.md"
+      }
+    ]
+  },
+  "ctrl": [],
+  "stimulus": {
+    "prompt": "Use the {{AGENT_PREFIX}}probe-maxturns agent to read steps/step1.txt through steps/step5.txt, one file per turn. Don't read any file yourself. Reply with what the agent returned."
+  },
+  "flags": {
+    "max_turns": 8,
+    "max_budget_usd": 0.25
+  },
+  "observations": [
+    {
+      "id": "spawned",
+      "kind": "event",
+      "role": "precondition",
+      "description": "The main thread asked for the agent (an Agent or Task PreToolUse was recorded).",
+      "event": "PreToolUse",
+      "where": [
+        {
+          "field": "tool_name",
+          "op": "in",
+          "value": [
+            "Agent",
+            "Task"
+          ]
+        }
+      ],
+      "expect": "present"
+    },
+    {
+      "id": "subagent-started",
+      "kind": "event",
+      "role": "precondition",
+      "description": "The probe-maxturns agent actually started (a SubagentStart whose agent_type names it); a requested spawn can still fail, for example on a wrong agent name, and another agent's start doesn't count.",
+      "event": "SubagentStart",
+      "where": [
+        {
+          "field": "agent_type",
+          "op": "endswith",
+          "value": "probe-maxturns"
+        }
+      ],
+      "expect": "present"
+    },
+    {
+      "id": "step-read",
+      "kind": "event",
+      "role": "precondition",
+      "description": "The agent itself attempted at least one step read, so fewer-than-five isn't met by an agent that read nothing; main-thread reads don't count.",
+      "event": "PreToolUse",
+      "where": [
+        {
+          "field": "tool_input.file_path",
+          "op": "contains",
+          "value": "steps/step"
+        },
+        {
+          "field": "agent_type",
+          "op": "endswith",
+          "value": "probe-maxturns"
+        }
+      ],
+      "expect": "present"
+    },
+    {
+      "id": "fewer-than-five",
+      "kind": "count",
+      "role": "assert",
+      "description": "Fewer than 5 step reads by the agent happened (maxTurns: 2 cut the task short); main-thread reads, for example after the agent stops, don't count.",
+      "event": "PreToolUse",
+      "where": [
+        {
+          "field": "tool_input.file_path",
+          "op": "contains",
+          "value": "steps/step"
+        },
+        {
+          "field": "agent_type",
+          "op": "endswith",
+          "value": "probe-maxturns"
+        }
+      ],
+      "op": "lt",
+      "value": 5
+    },
+    {
+      "id": "agent-stopped",
+      "kind": "event",
+      "role": "record",
+      "description": "The agent's SubagentStop was seen.",
+      "event": "SubagentStop",
+      "where": [
+        {
+          "field": "agent_type",
+          "op": "endswith",
+          "value": "probe-maxturns"
+        }
+      ],
+      "expect": "present"
+    }
+  ],
+  "status_rules": {
+    "evaluate": "auto",
+    "confirmed": "the agent stops with a partial result after fewer than 5 steps",
+    "contradicted": "the agent completed all 5 steps despite maxTurns: 2",
+    "inconclusive": "the spawn was never requested, no SubagentStart named the agent, or the agent itself never attempted a step read; or A1 isn't confirmed for the same host version and install"
+  },
+  "notes": [
+    "verify in T0: permission rule syntax in the templates (Bash(echo *), WebFetch(domain:...), mcp__...)",
+    "Attribution: observations about the agent match only payloads whose agent_type ends in probe-maxturns (script) or probe:probe-maxturns (plugin), so the main thread can't decide the case. It requires A1: the result is inconclusive unless A1 is confirmed for the same host version and install."
+  ]
+}

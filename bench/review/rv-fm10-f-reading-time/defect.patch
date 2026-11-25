@@ -1,0 +1,97 @@
+diff --git a/src/app/routes/article/article.mapper.ts b/src/app/routes/article/article.mapper.ts
+index 8314864..293d874 100644
+--- a/src/app/routes/article/article.mapper.ts
++++ b/src/app/routes/article/article.mapper.ts
+@@ -5,6 +5,7 @@ const articleMapper = (article: any, id?: number) => ({
+   title: article.title,
+   description: article.description,
+   body: article.body,
++  readingTime: article.readingTime,
+   tagList: article.tagList.map((tag: any) => tag.name),
+   createdAt: article.createdAt,
+   updatedAt: article.updatedAt,
+diff --git a/src/app/routes/article/article.service.ts b/src/app/routes/article/article.service.ts
+index c8fdc0c..3890334 100644
+--- a/src/app/routes/article/article.service.ts
++++ b/src/app/routes/article/article.service.ts
+@@ -4,6 +4,7 @@ import HttpException from '../../models/http-exception.model';
+ import profileMapper from '../profile/profile.utils';
+ import articleMapper from './article.mapper';
+ import { Tag } from '../tag/tag.model';
++import estimateReadingTime from './reading-time.utils';
+ 
+ const buildFindAllQuery = (query: any, id: number | undefined) => {
+   const queries: any = [];
+@@ -200,6 +201,7 @@ export const createArticle = async (article: any, id: number) => {
+       description,
+       body,
+       slug,
++      readingTime: estimateReadingTime(body),
+       tagList: {
+         connectOrCreate: tags.map((tag: string) => ({
+           create: { name: tag },
+@@ -348,7 +350,7 @@ export const updateArticle = async (article: any, slug: string, id: number) => {
+     },
+     data: {
+       ...(article.title ? { title: article.title } : {}),
+-      ...(article.body ? { body: article.body } : {}),
++      ...(article.body ? { body: article.body, readingTime: estimateReadingTime(article.body) } : {}),
+       ...(article.description ? { description: article.description } : {}),
+       ...(newSlug ? { slug: newSlug } : {}),
+       updatedAt: new Date(),
+diff --git a/src/app/routes/article/reading-time.utils.ts b/src/app/routes/article/reading-time.utils.ts
+new file mode 100644
+index 0000000..7d388bc
+--- /dev/null
++++ b/src/app/routes/article/reading-time.utils.ts
+@@ -0,0 +1,11 @@
++const WORDS_PER_MINUTE = 200;
++
++/**
++ * Estimated reading time of an article body, in whole minutes (at least 1).
++ */
++const estimateReadingTime = (body: string): number => {
++  const words = body.trim().split(/\s+/).filter(Boolean).length;
++  return Math.max(1, Math.ceil(words / WORDS_PER_MINUTE));
++};
++
++export default estimateReadingTime;
+diff --git a/src/prisma/migrations/20240110093000_article_reading_time/migration.sql b/src/prisma/migrations/20240110093000_article_reading_time/migration.sql
+new file mode 100644
+index 0000000..dbbabfd
+--- /dev/null
++++ b/src/prisma/migrations/20240110093000_article_reading_time/migration.sql
+@@ -0,0 +1,2 @@
++-- AlterTable
++ALTER TABLE "Article" ADD COLUMN     "readingTime" INTEGER NOT NULL;
+diff --git a/src/prisma/schema.prisma b/src/prisma/schema.prisma
+index 3d767b7..734d622 100644
+--- a/src/prisma/schema.prisma
++++ b/src/prisma/schema.prisma
+@@ -16,6 +16,7 @@ model Article {
+   body        String
+   createdAt   DateTime  @default(now())
+   updatedAt   DateTime  @default(now())
++  readingTime Int
+   tagList     Tag[]
+   author      User      @relation("UserArticles", fields: [authorId], onDelete: Cascade, references: [id])
+   authorId    Int
+diff --git a/src/tests/utils/reading-time.utils.test.ts b/src/tests/utils/reading-time.utils.test.ts
+new file mode 100644
+index 0000000..996b4b3
+--- /dev/null
++++ b/src/tests/utils/reading-time.utils.test.ts
+@@ -0,0 +1,13 @@
++import estimateReadingTime from '../../app/routes/article/reading-time.utils';
++
++describe('estimateReadingTime', () => {
++  test('should round up to whole minutes', () => {
++    const body = Array(450).fill('word').join(' ');
++
++    expect(estimateReadingTime(body)).toBe(3);
++  });
++
++  test('should never be less than one minute', () => {
++    expect(estimateReadingTime('A short body')).toBe(1);
++  });
++});

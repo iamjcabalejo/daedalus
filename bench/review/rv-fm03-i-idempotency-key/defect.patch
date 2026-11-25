@@ -1,0 +1,65 @@
+diff --git a/apps/nextjs/src/app/_components/posts.tsx b/apps/nextjs/src/app/_components/posts.tsx
+index 5a4bbeb..3df958c 100644
+--- a/apps/nextjs/src/app/_components/posts.tsx
++++ b/apps/nextjs/src/app/_components/posts.tsx
+@@ -51,7 +51,11 @@ export function CreatePostForm() {
+     validators: {
+       onSubmit: CreatePostSchema,
+     },
+-    onSubmit: (data) => createPost.mutate(data.value),
++    onSubmit: (data) =>
++      createPost.mutate({
++        ...data.value,
++        idempotencyKey: crypto.randomUUID(),
++      }),
+   });
+ 
+   return (
+@@ -112,7 +116,9 @@ export function CreatePostForm() {
+           }}
+         />
+       </FieldGroup>
+-      <Button type="submit">Create</Button>
++      <Button type="submit" disabled={createPost.isPending}>
++        Create
++      </Button>
+     </form>
+   );
+ }
+diff --git a/packages/api/src/router/post.ts b/packages/api/src/router/post.ts
+index f37156f..55e232a 100644
+--- a/packages/api/src/router/post.ts
++++ b/packages/api/src/router/post.ts
+@@ -25,7 +25,11 @@ export const postRouter = {
+   create: protectedProcedure
+     .input(CreatePostSchema)
+     .mutation(({ ctx, input }) => {
+-      return ctx.db.insert(Post).values(input);
++      // A key we've already stored means this post exists; don't insert it twice.
++      return ctx.db
++        .insert(Post)
++        .values(input)
++        .onConflictDoNothing({ target: Post.idempotencyKey });
+     }),
+ 
+   delete: protectedProcedure.input(z.string()).mutation(({ ctx, input }) => {
+diff --git a/packages/db/src/schema.ts b/packages/db/src/schema.ts
+index b519825..fd3211b 100644
+--- a/packages/db/src/schema.ts
++++ b/packages/db/src/schema.ts
+@@ -7,6 +7,7 @@ export const Post = pgTable("post", (t) => ({
+   id: t.uuid().notNull().primaryKey().defaultRandom(),
+   title: t.varchar({ length: 256 }).notNull(),
+   content: t.text().notNull(),
++  idempotencyKey: t.uuid().unique(),
+   createdAt: t.timestamp().defaultNow().notNull(),
+   updatedAt: t
+     .timestamp({ mode: "date", withTimezone: true })
+@@ -16,6 +17,7 @@ export const Post = pgTable("post", (t) => ({
+ export const CreatePostSchema = createInsertSchema(Post, {
+   title: z.string().max(256),
+   content: z.string().max(256),
++  idempotencyKey: z.uuid().optional(),
+ }).omit({
+   id: true,
+   createdAt: true,

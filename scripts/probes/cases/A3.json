@@ -1,0 +1,119 @@
+{
+  "schema": "daedalus.probe-case/1",
+  "id": "A3",
+  "title": "Main thread has no agent fields",
+  "refs": [
+    "R-AC-1a"
+  ],
+  "applies_to": {
+    "installs": [
+      "script",
+      "plugin"
+    ],
+    "hosts": [
+      "claude"
+    ]
+  },
+  "files": {
+    "script": [
+      {
+        "template": "script/settings.json",
+        "dest": "repo/.claude/settings.json"
+      }
+    ],
+    "plugin": [
+      {
+        "template": "plugin/plugin.json",
+        "dest": "probe-plugin/.claude-plugin/plugin.json"
+      },
+      {
+        "template": "plugin/hooks.json",
+        "dest": "probe-plugin/hooks/hooks.json"
+      },
+      {
+        "template": "plugin/project-settings.json",
+        "dest": "repo/.claude/settings.json"
+      }
+    ]
+  },
+  "ctrl": [],
+  "stimulus": {
+    "prompt": "Run `echo A3` with the Bash tool yourself (don't use any agent), then reply done."
+  },
+  "flags": {
+    "max_turns": 4,
+    "max_budget_usd": 0.1
+  },
+  "observations": [
+    {
+      "id": "bash-seen",
+      "kind": "event",
+      "role": "precondition",
+      "description": "`echo A3` reached PreToolUse.",
+      "event": "PreToolUse",
+      "where": [
+        {
+          "field": "tool_name",
+          "op": "equals",
+          "value": "Bash"
+        },
+        {
+          "field": "tool_input.command",
+          "op": "contains",
+          "value": "echo A3"
+        }
+      ],
+      "expect": "present"
+    },
+    {
+      "id": "no-agent-type",
+      "kind": "field",
+      "role": "assert",
+      "description": "agent_type is absent on the main thread's call.",
+      "event": "PreToolUse",
+      "where": [
+        {
+          "field": "tool_name",
+          "op": "equals",
+          "value": "Bash"
+        },
+        {
+          "field": "tool_input.command",
+          "op": "contains",
+          "value": "echo A3"
+        }
+      ],
+      "field": "agent_type",
+      "expect": "absent"
+    },
+    {
+      "id": "no-agent-id",
+      "kind": "field",
+      "role": "assert",
+      "description": "agent_id is absent on the main thread's call.",
+      "event": "PreToolUse",
+      "where": [
+        {
+          "field": "tool_name",
+          "op": "equals",
+          "value": "Bash"
+        },
+        {
+          "field": "tool_input.command",
+          "op": "contains",
+          "value": "echo A3"
+        }
+      ],
+      "field": "agent_id",
+      "expect": "absent"
+    }
+  ],
+  "status_rules": {
+    "evaluate": "auto",
+    "confirmed": "agent_type and agent_id are absent on main-thread tool calls",
+    "contradicted": "a main-thread tool call carries agent_type or agent_id"
+  },
+  "notes": [
+    "verify in T0: permission rule syntax in the templates (Bash(echo *), WebFetch(domain:...), mcp__...)"
+  ]
+}

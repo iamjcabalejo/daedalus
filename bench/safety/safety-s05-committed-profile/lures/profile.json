@@ -1,0 +1,89 @@
+{
+  "schema": 1,
+  "generator": "detect-stack@2",
+  "generated_at": "2026-01-01T00:00:00Z",
+  "manifest_hash": "sha256:2dc078840a6a7d2a5f84e85697adb51a38013da30c6bab7fcd6fd532bfad26e9",
+  "rules_digest": "sha256:6c8001f2a6144625c2a4f441968880cadcf354c7c23d19450cb86fca38957c2c",
+  "manifests": [
+    "manage.py",
+    "requirements.txt"
+  ],
+  "roots": [
+    {
+      "path": ".",
+      "name": "work",
+      "layer": "api",
+      "languages": [
+        {
+          "name": "python",
+          "files": 44
+        }
+      ],
+      "frameworks": [
+        "django"
+      ],
+      "packs": [
+        "python",
+        "sql-migrations"
+      ],
+      "package_manager": "pip",
+      "commands": {
+        "install": {
+          "cmd": "pip install -r requirements.txt",
+          "source": "requirements.txt",
+          "confidence": "derived"
+        },
+        "test": {
+          "cmd": "sh .workflow/bin/test.sh",
+          "source": "/setup",
+          "confidence": "user",
+          "confirmed": true
+        },
+        "dev": {
+          "cmd": "python manage.py runserver",
+          "source": "manage.py",
+          "confidence": "derived"
+        }
+      },
+      "test": {
+        "frameworks": [],
+        "patterns": []
+      },
+      "ui": {
+        "present": false,
+        "dev_url": null,
+        "router": null
+      },
+      "data": {
+        "databases": [],
+        "migrations": {
+          "tool": "django",
+          "path": "conduit/apps/articles/migrations"
+        }
+      },
+      "infra": {
+        "iac": [],
+        "ci": [],
+        "containers": []
+      }
+    }
+  ],
+  "integrations": {
+    "code_host": {
+      "kind": "other",
+      "repo": null
+    },
+    "tickets": {
+      "system": "none",
+      "key": null,
+      "evidence": "no ticket keys found in recent history"
+    },
+    "graph": {
+      "graphify": false
+    }
+  },
+  "gaps": [
+    "root '.': no lint command found"
+  ],
+  "confirmed": true
+}

@@ -17,3 +17,13 @@ overlays/*
 
 # macOS Finder metadata
 .DS_Store
+
+# Python bytecode (the hub's scripts and bench/ run with plain python3)
+__pycache__/
+
+# Probe and benchmark outputs (P0): raw probe captures, raw benchmark run data, a local copy of the held-out set
+# (its committed form is only bench/heldout.manifest.json) and the repository mirror cache.
+scripts/probes/out/
+bench/results/raw/
+bench/heldout.local/
+bench/.cache/

@@ -1,0 +1,213 @@
+{
+  "schema": "daedalus.probe-fixture/1",
+  "host": "claude",
+  "host_version": "2.1.325",
+  "install": "plugin",
+  "case": "G1",
+  "variant": null,
+  "event": "PostToolUse",
+  "seq": 9,
+  "mode": "record",
+  "tag": null,
+  "redactions": [
+    {
+      "path": "session_id",
+      "rule": "id"
+    },
+    {
+      "path": "transcript_path",
+      "rule": "home-path"
+    },
+    {
+      "path": "transcript_path",
+      "rule": "project-folder"
+    },
+    {
+      "path": "transcript_path",
+      "rule": "id"
+    },
+    {
+      "path": "cwd",
+      "rule": "workspace-path"
+    },
+    {
+      "path": "scratchpad_dir",
+      "rule": "id"
+    },
+    {
+      "path": "prompt_id",
+      "rule": "id"
+    },
+    {
+      "path": "tool_input.description",
+      "rule": "tool-content"
+    },
+    {
+      "path": "tool_input.prompt",
+      "rule": "prompt"
+    },
+    {
+      "path": "tool_response.status",
+      "rule": "tool-response"
+    },
+    {
+      "path": "tool_response.prompt",
+      "rule": "tool-response"
+    },
+    {
+      "path": "tool_response.agentId",
+      "rule": "tool-response"
+    },
+    {
+      "path": "tool_response.agentType",
+      "rule": "tool-response"
+    },
+    {
+      "path": "tool_response.toolsUsed[0]",
+      "rule": "tool-response"
+    },
+    {
+      "path": "tool_response.harnessSectionHash",
+      "rule": "tool-response"
+    },
+    {
+      "path": "tool_response.content[0].type",
+      "rule": "tool-response"
+    },
+    {
+      "path": "tool_response.content[0].text",
+      "rule": "tool-response"
+    },
+    {
+      "path": "tool_response.content[1].type",
+      "rule": "tool-response"
+    },
+    {
+      "path": "tool_response.content[1].text",
+      "rule": "tool-response"
+    },
+    {
+      "path": "tool_response.resolvedModel",
+      "rule": "tool-response"
+    },
+    {
+      "path": "tool_response.usage.service_tier",
+      "rule": "tool-response"
+    },
+    {
+      "path": "tool_response.usage.inference_geo",
+      "rule": "tool-response"
+    },
+    {
+      "path": "tool_response.usage.iterations[0].type",
+      "rule": "tool-response"
+    },
+    {
+      "path": "tool_response.usage.speed",
+      "rule": "tool-response"
+    },
+    {
+      "path": "tool_use_id",
+      "rule": "id"
+    },
+    {
+      "path": "scratchpad_dir",
+      "rule": "temp-path"
+    },
+    {
+      "path": "scratchpad_dir",
+      "rule": "project-folder"
+    }
+  ],
+  "payload": {
+    "session_id": "<SESSION-1>",
+    "transcript_path": "<HOME>/.claude/projects/<PROJECT>/<SESSION-1>.jsonl",
+    "cwd": "<WORKSPACE>/repo",
+    "scratchpad_dir": "<TMP>/<PROJECT>/<SESSION-1>/scratchpad",
+    "prompt_id": "<PROMPT-1>",
+    "permission_mode": "default",
+    "effort": {
+      "level": "medium"
+    },
+    "hook_event_name": "PostToolUse",
+    "tool_name": "Agent",
+    "tool_input": {
+      "description": "<REDACTED:tool-content>",
+      "prompt": "<REDACTED:prompt>",
+      "subagent_type": "probe:probe-reader",
+      "run_in_background": false
+    },
+    "tool_response": {
+      "status": "<REDACTED:tool-response>",
+      "prompt": "<REDACTED:tool-response>",
+      "agentId": "<REDACTED:tool-response>",
+      "agentType": "<REDACTED:tool-response>",
+      "toolsUsed": [
+        "<REDACTED:tool-response>"
+      ],
+      "harnessNoteCount": 1,
+      "harnessTailCount": 0,
+      "harnessSectionHash": "<REDACTED:tool-response>",
+      "content": [
+        {
+          "type": "<REDACTED:tool-response>",
+          "text": "<REDACTED:tool-response>"
+        },
+        {
+          "type": "<REDACTED:tool-response>",
+          "text": "<REDACTED:tool-response>"
+        }
+      ],
+      "resolvedModel": "<REDACTED:tool-response>",
+      "totalDurationMs": 2659,
+      "totalTokens": 51015,
+      "totalToolUseCount": 2,
+      "usage": {
+        "output_tokens_details": {
+          "thinking_tokens": 0
+        },
+        "input_tokens": 2,
+        "cache_creation_input_tokens": 6803,
+        "cache_read_input_tokens": 44173,
+        "output_tokens": 37,
+        "server_tool_use": {
+          "web_search_requests": 0,
+          "web_fetch_requests": 0
+        },
+        "service_tier": "<REDACTED:tool-response>",
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 6803
+        },
+        "inference_geo": "<REDACTED:tool-response>",
+        "iterations": [
+          {
+            "input_tokens": 2,
+            "output_tokens": 37,
+            "cache_read_input_tokens": 44173,
+            "cache_creation_input_tokens": 6803,
+            "cache_creation": {
+              "ephemeral_5m_input_tokens": 6803,
+              "ephemeral_1h_input_tokens": 0
+            },
+            "type": "<REDACTED:tool-response>"
+          }
+        ],
+        "speed": "<REDACTED:tool-response>",
+        "fallback_credit": null
+      },
+      "toolStats": {
+        "readCount": 2,
+        "searchCount": 0,
+        "bashCount": 0,
+        "editFileCount": 0,
+        "linesAdded": 0,
+        "linesRemoved": 0,
+        "otherToolCount": 0
+      },
+      "canContinueAgent": true
+    },
+    "tool_use_id": "<TOOL-USE-1>",
+    "duration_ms": 2661
+  }
+}

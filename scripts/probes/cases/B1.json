@@ -1,0 +1,146 @@
+{
+  "schema": "daedalus.probe-case/1",
+  "id": "B1",
+  "title": "What an Agent PreToolUse carries",
+  "refs": [
+    "R-AC-1b"
+  ],
+  "applies_to": {
+    "installs": [
+      "script",
+      "plugin"
+    ],
+    "hosts": [
+      "claude"
+    ]
+  },
+  "files": {
+    "script": [
+      {
+        "template": "script/settings.json",
+        "dest": "repo/.claude/settings.json"
+      },
+      {
+        "template": "script/agents/probe-reader.md",
+        "dest": "repo/.claude/agents/probe-reader.md"
+      }
+    ],
+    "plugin": [
+      {
+        "template": "plugin/plugin.json",
+        "dest": "probe-plugin/.claude-plugin/plugin.json"
+      },
+      {
+        "template": "plugin/hooks.json",
+        "dest": "probe-plugin/hooks/hooks.json"
+      },
+      {
+        "template": "plugin/project-settings.json",
+        "dest": "repo/.claude/settings.json"
+      },
+      {
+        "template": "script/agents/probe-reader.md",
+        "dest": "probe-plugin/agents/probe-reader.md"
+      }
+    ]
+  },
+  "ctrl": [],
+  "stimulus": {
+    "prompt": "Use the {{AGENT_PREFIX}}probe-reader agent to read seed.txt, then reply done."
+  },
+  "flags": {
+    "max_turns": 8,
+    "max_budget_usd": 0.25
+  },
+  "observations": [
+    {
+      "id": "spawned",
+      "kind": "event",
+      "role": "precondition",
+      "description": "The main thread asked for the agent (an Agent or Task PreToolUse was recorded).",
+      "event": "PreToolUse",
+      "where": [
+        {
+          "field": "tool_name",
+          "op": "in",
+          "value": [
+            "Agent",
+            "Task"
+          ]
+        }
+      ],
+      "expect": "present"
+    },
+    {
+      "id": "tool-input-keys",
+      "kind": "keys",
+      "role": "record",
+      "description": "Key names of the spawn call's tool_input.",
+      "event": "PreToolUse",
+      "where": [
+        {
+          "field": "tool_name",
+          "op": "in",
+          "value": [
+            "Agent",
+            "Task"
+          ]
+        }
+      ],
+      "field": "tool_input"
+    },
+    {
+      "id": "target-named",
+      "kind": "field",
+      "role": "assert",
+      "description": "tool_input.subagent_type names the target agent.",
+      "event": "PreToolUse",
+      "where": [
+        {
+          "field": "tool_name",
+          "op": "in",
+          "value": [
+            "Agent",
+            "Task"
+          ]
+        }
+      ],
+      "field": "tool_input.subagent_type",
+      "expect": "equals",
+      "value_by_install": {
+        "script": "probe-reader",
+        "plugin": "probe:probe-reader"
+      },
+      "scope": "any"
+    },
+    {
+      "id": "spawn-tool-name",
+      "kind": "field",
+      "role": "record",
+      "description": "Which tool name the spawn used (Agent or Task).",
+      "event": "PreToolUse",
+      "where": [
+        {
+          "field": "tool_name",
+          "op": "in",
+          "value": [
+            "Agent",
+            "Task"
+          ]
+        }
+      ],
+      "field": "tool_name",
+      "expect": "value",
+      "scope": "any"
+    }
+  ],
+  "status_rules": {
+    "evaluate": "auto",
+    "confirmed": "the spawn PreToolUse names the target agent in tool_input.subagent_type",
+    "contradicted": "the spawn PreToolUse doesn't name the target agent"
+  },
+  "notes": [
+    "The base templates use matcher \"*\", which covers both Agent and Task.",
+    "verify in T0: permission rule syntax in the templates (Bash(echo *), WebFetch(domain:...), mcp__...)"
+  ]
+}

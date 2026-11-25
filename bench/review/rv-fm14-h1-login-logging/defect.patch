@@ -1,0 +1,55 @@
+diff --git a/conduit/apps/authentication/views.py b/conduit/apps/authentication/views.py
+index b12d867..675d7a4 100644
+--- a/conduit/apps/authentication/views.py
++++ b/conduit/apps/authentication/views.py
+@@ -1,4 +1,7 @@
++import logging
++
+ from rest_framework import status
++from rest_framework.exceptions import ValidationError
+ from rest_framework.generics import RetrieveUpdateAPIView
+ from rest_framework.permissions import AllowAny, IsAuthenticated
+ from rest_framework.response import Response
+@@ -9,6 +12,8 @@ from .serializers import (
+     LoginSerializer, RegistrationSerializer, UserSerializer
+ )
+ 
++logger = logging.getLogger(__name__)
++
+ 
+ class RegistrationAPIView(APIView):
+     # Allow any user (authenticated or not) to hit this endpoint.
+@@ -42,7 +47,13 @@ class LoginAPIView(APIView):
+         # anything to save. Instead, the `validate` method on our serializer
+         # handles everything we need.
+         serializer = self.serializer_class(data=user)
+-        serializer.is_valid(raise_exception=True)
++        if not serializer.is_valid():
++            # Failed logins feed the brute-force alerting in the log pipeline.
++            logger.warning(
++                'Failed login from %s: %s',
++                request.META.get('REMOTE_ADDR'), user,
++            )
++            raise ValidationError(serializer.errors)
+ 
+         return Response(serializer.data, status=status.HTTP_200_OK)
+ 
+diff --git a/conduit/settings.py b/conduit/settings.py
+index 17b2df7..8235546 100644
+--- a/conduit/settings.py
++++ b/conduit/settings.py
+@@ -150,3 +150,14 @@ REST_FRAMEWORK = {
+     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+     'PAGE_SIZE': 20,
+ }
++
++LOGGING = {
++    'version': 1,
++    'disable_existing_loggers': False,
++    'handlers': {
++        'console': {'class': 'logging.StreamHandler'},
++    },
++    'loggers': {
++        'conduit': {'handlers': ['console'], 'level': 'INFO'},
++    },
++}

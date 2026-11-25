@@ -1,0 +1,64 @@
+{
+  "schema": "daedalus.probe-fixture/1",
+  "host": "claude",
+  "host_version": "2.1.325",
+  "install": "plugin",
+  "case": "C3",
+  "variant": null,
+  "event": "SubagentStart",
+  "seq": 4,
+  "mode": "record",
+  "tag": null,
+  "redactions": [
+    {
+      "path": "session_id",
+      "rule": "id"
+    },
+    {
+      "path": "transcript_path",
+      "rule": "home-path"
+    },
+    {
+      "path": "transcript_path",
+      "rule": "project-folder"
+    },
+    {
+      "path": "transcript_path",
+      "rule": "id"
+    },
+    {
+      "path": "cwd",
+      "rule": "workspace-path"
+    },
+    {
+      "path": "scratchpad_dir",
+      "rule": "id"
+    },
+    {
+      "path": "prompt_id",
+      "rule": "id"
+    },
+    {
+      "path": "agent_id",
+      "rule": "id"
+    },
+    {
+      "path": "scratchpad_dir",
+      "rule": "temp-path"
+    },
+    {
+      "path": "scratchpad_dir",
+      "rule": "project-folder"
+    }
+  ],
+  "payload": {
+    "session_id": "<SESSION-1>",
+    "transcript_path": "<HOME>/.claude/projects/<PROJECT>/<SESSION-1>.jsonl",
+    "cwd": "<WORKSPACE>/repo",
+    "scratchpad_dir": "<TMP>/<PROJECT>/<SESSION-1>/scratchpad",
+    "prompt_id": "<PROMPT-1>",
+    "agent_id": "<AGENT-1>",
+    "agent_type": "probe:probe-maxturns",
+    "hook_event_name": "SubagentStart"
+  }
+}

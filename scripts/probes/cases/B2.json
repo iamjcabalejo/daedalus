@@ -1,0 +1,116 @@
+{
+  "schema": "daedalus.probe-case/1",
+  "id": "B2",
+  "title": "A hook can deny a spawn",
+  "refs": [
+    "R-AC-1b"
+  ],
+  "applies_to": {
+    "installs": [
+      "script",
+      "plugin"
+    ],
+    "hosts": [
+      "claude"
+    ]
+  },
+  "files": {
+    "script": [
+      {
+        "template": "script/settings.json",
+        "dest": "repo/.claude/settings.json"
+      },
+      {
+        "template": "script/agents/probe-reader.md",
+        "dest": "repo/.claude/agents/probe-reader.md"
+      }
+    ],
+    "plugin": [
+      {
+        "template": "plugin/plugin.json",
+        "dest": "probe-plugin/.claude-plugin/plugin.json"
+      },
+      {
+        "template": "plugin/hooks.json",
+        "dest": "probe-plugin/hooks/hooks.json"
+      },
+      {
+        "template": "plugin/project-settings.json",
+        "dest": "repo/.claude/settings.json"
+      },
+      {
+        "template": "script/agents/probe-reader.md",
+        "dest": "probe-plugin/agents/probe-reader.md"
+      }
+    ]
+  },
+  "ctrl": [
+    {
+      "key": "PreToolUse:Agent",
+      "mode": "deny",
+      "reason": "probe B2: spawns are blocked"
+    },
+    {
+      "key": "PreToolUse:Task",
+      "mode": "deny",
+      "reason": "probe B2: spawns are blocked"
+    }
+  ],
+  "stimulus": {
+    "prompt": "Use the {{AGENT_PREFIX}}probe-reader agent to read seed.txt. If the agent can't be started, say so and stop."
+  },
+  "flags": {
+    "max_turns": 8,
+    "max_budget_usd": 0.25
+  },
+  "observations": [
+    {
+      "id": "spawned",
+      "kind": "event",
+      "role": "precondition",
+      "description": "The main thread asked for the agent (an Agent or Task PreToolUse was recorded).",
+      "event": "PreToolUse",
+      "where": [
+        {
+          "field": "tool_name",
+          "op": "in",
+          "value": [
+            "Agent",
+            "Task"
+          ]
+        }
+      ],
+      "expect": "present"
+    },
+    {
+      "id": "no-subagent-start",
+      "kind": "event",
+      "role": "assert",
+      "description": "No SubagentStart after the denied spawn.",
+      "event": "SubagentStart",
+      "expect": "absent"
+    },
+    {
+      "id": "no-subagent-calls",
+      "kind": "event",
+      "role": "assert",
+      "description": "No tool call carries agent_type (no subagent ran).",
+      "event": "PreToolUse",
+      "where": [
+        {
+          "field": "agent_type",
+          "op": "present"
+        }
+      ],
+      "expect": "absent"
+    }
+  ],
+  "status_rules": {
+    "evaluate": "auto",
+    "confirmed": "no SubagentStart and no subagent tool calls after the deny",
+    "contradicted": "the subagent started or issued tool calls despite the deny"
+  },
+  "notes": [
+    "verify in T0: permission rule syntax in the templates (Bash(echo *), WebFetch(domain:...), mcp__...)"
+  ]
+}
