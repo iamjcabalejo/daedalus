@@ -1,0 +1,18 @@
+# config.yml — the overlay's defaults, merged into ~/.workflow/config.yml at install (keys you already set win).
+# That file is TL2 (user level): preferences here are defaults, and organization policy here is advisory.
+# Only a root-owned TL1 policy file binds a machine (see templates/workflow-config.example.yml).
+# Every key is optional; delete what you don't need.
+
+version: 1
+overlay: <name>               # the overlay's name, as in overlay.yml
+domain: none                  # or <name> when the overlay ships skills/argus/domains/<name>.md
+tickets:
+  system: auto                # auto | linear | jira | github | none
+  key: null                   # regex for ticket keys, e.g. '\b(ABC|XYZ)-\d+\b'
+chat: none                    # teams | slack | none
+graph: auto
+house_rules: []
+qa:
+  auth: null                  # null → the overlay's qa/auth.md
+review:
+  header: "Argus review"

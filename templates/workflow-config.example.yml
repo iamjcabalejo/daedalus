@@ -1,45 +1,113 @@
 # .workflow/config.yml — workflow choices for one repo (facts live in .workflow/profile.json).
 #
-# Where it can live (all are read and merged key by key, nearest first; an explicit value wins,
-# a missing or null one falls through):
-#   1. <repo>/.workflow/config.yml        team choices for this repo (commit it)
-#   2. <workspace>/.workflow/config.yml   choices shared by a multi-repo workspace
-#   3. ~/.workflow/config.yml             personal defaults (and the installed overlay's config.yml)
-# Mappings merge recursively; lists are replaced whole. Argus also reads the legacy .argus.yml files.
+# Five trust levels are read, farthest first. `workflow.py config explain <key>` shows which one set a value.
+#   TL1 organization  a root-owned policy file: /etc/daedalus/policy.yml (Linux) or
+#                     /Library/Application Support/Daedalus/policy.yml (macOS), plus $DAEDALUS_POLICY_DIR/policy.yml
+#                     (only adds; every one must pass the root-owned check, or it's ignored with a warning)
+#   TL2 user          ~/.workflow/config.yml (personal defaults and the installed overlay's config.yml),
+#                     read over the legacy ~/.claude/argus.yml
+#   TL3 workspace     <workspace>/.workflow/config.yml, only when the workspace folder contains the repo and
+#                     isn't inside a git work tree itself (otherwise it's read as TL4)
+#   TL4 repository    <repo>/.workflow/config.yml (commit it), read over the legacy <repo>/.argus.yml
+#   TL5 per run       `--set KEY=VALUE` arguments
+#
+# Two merge kinds; each key below is marked with its class:
+#   P  preference: nearest wins (TL5 > TL4 > TL3 > TL2 > TL1). Mappings merge recursively and lists are replaced
+#      whole; a missing, empty or null value falls through, and an explicit value (even none or []) wins.
+#   S  security, monotonic: TL1 (combined with TL2), else TL2, else the default sets the anchor, and TL3-TL5 can
+#      only tighten it (strictest mode, smallest ceiling, union of required lists, intersection of privileged
+#      lists). A value that would loosen it is ignored and shown by `config explain`.
+#   G  governance: TL1 only; a TL2 value applies, labeled advisory, when TL1 doesn't set the key.
+# `commands` overrides are project facts: a committed one runs only after /setup records trust for it.
 #
 # Write only what you actually choose. /setup leaves out defaults so farther files still apply.
 # Every key below is optional; the value shown is the default.
+# YAML is a strict subset: block mappings and lists, one-line [..] and {..}, plain or quoted scalars.
+# Anchors, tags, block scalars (| >), yes/no/on/off, True/False and unquoted floats are errors.
 
-overlay: none                 # name of an installed overlay (its rules, packs, QA and report notes)
+version: 1                    # file format; only 1 is accepted
+
+overlay: none                 # P name of an installed overlay (its rules, packs, QA and report notes)
+domain: none                  # P Argus domain pack (skills/argus/domains/<name>.md); none = no domain checks
 
 # Stack packs. "auto" = the profile's packs per root, plus any pack matching a changed file.
-stacks: auto                  # or an explicit list, e.g. [python, sql-migrations]
-extra_stacks: []              # always added, e.g. [serverless-queues]
+stacks: auto                  # P or an explicit list, e.g. [python, sql-migrations]
+extra_stacks: []              # P always added, e.g. [serverless-queues]
 
 tickets:
-  system: auto                # auto | linear | jira | github | none
-  key: null                   # regex for ticket keys, e.g. '\b(ENG|OPS)-\d+\b' (null → the profile's, then a generic one)
-  team: null                  # default team / project for new tickets
+  system: auto                # P auto | linear | jira | github | none
+  key: null                   # P regex for ticket keys, e.g. '\b(ENG|OPS)-\d+\b' (null → the profile's, then a generic one)
+  team: null                  # P default team / project for new tickets
 
-chat: none                    # teams | slack | none (used by /daily-report)
+chat: none                    # P teams | slack | none (used by /daily-report)
 
-graph: auto                   # auto (use a graph when graphify-out/ exists) | graphify | none
+graph: auto                   # P auto (use a graph when graphify-out/ exists) | graphify | none
 
-ignore: []                    # globs never reviewed, e.g. ["**/generated/**"] (Argus adds lockfiles, vendored and minified files)
-house_rules: []               # repo-relative docs with team rules, e.g. [CONTRIBUTING.md]
+ignore: []                    # P globs never reviewed, e.g. ["**/generated/**"] (Argus adds lockfiles, vendored and minified files)
+house_rules: []               # P repo-relative docs with team rules, e.g. [CONTRIBUTING.md]
 
 commands: {}                  # per-root overrides of detected commands, e.g. {".": {test: "make test"}}
-                              # prefer `/setup` (or detect-stack.py --set) so the profile records them
+                              # prefer `/setup` (or detect-stack.py --set) so the profile records them; a committed
+                              # override is untrusted until /setup records trust for it (`workflow.py config commands`)
 
 qa:
-  auth: null                  # null → the overlay's qa/auth.md if any | none (public app) | path to sign-in notes
-  base_url: null              # overrides the UI root's dev URL (must be localhost or 127.0.0.1)
+  auth: null                  # P null → the overlay's qa/auth.md if any | none (public app) | path to sign-in notes
+  base_url: null              # P overrides the UI root's dev URL (must be localhost or 127.0.0.1)
 
 review:                       # Argus-only settings
-  header: "Argus review"
-  max_findings: 0             # 0 = no cap
+  header: "Argus review"      # P
+  max_findings: 0             # P 0 = no cap
+  compare_with: null          # P GitHub login whose PR review /argus --compare grades against, e.g. a review bot
   severity:
-    overrides: []             # e.g. [{category: ownership, max: consider}]
-    critical_triggers: []     # extra outcomes that are always critical here, in plain words
+    overrides: []             # P e.g. [{category: ownership, max: consider}]
+    critical_triggers: []     # P extra outcomes that are always critical here, in plain words
   post:
-    inline: true              # with --post, add inline comments for new findings
+    inline: true              # P with --post, add inline comments for new findings
+
+guard:
+  mode: enforce               # S enforce | warn | "off"  (warn/off = NOT enforcing; recorded in evidence)
+  readonly_bash_allow: []     # S extra read-only prefixes; TL1/TL2 only
+budgets:
+  rework_rounds: 3            # S ceiling (min wins)
+  qa_rounds: 2                # S
+  run_tokens: {soft: null, hard: null}             # S admission ceilings (null = none)
+  attempt: {tool_calls: 200, wall_minutes: 45}     # S per agent attempt, across resumes
+  role_turns: {implementer: 60, test-runner: 40, argus: 40, qa-tester: 60}   # S turns per invocation (min wins per role)
+  price_table: null           # P optional; no built-in prices
+tdd:
+  mode: "off"                 # P off | bugfix | strict (quote off: bare off is an error)
+  min: "off"                  # S floor (max wins); an organization may set bugfix
+tiers:
+  default: auto               # P auto | trivial | standard | full | critical
+  trivial_max_files: 3        # S (min wins)
+  floors: {}                  # S dimension → minimum tier (max wins)
+  steps: {}                   # S tier → required steps (union only)
+isolation:
+  mode: none                  # P none | run | layer
+  baseline: snapshot          # P snapshot | head
+  dependencies: none          # P clone | install | link | none
+  share_sensitive: []         # S paths shared into isolated copies; TL1/TL2 only
+  root: null                  # P
+  ttl_days: 7                 # P
+parallel:
+  enabled: false              # P (benchmark-driven)
+  max_agents: 2               # S (min wins)
+exec:
+  env_passthrough: []         # S (intersection below the anchor: a lower level can't add entries)
+  timeout_minutes: 20         # S
+gate:
+  mode: advisory              # S advisory | enforce (enforce is meaningful only with rulesets or an app)
+  require: [checks, review, qa]   # S union
+  non_waivable: []            # S union, e.g. [FM-13, FM-14]
+  approver_role: maintain     # S read | triage | write | maintain | admin (stricter wins)
+  trusted_classes: [ci, human]    # S evidence classes the gate trusts (intersection: a repo can't add its own)
+specs:
+  system: auto                # P auto | openspec | none
+runtime:
+  lease_ttl_minutes: 30       # P
+retention: {runs_days: 30, failed_runs_days: 90, audit_days: 30}   # P
+telemetry: {export: none}     # S none unless TL1 or TL2 opts in
+
+governance:                   # G organization policy files only (TL1)
+  trust_roots: []             # G
+  risk_components: []         # G business-critical components

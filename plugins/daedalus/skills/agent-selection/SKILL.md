@@ -25,7 +25,7 @@ A command may narrow this list with its own "Relevant roles" line; use that when
 ## 2. Brief each role from the profile
 
 - Read `.workflow/profile.json` (the `project-profile` skill) once, in the parent.
-- Pass each role only what it needs: the plan path and its section, the layer and root paths, the packs, the confirmed commands, and the AC verbatim. Don't paste whole files.
+- Pass each role only what it needs: the plan path and its section, the layer and root paths, the packs, the trusted commands from `workflow.py config commands`, and the AC verbatim. Don't paste whole files.
 - **Graph line:** include one only when the project has a graph (`integrations.graph.graphify: true` or `graph: graphify`): "plan-first; query only for gaps or blast radius" for Code, "diff-first" for Review. Otherwise say "no graph; use plain search".
 
 ## 3. Apply the role's perspective

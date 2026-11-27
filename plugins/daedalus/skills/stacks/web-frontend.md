@@ -4,7 +4,7 @@ detect:
   files: ["**/*.tsx", "**/*.jsx", "**/*.vue", "**/*.svelte", "**/*.component.ts", "**/vite.config.*", "**/next.config.*", "**/angular.json"]
   weak: ["**/*.ts", "**/*.js", "**/*.mjs", "**/package.json", "**/*.css", "**/*.scss", "**/*.html"]   # count only when a files glob or signal also matches
   signals: ["react", "vue", "svelte", "@angular", "antd", "@tanstack/react-query", "jotai", "redux"]
-evidence: NRD Sight corpus (≈840 findings on React/TypeScript UIs); the framework-neutral parts apply to Vue, Svelte and Angular
+evidence: code review findings on React/TypeScript UIs; the framework-neutral parts apply to Vue, Svelte and Angular
 ---
 
 # Web frontend (React, Vue, Svelte, Angular)

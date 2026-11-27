@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "overlay": "<name>",
+  "domain": "none",
+  "tickets": {
+    "system": "auto",
+    "key": null
+  },
+  "chat": "none",
+  "graph": "auto",
+  "house_rules": [],
+  "qa": {
+    "auth": null
+  },
+  "review": {
+    "header": "Argus review"
+  }
+}

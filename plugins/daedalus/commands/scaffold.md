@@ -39,7 +39,7 @@ Missing kind or name → ask once and stop.
    - `job`: make it idempotent, give external calls timeouts, and handle partial failure per the pack.
    - `migration`: name and number it per the repo's tool; include down or rollback steps where the tool supports them. **Never run it**: migration commands are unsafe.
 5. **Test** per `test-strategy`, in the root's framework.
-6. **Run the checks** for the root: `typecheck`, `lint`, then the narrowest `test`. Only commands with confidence `script`, `derived` or `user`, or confirmed `inferred`; never `unsafe: true`. Print each command first.
+6. **Run the checks** for the root: `typecheck`, `lint`, then the narrowest `test`. Run only the commands `workflow.py config commands --json` reports `trusted: true` and `unsafe: false` (the `project-profile` skill); ask the user before any other, or run `/setup`. Print each command first.
 
 ## Output (handoff for Review)
 

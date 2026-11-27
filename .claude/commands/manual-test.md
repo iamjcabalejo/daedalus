@@ -11,6 +11,7 @@ disable-model-invocation: true
 - **Token policy:** `.claude/rules/token-policy.md`. Refine the plan into a test brief, then hand off.
 - **Cycle:** Manual QA phase in `.claude/rules/compounding-dev-cycle.md`; mode map in `.claude/rules/claude-code.md`.
 - **Profile:** `.workflow/profile.json` (the `project-profile` skill): the UI root, its `ui.dev_url`, `ui.router` and `commands.dev`.
+- **Configuration and commands:** `<workflow>` is `${CLAUDE_PLUGIN_ROOT}/scripts/workflow.py` in a plugin install (this plugin's own copy), otherwise `scripts/workflow.py` in the `.claude/` folder this command was loaded from (`~/.claude/` for a user-level install, else `<workspace root>/.claude/`). Run `python3 -I <workflow> config resolve --json --repo <repo> --workspace <folder you were started from>` once and pass its `values` on (`qa.base_url`, `qa.auth`, `overlay`); exit code 3 → show the error and fix, and stop. Don't read config files yourself.
 - **Orientation:** diff-first. The plan's File changes and the diff name the page; use a graph only when the project has one, and only if the route is still unclear.
 - **Skill:** `.claude/skills/manual-qa/SKILL.md` (case rules, verdicts, safety). Report shape: `.claude/skills/manual-qa/report-template.md`.
 
@@ -35,11 +36,11 @@ Rules: **Authentication** in `.claude/skills/manual-qa/SKILL.md`. The user signs
 4. **Changed files:** `git status --short` and `git diff --stat` against the base branch in the repo that holds the UI root. Pass the list to the tester.
 5. **Environment:**
    - **Node:** `command -v npx`. Missing → stop: "Install Node.js 18+ (`brew install node`) so qa-tester can start Playwright."
-   - **Base URL:** from the plan's Manual QA, else `qa.base_url` in `.workflow/config.yml`, else the UI root's `ui.dev_url` in the profile. Must be `localhost` or `127.0.0.1`.
-   - **Dev server:** `curl -s -o /dev/null -w '%{http_code}' <base>`. Down → start the UI root's `commands.dev` from the profile in the background (only when its confidence is `script`, `derived` or `user`, or it's confirmed, and it isn't `unsafe`), from `<repo>/<root.path>`, and poll up to 60 s. No dev command, or still down → stop and ask the user to start it.
+   - **Base URL:** from the plan's Manual QA, else the resolved `qa.base_url`, else the UI root's `ui.dev_url` in the profile. Must be `localhost` or `127.0.0.1`.
+   - **Dev server:** `curl -s -o /dev/null -w '%{http_code}' <base>`. Down → start the UI root's `dev` command in the background only when `python3 -I <workflow> config commands --json --repo <repo> --workspace <folder you were started from>` reports it `trusted: true` and `unsafe: false`, from `<repo>/<root.path>`, and poll up to 60 s. No dev command, an untrusted or unsafe one, or still down → report the server BLOCKED and ask the user to start it (or run `/setup` to trust the command).
    - **Production guard:** find the API base-URL variable the UI uses (for example `VITE_API_URL`, `NEXT_PUBLIC_API_URL`, `REACT_APP_API_URL`) in the active env file (`.env.local`, else `.env`) and compare it with the production env file (`.env.production`, `.env.prod`). Equal → stop. Never test against production. Print only "local", "staging" or "other", not the URL.
    - **Backend scope:** the plan has api or worker blocks and the API isn't running locally → backend-dependent cases go in as BLOCKED (env), not FAIL.
-6. **Mockup:** if `docs/plans/mockups/<slug>.html` exists, serve it: `python3 -m http.server 8765 --bind 127.0.0.1 --directory <plan dir>/mockups` in the background. Pass `http://127.0.0.1:8765/<slug>.html`. Otherwise pass the design link or "none".
+6. **Mockup:** if `docs/plans/mockups/<slug>.html` exists, serve it: `python3 -I -m http.server 8765 --bind 127.0.0.1 --directory <plan dir>/mockups` in the background. Pass `http://127.0.0.1:8765/<slug>.html`. Otherwise pass the design link or "none".
 7. **Run number:** next free N for `docs/qa/<slug>-qa-N.md`. Create `docs/qa/<slug>/run-N/`.
 8. **Auth mode:** standalone runs are `attended`; tell the user (one line): "Chrome will open. If it asks you to sign in, complete the sign-in; the tester waits up to 3 minutes." Runs from `/project-manager` are `unattended`: no wait.
 
@@ -47,7 +48,7 @@ Rules: **Authentication** in `.claude/skills/manual-qa/SKILL.md`. The user signs
 
 One tester at a time; the Playwright profile is shared.
 
-- **Pass:** plan path; AC verbatim; cases (AC, route, steps, expected, mockup state); base URL; mockup URL or design link; changed files; absolute screenshot directory; mutation policy (from Manual QA, default "none"); backend availability; mode `test`; auth mode; required role and its role check (from Manual QA).
+- **Pass:** plan path; AC verbatim; cases (AC, route, steps, expected, mockup state); base URL; the resolved `qa.auth` and `overlay`; mockup URL or design link; changed files; absolute screenshot directory; mutation policy (from Manual QA, default "none"); backend availability; mode `test`; auth mode; required role and its role check (from Manual QA).
 - **Instruct:** "Mode: AGENT (QA). Follow `.claude/skills/manual-qa/SKILL.md`. Run only these cases, in AC order, on the exact routes. Diff-first. Do not edit code. Return the report body in `.claude/skills/manual-qa/report-template.md` structure and the list of screenshot paths."
 
 ## Step 3: Write the report

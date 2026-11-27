@@ -19,7 +19,7 @@ You are the **apply-ticket** orchestrator. Read **one ticket**, refine it, and w
 
 ## Read the ticket (lean)
 
-Use the `ticket-adapters` skill (`.claude/skills/ticket-adapters/SKILL.md`) to resolve `tickets.system`, then:
+Resolve configuration with `python3 -I <scripts>/workflow.py config resolve --json --repo <repo> --workspace <folder you were started from>` (`<scripts>`: where the `project-profile` skill says; exit code 3 → show the error and fix, and stop). Pass its `values` to the `ticket-adapters` skill (`.claude/skills/ticket-adapters/SKILL.md`) to resolve `tickets.system`, then:
 
 1. **get** the ticket with its relations.
 2. **Comments** only if the description is thin, conflicting or missing AC. Stop after the first page unless a comment clearly continues the thread.

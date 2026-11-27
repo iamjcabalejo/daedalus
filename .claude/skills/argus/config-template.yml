@@ -1,16 +1,9 @@
 # Argus configuration. Every key is optional; missing keys use the defaults shown.
 #
-# Lookup: every file in this chain is read, nearest first, and merged key by key:
-#   1. <repo>/.workflow/config.yml, then legacy <repo>/.argus.yml
-#   2. <workspace root>/.workflow/config.yml, then <workspace root>/.argus.yml
-#   3. ~/.workflow/config.yml, then ~/.claude/argus.yml
-#   4. built-in defaults (this file)
-# The nearest file that sets a key wins; mappings (tickets, review, review.severity, review.post) merge
-# recursively; lists are replaced whole wherever they sit (ignore, house_rules, extra_stacks,
-# severity.overrides, severity.critical_triggers). null or empty falls through; an explicit `none` or [] wins (so a repo opts out
-# of a home-level domain with `domain: none`).
+# Lookup: `workflow.py config resolve` reads every level (repo, workspace, user, organization), including the
+# legacy .argus.yml files, and combines them; `workflow.py config explain <key>` shows where a value came from.
 # In .workflow/config.yml, severity and post go under `review:`; in .argus.yml they stay top-level
-# and are lifted under `review:` before merging, so both spellings merge as one key.
+# and the resolver lifts them under `review:`, so both spellings are one key.
 
 # Which stack packs to load. "auto" loads the project profile's packs for the touched roots
 # (.workflow/profile.json) plus every pack whose detect.files globs match a changed path or root
@@ -51,6 +44,7 @@ severity:
 review:
   header: "Argus review"    # first line of the body; never impersonate another reviewer's name
   max_findings: 0            # 0 = no cap; otherwise keep the N most severe and say how many were dropped
+  compare_with: null         # with --compare: the GitHub login whose review of the same PR Argus is graded against
 
 post:
   inline: true               # with --post, add inline comments for new findings on changed lines

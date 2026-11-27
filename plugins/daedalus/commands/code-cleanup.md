@@ -18,7 +18,7 @@ $ARGUMENTS
 
 ## Checklist
 
-- **Tooling:** run the root's `format` and `lint` commands from the profile (with `--fix` where the tool supports it) and `typecheck` when present. Only safe commands (confidence `script`, `derived`, `user`, or confirmed `inferred`).
+- **Tooling:** run the root's `format` and `lint` commands from the profile (with `--fix` where the tool supports it) and `typecheck` when present. Run only the commands `workflow.py config commands --json` reports `trusted: true` and `unsafe: false` (the `project-profile` skill); ask the user before any other, or run `/setup`.
 - **Structure:** one responsibility per function, component or class; thin handlers; extract helpers or hooks; early returns and guard clauses.
 - **Names and constants:** descriptive names in the language's conventions (booleans `is`/`has`/`can`); no magic numbers or strings.
 - **Duplication:** extract repeated code into shared modules.

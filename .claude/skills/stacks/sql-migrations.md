@@ -3,7 +3,7 @@ name: sql-migrations
 detect:
   files: ["**/migrations/**", "**/migration/**", "**/V*__*.sql", "**/R__*.sql", "**/alembic/**", "**/db/migrate/**", "**/Migrations/*.cs", "**/liquibase/**", "**/changelog*.xml"]
   weak: ["**/*.sql"]   # loose SQL files load this pack only alongside a migration path
-evidence: NRD Sight corpus (≈200 findings on Flyway/Postgres); the principles apply to Alembic, Rails, EF, Liquibase and Prisma
+evidence: code review findings on Flyway/Postgres; the principles apply to Alembic, Rails, EF, Liquibase and Prisma
 ---
 
 # SQL schema migrations (Flyway, Alembic, Rails, EF, Liquibase; Postgres first)

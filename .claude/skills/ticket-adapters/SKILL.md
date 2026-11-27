@@ -13,7 +13,7 @@ Commands never call a ticket or chat tool directly. They name an **operation** b
 
 ## 1. Resolve the systems
 
-Read config key by key, nearest first (the same chain Argus uses): `<repo>/.workflow/config.yml`, `<workspace>/.workflow/config.yml`, `~/.workflow/config.yml`. A missing or `null` value falls through; an explicit value wins.
+Use the configuration the calling command resolved, or resolve it: `python3 -I <scripts>/workflow.py config resolve --json --repo <repo> --workspace <folder the session started from>` (`<scripts>`: where the `project-profile` skill says), then read `values`. A key whose `provenance` level is `default` was set by no file: use the **When unset** column. Don't read or combine config files yourself.
 
 | Setting | Values | When unset |
 |---|---|---|

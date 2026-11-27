@@ -80,11 +80,13 @@ Packs work as both **knowledge and detection rules**: the detector parses their 
 | Script | Role | Notes |
 |---|---|---|
 | `.claude/scripts/detect-stack.py` | Writes and refreshes `.workflow/profile.json` | Python 3.8+, standard library only. Reads files and runs only `git` read commands |
+| `.claude/scripts/workflow.py` | The one command line for configuration and trust: `config resolve\|explain\|get\|commands`, `trust list\|pending\|record\|revoke` | Run as `python3 -I`; puts only its own folder on `sys.path`. Exit codes 0 ok, 2 usage, 3 configuration or trust-store error |
+| `.claude/scripts/lib/` | `wfconfig.py` (YAML subset and resolver, §4.4), `config_keys.py` (key registry), `trust.py` (trust store and effective commands, §4.2), `unsafe.py` (the unsafe vocabulary the detector also uses) | Standard library only, Python 3.8+ |
 | `.claude/scripts/validate-profile.py` | Validates a profile against `skills/project-profile/profile.schema.json` | Covers the draft-07 subset the schema needs |
 | `.claude/scripts/argus-bundle.sh` | Builds a review bundle: PR metadata, diff, checkout at the head SHA, ticket keys, earlier reviews | Needs `git`, `jq` and a signed-in `gh` |
 | `.claude/scripts/daily-git-activity.sh` | Local commits and pushes for `/daily-report` | Read-only |
 | `scripts/build-plugin.sh` | Generates `plugins/` and `.claude-plugin/` | `--check` for CI |
-| `scripts/lint-packs.sh`, `scripts/check-generic.sh`, `scripts/test-detector.sh` | Hub quality gates | See §10 |
+| `scripts/test-all.sh` and the checks it runs (`test-detector.sh`, `test-config.sh`, `test-trust.sh`, `lint-packs.sh`, `check-generic.sh`, …) | Hub quality gates | See §10 |
 | `install.sh` | Script install and uninstall | See §8.2 |
 
 ## 3. Session start
@@ -108,8 +110,9 @@ sequenceDiagram
 
 - **Time budgets fit inside the hook's 10 s timeout.** The detector stops walking at 4 s (soft deadline) and is killed by an alarm at 7 s; the hook gives the subprocess 8 s. A partial profile records a gap that says to run `/setup --refresh`.
 - **The hook never fails a session.** Every error path exits 0, and the summary falls back to "detection failed (or timed out); run /setup".
+- **Configuration and trust lines.** While the detector runs, the hook resolves configuration in process (`lib/wfconfig.py`, which also gives it the overlay name). A configuration error adds one line naming the file and line, and the session still starts. A fast trust check (§4.2, no re-detection) adds one line counting the untrusted committed commands, and the profile summary shows `(untrusted)` instead of their text. The hook's Python runs as `python3 -I`, so nothing in the project folder is imported.
 - **The contract depends on the install type.** A script install gets a one-line contract that points at `.claude/rules/`. A plugin install gets the `daedalus:` prefixes and a pointer to the `daedalus:workflow-contract` skill, because plugins can't ship always-on rules.
-- **Overlay context:** the hook appends `hooks/context.txt` from the installed hub, or from `~/.claude/overlays/<overlay>/` when `.workflow/config.yml` names an overlay.
+- **Overlay context:** the hook appends `hooks/context.txt` from the installed hub, or from `~/.claude/overlays/<overlay>/` when the resolved `overlay` names one.
 - **Two output formats:** `hook_event_name` selects Claude Code's `hookSpecificOutput` or Cursor's `additional_context`, so the same script serves both tools.
 
 `audit.sh` runs on every Bash call, on Stop and on SessionEnd. It logs only the event name and a UTC timestamp, never stdin, which may contain secrets. It writes to `${CLAUDE_PLUGIN_DATA}` in plugin installs (never into the plugin root, which changes on update), or otherwise to `<project>/.claude/hooks/audit.log`. It never blocks a tool call.
@@ -136,16 +139,34 @@ The hub gitignores its own `.workflow/`; target repos commit theirs so the whole
 
 ### 4.2 Command trust
 
-Each command is stored as `{cmd, source, confidence, confirmed?, unsafe?}`.
+Each profile command is stored as `{cmd, source, confidence, confirmed?, unsafe?}`. `confidence` and `confirmed` record how a command was found; they don't decide whether it runs, because a committed profile can claim any value, and a committed `commands` override in `.workflow/config.yml` carries none at all (D23).
 
-| Confidence | Source | Runs without asking? |
+| Confidence | Source |
+|---|---|
+| `script` | A declared script or target |
+| `derived` | A lockfile or tool convention |
+| `user` | Set in `/setup` |
+| `inferred` | A heuristic, such as a CI line; `/setup` asks about it |
+
+**The effective command set** decides, per root and command name, over both channels (`lib/trust.py`; `workflow.py config commands --json`):
+
+| Source of the command | Trusted when | `basis` |
 |---|---|---|
-| `script` | A declared script or target | Yes |
-| `derived` | A lockfile or tool convention | Yes |
-| `user` | Set in `/setup` | Yes |
-| `inferred` | A heuristic, such as a CI line | Only when `confirmed: true` |
+| Config override at TL1 | Always (root-owned organization policy) | `policy` |
+| Config override at TL2 | Always (the user's own `~/.workflow/config.yml`) | `user-config` |
+| Config override at TL3 (workspace) or TL4 (committed) | The user's trust store holds its digest | `trust-store` |
+| Profile entry, `script` or `derived` | Re-detection from the repo's own files reproduces the same command at the same confidence; otherwise as a `user` entry | `detected` |
+| Profile entry, `user`, or any `confirmed: true` | The trust store holds its digest | `trust-store` |
+| Profile entry, `inferred` and unconfirmed | Never without `/setup` | — |
 
-`unsafe: true` is set when the command's name **or what it runs** matches deploy, migrate, publish, release, destroy, drop or similar. "What it runs" means the `package.json` script body (following one `npm run` hop), the Make, Task or just recipe, or known tools such as `terraform apply`, `alembic upgrade` and `dbt build`. Roles never run an unsafe command without asking, whatever its confidence.
+- A config override wins over the profile entry for the same root and name; the hidden entry is listed under `shadowed`. Untrusted records are reported as unconfirmed `inferred`, so consumers ask or send the user to `/setup`.
+- **Trust store:** `~/.workflow/trust.json` (`daedalus.trust/1`), outside every repository. It's keyed by repository identity (the normalized `origin` URL without credentials, plus the real path of the top level; a folder without git has no remote) and holds one digest per command (`sha256` over channel, root, name and exact text) with a UTC timestamp, never command text. Writes are locked and atomic, mode `0600` in a `0700` folder. A store that is a symlink, owned by someone else, group- or world-writable, or inside the project is refused, and every committed command is then untrusted.
+- **Recording:** `/setup` lists the untrusted set (`workflow.py trust pending`) and records it with one confirmation, bound to the set's digest (`trust record --pending --digest`). The same call stores the digests of the detected entries re-detection reproduced (outside the set and its digest), and `/setup` runs it even for an empty set. Changing a command's text, root or channel changes its digest, so it's untrusted again; a second clone at another path is a different repository.
+- **Re-detection** runs the detector's `build_profile` in process, read-only, within its timeout; a timeout leaves the affected entries untrusted. The session banner's **fast mode** skips it, so a detected entry counts as verified only when the store holds its digest; it never trusts more than the full check. The banner refreshes and reads the profile at the git top level, also for a session started in a subfolder.
+
+`unsafe: true` is set when the command's name **or what it runs** matches deploy, migrate, publish, release, destroy, drop or similar. "What it runs" means the `package.json` script body (following one `npm run` hop), the Make, Task or just recipe, or known tools such as `terraform apply`, `alembic upgrade` and `dbt build`. `config commands` recomputes the flag from the text (and the re-detected body); a committed `unsafe: false` never clears it. Roles never run an unsafe command without asking, whatever its trust.
+
+Roles follow the effective set through their prompts and the project-manager's briefs in P1; the guard and `exec.py` enforce it from P2 (§11). User guide: [docs/guides/trust-and-policy.md](docs/guides/trust-and-policy.md).
 
 ### 4.3 Freshness and edits
 
@@ -156,9 +177,23 @@ Each command is stored as `{cmd, source, confidence, confirmed?, unsafe?}`.
 
 ### 4.4 Configuration chain
 
-Precedence, from lowest to highest: detected profile → `~/.workflow/config.yml` (personal; overlay defaults merge in here) → `<workspace>/.workflow/config.yml` → `<repo>/.workflow/config.yml` → command arguments.
+`lib/wfconfig.py` resolves configuration over five trust levels (D19). Hooks, commands and skills read it only through `workflow.py config resolve | get | explain` (commands pass `--workspace <folder the session started from>`; `CLAUDE_PROJECT_DIR` is the fallback); none of them combines files itself.
 
-Files merge **key by key**, and the nearest file that sets a key wins. Mappings merge recursively and lists are replaced whole. A missing or `null` value falls through, while an explicit `none` or `[]` wins. Argus also reads the legacy `.argus.yml` files at each level. Every key is documented in [templates/workflow-config.example.yml](templates/workflow-config.example.yml).
+| Level | Sources, in reading order | Read when |
+|---|---|---|
+| **TL1** organization | `$DAEDALUS_POLICY_DIR/policy.yml`, `/etc/daedalus/policy.yml`, `/Library/Application Support/Daedalus/policy.yml` (macOS) | Only from a managed path: every component of the real path root-owned and not group- or world-writable, every symlink on the way root-owned. An unmanaged file is ignored and flagged by `explain`; a managed file that doesn't parse is fatal |
+| **TL2** user | `~/.claude/argus.yml` (legacy), `~/.workflow/config.yml` (it holds the installed overlay's defaults) | Always. `DAEDALUS_HOME` replaces the home folder only outside every git work tree and the project, owned by the user, and not group- or world-writable |
+| **TL3** workspace | `<workspace>/.argus.yml`, `<workspace>/.workflow/config.yml` | Only when the workspace is a strict ancestor of the repository and not inside a git work tree; otherwise read as TL4. Its `commands` overrides still need the trust store (an extracted archive can sit above a nested repository) |
+| **TL4** repository | `<repo>/.argus.yml`, `<repo>/.workflow/config.yml`; facts in `<repo>/.workflow/profile.json` | Always; a folder without git is a TL4 project folder |
+| **TL5** per run | `--set KEY=VALUE` | When passed |
+
+Each key has a class in `lib/config_keys.py`, marked per key in [templates/workflow-config.example.yml](templates/workflow-config.example.yml):
+- **Preferences** (`tickets.*`, `chat`, `review.*`, `qa.*`, `overlay`, `graph`, …): the nearest level wins. Mappings combine key by key, lists are replaced whole, a missing or `null` value falls through, and an explicit `none` or `[]` wins.
+- **Security** (`guard.mode`, `budgets.*`, `gate.*`, `exec.*`, `tdd.min`, `tiers.*`, …): monotonic. TL1 combined with TL2 (else TL2, else the default) is the anchor, and TL3–TL5 can only tighten it, with an operator per key (strictest mode, smallest ceiling, union of required lists, intersection of privileged allowlists). A value that would loosen it is ignored and listed in `ignored[]` with the reason.
+- **Governance** (`governance.*`): TL1 only; a TL2 value is advisory.
+- **Project facts:** `commands` overrides and the profile, trusted per §4.2.
+
+Files are a strict YAML subset (anchors, tags, block scalars and ambiguous booleans are errors with file, line and column). `config resolve --json` prints the `daedalus.policy/1` document: `values`, `sources`, `provenance`, `ignored`, `warnings` and `policy_digest` (a digest of the security and governance values only, so preference changes don't invalidate evidence). `config explain <key>` shows every level's contribution.
 
 ## 5. The development cycle
 
@@ -330,14 +365,14 @@ The build reads only files that are tracked, or new and not ignored (`git ls-fil
 |---|---|---|
 | `commands/`, `agents/`, `skills/` | Everything else | `manual-test`, `qa-tester`, `manual-qa` |
 | `rules/*.md` | `skills/workflow-contract/rules/` | — |
-| `hooks/*.sh`, `scripts/*` | `scripts/` | — |
+| `hooks/*.sh`, `scripts/**` | `scripts/` (with `lib/`) | `scripts/`: `workflow.py`, `detect-stack.py` and `lib/` only (`QA_SCRIPTS`), so `/daedalus-qa:manual-test` resolves configuration and commands with its own copy |
 | `settings.json` | `hooks/hooks.json`, with `${CLAUDE_PLUGIN_ROOT}` paths | — |
 | — | — | `.mcp.json` (Playwright) |
 
 - **Rewriting:** project-relative `.claude/<kind>/…` references become `${CLAUDE_PLUGIN_ROOT}/…` paths. A reference to the other plugin's component becomes its prefixed name, such as "the `daedalus-qa:qa-tester` role".
 - **Agent frontmatter:** `mcpServers` is stripped from agents, since plugins take MCP servers from `.mcp.json`.
 - **Generated metadata:** each plugin's `plugin.json` and README, plus `.claude-plugin/marketplace.json`, so this repo is its own marketplace. The version is a constant in the script.
-- **CI check:** `--check` builds into a temporary folder and fails if the committed output differs.
+- **CI check:** `--check` builds into a temporary folder and fails if the committed output differs, so both plugins' script copies stay byte-identical to `.claude/scripts/`. `--out DIR` builds into an empty folder instead (tests).
 
 **Why two plugins (D8):** the Playwright MCP server starts whenever its plugin is enabled. Keeping QA in a companion plugin means it runs only for projects with a UI. If QA is reached in a plugin install without the companion, `/project-manager` reports QA as BLOCKED (env).
 
@@ -371,7 +406,7 @@ Several mechanisms keep private content out of the public hub:
 
 ## 10. Hub quality gates
 
-CI (`.github/workflows/check.yml`) runs on every push and pull request:
+CI (`.github/workflows/check.yml`) runs `scripts/test-all.sh` as one step on every push and pull request. It runs each check below in order, continues past failures, prints a summary and fails if any check failed:
 
 | Check | Enforces |
 |---|---|
@@ -381,15 +416,22 @@ CI (`.github/workflows/check.yml`) runs on every push and pull request:
 | `scripts/test-detector.sh` | The detector validation matrix in `docs/validation/matrix.json`: public repos pinned by SHA, synthetic cases (such as unsafe script bodies), and private rows from a gitignored `matrix.local.json`, skipped in CI. Every row runs with `--stdout`, so nothing is written into scanned repos, and each row also checks the detector's subprocess use (only read-only `git`) and its time budget |
 | `scripts/test-probes.sh` | The capability-probe harness, offline (no credentials, no model, no docker): recorder modes, redaction and a leak scan over committed fixtures, case-file validation, and the isolation and cleanup logic |
 | `scripts/test-bench.sh` | The benchmark harness, offline (no credentials, no model, no docker): task, arm and result schemas, scoring, safety detectors, budget accounting, and an end-to-end dry run with the fake arm |
+| `scripts/test-config.sh` | The YAML subset, trust-level sources, the key registry against the template, merge and monotonic-policy rules, the `config` CLI, the detector's carry-over, the QA plugin's script copy, and a grep that every consumer reads configuration through the resolver with `python3 -I` |
+| `scripts/test-trust.sh` | The trust store, repository identity, effective commands, the `trust` CLI, malicious-fixture repositories (their commands write a canary that must never appear), the session banner's redaction, and a grep that no prompt runs commands by confidence |
+| `shell-syntax` | `bash -n` on every hub shell script |
+| `py38-syntax` | Every `.claude/scripts/**/*.py` parses with Python 3.8's grammar |
 
-Locally, `scripts/test-all.sh` runs every check in this table, continues past failures and prints a summary; `--skip <name>` skips one. Maintainer guide for both harnesses: [docs/guides/benchmarks.md](docs/guides/benchmarks.md).
+Run the same script locally; `--skip <name>` skips one check. Maintainer guide for both harnesses: [docs/guides/benchmarks.md](docs/guides/benchmarks.md).
 
 Validation runs are recorded in `docs/validation/results-<date>.md`, and reviews of the hub itself are saved in `docs/reviews/`.
 
 ## 11. Safety model
 
 - **Detection is read-only.** The detector reads files and runs `git remote`, `branch` and `log`. It never runs project code, installs packages or uses the network.
-- **Commands are trusted by their source** (§4.2). Unsafe and unconfirmed inferred commands always need the user's approval, and roles print each command before running it.
+- **Resolved deterministically now (P1):** configuration across TL1–TL5, with security keys that lower levels can only tighten (§4.4); the effective command set, from the trust store and re-detection, with `unsafe` recomputed (§4.2); the trust store's own safety checks. The same inputs give the same answer, and `config explain` and `config commands` show why.
+- **Prompt-followed until P2:** acting on those answers. Untrusted and unsafe commands need the user's approval, roles print each command before running it, and the project-manager puts only trusted, non-unsafe commands in briefs, but nothing yet blocks a model that ignores its prompt; the guard and `exec.py` enforce it from P2. The security keys (`guard.mode`, `budgets.*`, `gate.*`, `exec.*`) resolve today, and the components that enforce them arrive in P2 and later.
+- **Python runs isolated.** Every hook and command starts Daedalus' Python with `python3 -I`, and each entry point puts only its own folder on `sys.path`, so a repository file named `json.py` or `lib/wfconfig.py` never runs inside Daedalus.
+- **Workspace trust isn't a trust level.** Claude Code's folder trust gates a project's allow rules, not its hooks (an untrusted folder's hooks ran and were enforced in `-p` mode in every probe session), so Daedalus never reads it; trust in committed commands comes only from the trust store.
 - **Modes limit writes.** PLAN writes only `docs/plans/**`. Review and QA roles have no Edit or Write tools.
 - **Git:** nothing is committed, pushed or opened as a pull request unless the user asks in that message. Argus posts only with `--post`.
 - **Hooks never block.** Both hooks exit 0, and the audit log records only the event name and a UTC timestamp.
@@ -409,7 +451,7 @@ After any change under `.claude/`, run `scripts/build-plugin.sh` and commit the 
 
 ## 13. Key decisions
 
-Summarized from §11 of the plan.
+D1–D8 are summarized from §11 of the [plug-and-play plan](docs/plans/plug-and-play-workflow.md); D19 and D23 come from the hardening roadmap ([docs/plans/daedalus-hardening-roadmap.md](docs/plans/daedalus-hardening-roadmap.md)).
 
 | ID | Decision |
 |---|---|
@@ -421,10 +463,13 @@ Summarized from §11 of the plan.
 | D6 | Generic roles `implementer` and `test-runner` replace the fixed backend and frontend roles |
 | D7 | Codex output from the same sources is deferred |
 | D8 | Browser QA ships as the companion plugin `daedalus-qa`, so Playwright starts only where it's needed |
+| D19 | Security policy merges monotonically across TL1–TL5: lower levels can only tighten a security key. TL1 needs a root-owned path (later also managed settings or the CI gate repository); organization policy installed per user is advisory TL2 (§4.4) |
+| D23 | Committed commands need the user's trust (`~/.workflow/trust.json`, keyed by digest): profile `user` and `confirmed` entries, and `commands` overrides in a committed `.workflow/config.yml`. Re-detected `script` and `derived` entries need none (§4.2) |
 
 ## 14. Status and known gaps
 
 - **The Cursor thin layer (Phase C) isn't built yet.** There's no `cursor/` folder, and `install.sh --cursor` stops with a message. Cursor already imports `.claude/agents`, `.claude/skills` and the `.claude/settings.json` hooks, and `session-init.sh` already prints Cursor's output format. The generated always-apply rules and command skills are what's still missing.
 - **Codex output** is deferred (D7).
+- **Command trust and the security keys are prompt-followed until P2.** The resolver and the effective command set are deterministic, but the guard and `exec.py` that enforce them arrive in P2 (§11).
 - **Large monorepos** can produce a partial profile when the detection budget runs out. The profile records a gap, and `/setup --refresh` runs a full scan.
 - **Deep manifests:** a new manifest deeper than two levels doesn't mark the profile stale; run `/setup --refresh`.

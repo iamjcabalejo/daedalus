@@ -3,11 +3,15 @@
 #
 #   scripts/build-plugin.sh           regenerate plugins/ and .claude-plugin/marketplace.json
 #   scripts/build-plugin.sh --check   exit 1 if the committed output differs from a fresh build (CI)
+#   scripts/build-plugin.sh --out DIR build into an empty or new DIR instead of the hub (tests)
 #
 # Output (generated, committed; never edit by hand):
 #   plugins/daedalus/      the workflow: commands, roles, skills (plus workflow-contract/rules/), scripts, hooks/hooks.json
 #   plugins/daedalus-qa/   companion for browser QA: qa-tester, manual-qa, /manual-test and .mcp.json (Playwright),
-#                          so the Playwright server only starts for people who install it (decision D8)
+#                          so the Playwright server only starts for people who install it (decision D8), plus its own
+#                          copy of workflow.py, detect-stack.py and scripts/lib/ (QA_SCRIPTS, PF-9), so
+#                          /daedalus-qa:manual-test resolves configuration and commands without the main plugin's path;
+#                          its Markdown names main-plugin commands with their prefix (`/setup` → `/daedalus:setup`)
 #   .claude-plugin/marketplace.json   makes this repo a marketplace for both
 # Only tracked or new unignored files under .claude/ are used, so gitignored overlays and local files never reach a plugin.
 set -euo pipefail
@@ -27,6 +31,9 @@ QA_COMMANDS = {"manual-test"}
 QA_AGENTS = {"qa-tester"}
 QA_SKILLS = {"manual-qa"}
 HOOK_SCRIPTS = ("session-init.sh", "audit.sh")
+# Scripts (relative to .claude/scripts/) the QA plugin ships as well, byte-identical; "lib/" is the whole folder,
+# structure kept. A QA prompt that names one points at the QA plugin's own copy.
+QA_SCRIPTS = ("workflow.py", "detect-stack.py", "lib/")
 PLAYWRIGHT = {"command": "npx", "args": ["-y", "@playwright/mcp@latest"]}
 # A `.claude/<kind>/` path written as a project-relative reference (not ~/.claude/, $HOME/.claude/ or <root>/.claude/).
 REF = re.compile(r"(`?)(?<![\w/~}$])\.claude/(rules|skills|commands|agents|scripts)/([A-Za-z0-9_.-]+)?((?:/[A-Za-z0-9_.<>-]+)*)/?(`?)")
@@ -36,6 +43,10 @@ def tracked() -> list[str]:
     out = subprocess.run(["git", "-C", str(hub), "ls-files", "--cached", "--others", "--exclude-standard", ".claude"],
                          capture_output=True, text=True, check=True).stdout
     return [f for f in out.splitlines() if f and (hub / f).is_file()]
+
+def ships_in_qa(script: str) -> bool:
+    """True for a path under scripts/ (`workflow.py`, `lib`, `lib/trust.py`) that QA_SCRIPTS copies into the QA plugin."""
+    return any(script == entry or (entry.endswith("/") and (script + "/").startswith(entry)) for entry in QA_SCRIPTS)
 
 def owner_of(kind: str, name: str) -> str:
     stem = name[:-3] if name.endswith(".md") else name
@@ -57,7 +68,7 @@ def rewrite(text: str, plugin: str) -> str:
         if not name:
             return f"${{CLAUDE_PLUGIN_ROOT}}/{kind}/", True
         owner = owner_of(kind, name)
-        if owner == plugin:
+        if owner == plugin or (kind == "scripts" and plugin == QA and ships_in_qa(name + rest)):
             return f"${{CLAUDE_PLUGIN_ROOT}}/{kind}/{name}{rest}", True
         stem = name[:-3] if name.endswith(".md") else name
         if kind == "commands":
@@ -75,6 +86,23 @@ def rewrite(text: str, plugin: str) -> str:
             return f"`{replacement}`" if is_path else replacement
         return (tick_open or "") + replacement + (tick_close or "")
     return REF.sub(sub, text)
+
+def main_commands(files: list[str]) -> list[str]:
+    """The main plugin's command names: each `.claude/commands/<name>.md` in `files` that QA_COMMANDS doesn't claim."""
+    return sorted(Path(f).stem for f in files
+                  if Path(f).parent == Path(".claude/commands") and f.endswith(".md") and Path(f).stem not in QA_COMMANDS)
+
+def bare_commands(names: list[str]) -> re.Pattern:
+    """A bare `/name` for one of `names`: after the start, whitespace, `, ( or "; before the end, whitespace, `, ), or
+    , . ; : not followed by another name character. Paths (`docs/setup.md`), prefixed names (`/daedalus:setup`) and
+    longer names (`/setup-x`) don't match. No names: a pattern that never matches."""
+    alternatives = "|".join(re.escape(n) for n in sorted(names, key=len, reverse=True)) or "(?!)"
+    return re.compile(rf"(?<![^\s`(\"])/({alternatives})(?=[\s`)]|[,.;:](?![A-Za-z0-9_-])|$)")
+
+def name_main_commands(text: str, bare: re.Pattern) -> str:
+    """Companion plugin only: `/setup` becomes `/daedalus:setup`. A /daedalus-qa:<name> session can't count on the main
+    plugin's banner or name table to map bare names, so its text names main-plugin commands with their prefix."""
+    return bare.sub(lambda m: f"/{MAIN}:{m.group(1)}", text)
 
 def strip_mcp_servers(text: str) -> str:
     """Plugin agents ignore `mcpServers` (Playwright comes from the plugin's .mcp.json instead)."""
@@ -109,7 +137,16 @@ def hooks_json() -> dict:
 
 def build(out: Path) -> None:
     roots = {MAIN: out / "plugins" / MAIN, QA: out / "plugins" / QA}
-    for rel in tracked():
+    files = tracked()
+    bare = bare_commands(main_commands(files))
+
+    def render(text: str, plugin: str) -> str:
+        """`rewrite`; the companion's text also names main-plugin commands with their prefix (the main plugin's and
+        the script install's text keep their bare names)."""
+        text = rewrite(text, plugin)
+        return name_main_commands(text, bare) if plugin == QA else text
+
+    for rel in files:
         src = hub / rel
         parts = Path(rel).parts[1:]  # drop ".claude"
         kind = parts[0]
@@ -121,14 +158,19 @@ def build(out: Path) -> None:
                 put(roots[MAIN] / "scripts" / parts[-1], src.read_bytes(), True)
             continue
         if kind == "rules":
-            put(roots[MAIN] / "skills" / "workflow-contract" / "rules" / parts[-1], rewrite(src.read_text(), MAIN))
+            put(roots[MAIN] / "skills" / "workflow-contract" / "rules" / parts[-1], render(src.read_text(), MAIN))
             continue
         if kind not in ("commands", "agents", "skills", "scripts"):
             continue
-        plugin = owner_of(kind, parts[1]) if kind != "scripts" else MAIN
+        if kind == "scripts":
+            for plugin in (MAIN, QA) if ships_in_qa("/".join(parts[1:])) else (MAIN,):
+                data = render(src.read_text(), plugin) if src.suffix == ".md" else src.read_bytes()
+                put(roots[plugin].joinpath(*parts), data, executable)
+            continue
+        plugin = owner_of(kind, parts[1])
         dest = roots[plugin].joinpath(*parts)
         if src.suffix == ".md":
-            text = rewrite(src.read_text(), plugin)
+            text = render(src.read_text(), plugin)
             if kind == "agents":
                 text = strip_mcp_servers(text)
             put(dest, text, executable)
@@ -199,7 +241,17 @@ def snapshot(base: Path) -> dict[str, tuple[bytes, bool]]:
     return files
 
 def main() -> int:
-    if "--check" in sys.argv[1:]:
+    args = sys.argv[1:]
+    if "--out" in args:
+        index = args.index("--out")
+        out = Path(args[index + 1]).resolve() if index + 1 < len(args) else None
+        if out is None or (out.exists() and (not out.is_dir() or any(out.iterdir()))) or out == hub.resolve():
+            print("--out needs a new or empty folder outside the hub's own output", file=sys.stderr)
+            return 2
+        build(out)
+        print(f"built {len(snapshot(out))} files into {out}")
+        return 0
+    if "--check" in args:
         with tempfile.TemporaryDirectory() as tmp:
             build(Path(tmp))
             fresh, committed = snapshot(Path(tmp)), snapshot(hub)

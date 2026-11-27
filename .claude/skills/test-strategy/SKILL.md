@@ -34,4 +34,4 @@ The repo's existing tests are the style guide: match their framework, layout, na
 
 ## Running
 - Run the narrowest set first (changed test files), then the root's full `test` command from the profile.
-- Only run commands the profile marks safe (`script`, `derived`, `user`, or confirmed `inferred`); never `unsafe: true` ones.
+- Run only the commands `workflow.py config commands --json` reports `trusted: true` and `unsafe: false` (the `project-profile` skill); ask the user before any other, or run `/setup`.

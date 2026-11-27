@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="540" height="120" viewBox="0 0 540 120" role="img" aria-labelledby="t d">
+  <title id="t">Stack detection: 11 of 11 repo types</title>
+  <desc id="d">Detected 11 of 11 validated repo types, each in 0.1 seconds or less, read-only.</desc>
+  <rect x="2" y="2" width="536" height="116" rx="18" fill="#FFFFFF" stroke="#14213D" stroke-width="3"/>
+  <text x="80" y="76" text-anchor="middle" style='font: 800 40px "Inter", "SF Pro Text", "Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif; fill: #C8902E; letter-spacing: -1px;'>11/11</text><line x1="140" y1="30" x2="140" y2="90" stroke="#D8DEE8" stroke-width="2"/>
+  <text x="150" y="52" style='font: 700 15px "Inter", "SF Pro Text", "Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif; letter-spacing: 2.5px; fill: #475569;'>STACK DETECTION</text>
+  <text x="150" y="86" style='font: 700 25px "Inter", "SF Pro Text", "Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif; fill: #14213D;'>repo types, each in ≤ 0.1 s</text>
+</svg>

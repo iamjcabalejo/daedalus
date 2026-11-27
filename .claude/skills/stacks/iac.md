@@ -2,7 +2,7 @@
 name: iac
 detect:
   files: ["**/*.tf", "**/*.tfvars", "**/*.hcl", "**/template.y*ml", "**/serverless.y*ml", "**/cdk.json", "**/Pulumi.*", "**/*.bicep", "**/k8s/**", "**/helm/**", "**/Chart.yaml", "**/kustomization.y*ml", "**/Dockerfile*", "**/docker-compose*.y*ml"]
-evidence: NRD Sight corpus (≈200 findings on Terraform and CloudFormation); the Kubernetes and Docker entries are seeded from the same failure modes
+evidence: code review findings on Terraform and CloudFormation; the Kubernetes and Docker entries are seeded from the same failure modes
 ---
 
 # Infrastructure as code (Terraform, CloudFormation/SAM, CDK, Pulumi, Kubernetes, Docker)

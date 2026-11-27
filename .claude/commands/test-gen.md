@@ -24,7 +24,7 @@ $ARGUMENTS
 2. **Load** the root's packs (`## Test`; `_generic.md` if none) and the `test-strategy` skill.
 3. **List scenarios** before writing: the behaviors and AC to prove, the unhappy paths (invalid input, unauthorized, forbidden, not found, conflict, upstream failure, empty), and the boundaries. Skip what existing tests already prove.
 4. **Write tests** in the root's framework, layout and naming, reusing the repo's fixtures and factories. Mock only at the edges the pack names. No sleeps; freeze time; seed randomness.
-5. **Run** the new tests, then the root's full `test` command. Only commands with confidence `script`, `derived` or `user`, or confirmed `inferred`; never `unsafe: true`, and never an end-to-end suite unless the user confirms. Print each command first.
+5. **Run** the new tests, then the root's full `test` command. Run only the commands `workflow.py config commands --json` reports `trusted: true` and `unsafe: false` (the `project-profile` skill); ask the user before any other, or run `/setup`. Never an end-to-end suite unless the user confirms. Print each command first.
 
 ## Output
 

@@ -7,12 +7,12 @@ description: >-
   auto-detected stack packs (any language or platform; core-only fallback for
   unknown stacks), optional domain packs and per-repo config. Use when running
   /argus or /argus-scan, when spawning the argus agent, or when the
-  user asks for an Argus review. Calibrated on NRD Sight output.
+  user asks for an Argus review. Calibrated on production code reviews.
 ---
 
 # Argus (stack-agnostic core)
 
-This rubric was reverse-engineered from NRD Sight's output: 3,303 PR reviews on 2,365 PRs across 8 stacks, plus 39 scan findings. It is organized in layers, so a new stack needs a short pack, not a rewrite.
+This rubric was calibrated on production code reviews across many stacks, plus security scan findings. It is organized in layers, so a new stack needs a short pack, not a rewrite.
 
 | Layer | File | Scope |
 |---|---|---|
@@ -35,21 +35,9 @@ This rubric was reverse-engineered from NRD Sight's output: 3,303 PR reviews on 
 
 ## Configuration
 
-The command resolves config and passes the result in the brief. It reads **every** file in this chain, nearest first, and merges them **key by key**:
-1. `<repo>/.workflow/config.yml`, then the legacy `<repo>/.argus.yml`
-2. `<workspace root>/.workflow/config.yml`, then `<workspace root>/.argus.yml`
-3. `~/.workflow/config.yml`, then `~/.claude/argus.yml`
-4. built-in defaults
-
-**Merge rules:**
-- **Nearest wins, per key.** A key comes from the nearest file that sets it, so a `/setup`-written `.workflow/config.yml`, which holds only the user's choices (often just `tickets`, or no file at all), never hides `domain`, `house_rules`, `ignore` or `severity` from a farther file.
-- **Mappings merge recursively** (`tickets`, `review`, and `review.severity` / `review.post` after the lift below): a repo's `tickets.system` and a home file's `tickets.key` both survive.
-- **Lists are replaced whole wherever they sit**, never concatenated: `ignore`, `house_rules`, `extra_stacks`, `review.severity.overrides` and `review.severity.critical_triggers`.
-- **Unset vs. explicit.** A missing, empty or `null` value is unset and falls through. An explicit value wins, including `none` and `[]`, so a repo opts out of a home-level domain with `domain: none`.
-- **Key placement.** In `.workflow/config.yml`, `stacks`, `extra_stacks`, `domain`, `tickets`, `ignore` and `house_rules` are top-level, and Argus-only settings live under `review:` (`header`, `max_findings`, `severity`, `post`). Legacy `.argus.yml` files keep `severity` and `post` top-level, with `header` and `max_findings` under `review:`. Before merging, lift a legacy top-level `severity` or `post` to `review.severity` / `review.post`, so both spellings merge as one key.
-- **Sources.** The brief lists the files that were read (`config.sources`), and the saved review's run notes name the file that supplied `domain` and `tickets.system` (or "default").
-
-Example: `<repo>/.workflow/config.yml` sets `tickets: {system: github}`, and `~/.claude/argus.yml` sets `domain: acme` and `tickets: {system: linear, key: 'ACME-\d+'}`. The result is `domain: acme`, `tickets.system: github`, `tickets.key: 'ACME-\d+'`.
+The command resolves config with `workflow.py config resolve --json` and passes the result in the brief. The resolver reads every level (repository, workspace, user, organization), including the legacy `.argus.yml` files, and applies the merge rules in code; never read or combine config files yourself. `workflow.py config explain <key>` shows where a value came from and what was ignored.
+- **Key placement.** In `.workflow/config.yml`, `stacks`, `extra_stacks`, `domain`, `tickets`, `ignore` and `house_rules` are top-level, and Argus-only settings live under `review:` (`header`, `max_findings`, `severity`, `post`). Legacy `.argus.yml` files keep `severity` and `post` top-level, with `header` and `max_findings` under `review:`; the resolver lifts them to `review.severity` / `review.post`.
+- **Sources.** The brief lists the files the resolver read (`config.sources`), and the saved review's run notes name the file that supplied `domain` and `tickets.system` (or "default").
 
 Every key is documented in [config-template.yml](config-template.yml).
 
@@ -150,7 +138,7 @@ When unsure, pick the lower level and say what would raise it. Grade by outcome:
 | debug scaffolding | A hard-coded local path, or a helper left in a shared file | Stray prints |
 | secrets | Rotation is unverified (live values are `critical`) | Mutable CI tags, test-only CVEs, keys in URLs with no exposure shown |
 
-**Calibration, from NRD Sight org-wide** (3,222 findings): critical 2%, important 48%, consider 50%, and 39% of reviews are clean. Criticals split 30 security, 29 correctness, 11 reliability and 5 ownership.
+**Calibration** (production code reviews): critical 2%, important 48%, consider 50%, and 39% of reviews are clean. Criticals are about 40% security, 39% correctness, 15% reliability and 7% ownership.
 
 ## Categories
 
@@ -212,7 +200,7 @@ Apply these families:
 | `biz.*` | `unauthenticated_webhook`, `race_money`, `no_rate_limit`, `workflow_skip` | Show the reachable entry point and the business effect. |
 | `supply.*` | `unpinned_dependency`†, `secrets_in_environment` | Cite the manifest or build step. |
 
-† Not seen in NRD Sight's scans; added by us to round out a family. Prefer an observed id.
+† Not seen in the calibration scans; added to round out a family. Prefer an observed id.
 
 Scan severity is `critical` or `high` only.
 - **Exploitability:** `unauthenticated remote`, `authenticated low priv` or `authenticated high priv`.

@@ -3,7 +3,7 @@ name: serverless-queues
 detect:
   files: ["**/lambda_handler*", "**/handler.*", "**/serverless.y*ml", "**/template.y*ml"]
   signals: ["sqs", "SQS", "lambda_handler", "batchItemFailures", "SNS", "EventBridge", "redis", "Redis", "pubsub", "kafka", "Kafka", "RabbitMQ", "celery"]
-evidence: NRD Sight corpus (≈900 reliability findings on Lambda/SQS/Redis pipelines); the principles apply to Cloud Functions, Pub/Sub, Kafka and RabbitMQ
+evidence: reliability findings from code reviews of Lambda/SQS/Redis pipelines; the principles apply to Cloud Functions, Pub/Sub, Kafka and RabbitMQ
 ---
 
 # Serverless functions, queues and caches (Lambda, SQS/SNS, EventBridge, Redis; any broker by analogy)

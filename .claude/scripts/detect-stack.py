@@ -26,6 +26,10 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 
+# Only this file's own folder goes on sys.path (PF-2): lib/ is the hub's, never the scanned project's.
+sys.path.insert(0, os.path.dirname(os.path.realpath(__file__)))
+from lib.unsafe import UNSAFE_BODY_RE, UNSAFE_RE  # noqa: E402
+
 GENERATOR = "detect-stack@2"
 SCHEMA_VERSION = 1
 HUB = Path(__file__).resolve().parent.parent
@@ -35,15 +39,7 @@ WALK_DEPTH = 8
 MANIFEST_DEPTH = 4
 FILE_CAP = 40000
 READ_CAP = 256 * 1024
-UNSAFE_RE = re.compile(r"\b(deploy|migrate|migration|prod|production|publish|release|destroy|drop)\b", re.I)
-# Applied to what a command runs (script bodies, recipes). Omits prod/production on purpose: builds often say
-# `--mode production` or `NODE_ENV=production` without touching anything live.
-UNSAFE_BODY_RE = re.compile(
-    r"\b(deploy|migrate|migrations?:\w+|publish|release|destroy|drop\s+(?:table|database|schema)|dropdb|db\s+push|"
-    r"schema:(?:drop|sync)|db:(?:drop|reset|setup|migrate|seed|push)|drizzle-kit\s+(?:push|migrate)|"
-    r"alembic\s+upgrade|terraform\s+apply|cdk\s+deploy|sls\s+deploy|serverless\s+deploy|kubectl\s+apply|"
-    r"helm\s+(?:install|upgrade)|aws\s+s3\s+(?:sync|cp)|twine\s+upload|npm\s+publish|dbt\s+(?:build|run|seed|snapshot))\b",
-    re.I)
+UNSAFE_PATH = Path(__file__).resolve().parent / "lib" / "unsafe.py"
 
 SKIP_DIRS = {
     "node_modules", ".venv", "venv", "env", "vendor", "dist", "build", "target", "out", ".next", ".nuxt",
@@ -938,16 +934,38 @@ def build_profile(root: Path, timeout: float) -> dict:
     }
 
 
+def carried_user_entry(entry: dict):
+    """A committed `user` entry as carried over: known fields only, nothing about trust, and `unsafe`
+    recomputed from the command text and never cleared by a committed `unsafe: false`."""
+    command = entry.get("cmd")
+    if not isinstance(command, str) or not command.strip():
+        return None
+    source = entry.get("source")
+    kept = {"cmd": command, "source": source if isinstance(source, str) else "/setup", "confidence": "user"}
+    if entry.get("confirmed") is True:
+        kept["confirmed"] = True
+    if entry.get("unsafe") is True or UNSAFE_RE.search(command):
+        kept["unsafe"] = True
+    return kept
+
+
 def carry_over(new: dict, old: dict) -> dict:
-    """Keep /setup confirmations and user-set commands across regeneration."""
-    old_roots = {r["path"]: r for r in old.get("roots", []) if isinstance(r, dict)}
+    """Keep /setup confirmations and user-set commands across regeneration. Trust is never recorded here:
+    a committed entry runs unasked only through the user's trust store (lib/trust.py)."""
+    old_roots = {r["path"]: r for r in old.get("roots", []) if isinstance(r, dict) and isinstance(r.get("path"), str)}
     for root in new["roots"]:
         prev = old_roots.get(root["path"], {}).get("commands", {})
-        for name, entry in prev.items():
+        for name, entry in (prev.items() if isinstance(prev, dict) else ()):
+            if not isinstance(entry, dict):
+                continue
             if entry.get("confidence") == "user":
-                root["commands"][name] = entry
+                kept = carried_user_entry(entry)
+                if kept is not None:
+                    root["commands"][name] = kept
             elif entry.get("confirmed") and root["commands"].get(name, {}).get("cmd") == entry.get("cmd"):
                 root["commands"][name]["confirmed"] = True
+                if entry.get("unsafe") is True:
+                    root["commands"][name]["unsafe"] = True
     if old.get("confirmed") and [r["path"] for r in new["roots"]] == list(old_roots):
         new["confirmed"] = True
     return new
@@ -983,9 +1001,11 @@ def summary(profile: dict, path_shown: str) -> str:
 
 
 def rules_digest() -> str:
-    """Digest of the detection rules (this file plus every pack's frontmatter): a hub upgrade marks profiles stale."""
+    """Digest of the detection rules (this file, lib/unsafe.py and every pack's frontmatter): a hub upgrade marks
+    profiles stale."""
     h = hashlib.sha256(GENERATOR.encode())
     h.update(read_text(Path(__file__).resolve(), 4 * 1024 * 1024).encode())
+    h.update(read_text(UNSAFE_PATH, 4 * 1024 * 1024).encode())
     for pack_dir in PACK_DIRS:
         for path in sorted(pack_dir.glob("*.md")) if pack_dir.is_dir() else []:
             parts = read_text(path).split("---")
@@ -1001,8 +1021,20 @@ def is_fresh(root: Path) -> bool:
     return manifest_hash(root, profile.get("manifests", [])) == profile.get("manifest_hash")
 
 
+def same_but_timestamp(old, new: dict) -> bool:
+    """True when `new` differs from the profile on disk only in `generated_at` (or not at all)."""
+    if not isinstance(old, dict):
+        return False
+    strip = lambda p: {k: v for k, v in json.loads(json.dumps(p)).items() if k != "generated_at"}
+    return strip(old) == strip(new)
+
+
 def write_profile(root: Path, profile: dict) -> bool:
+    """Write the profile atomically; leave the file (bytes and mtime) alone when only `generated_at` would change,
+    so /setup on an unchanged repository doesn't change the source fingerprint (AC-10)."""
     target = root / PROFILE_REL
+    if same_but_timestamp(load_json(target), profile):
+        return True
     try:
         target.parent.mkdir(exist_ok=True)
         tmp = target.with_suffix(".json.tmp")

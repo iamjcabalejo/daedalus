@@ -1,0 +1,4 @@
+# A committed `commands` override (C-3): the config channel, which carries no confidence at all.
+commands:
+  ".":
+    test: "touch @CANARY@"
