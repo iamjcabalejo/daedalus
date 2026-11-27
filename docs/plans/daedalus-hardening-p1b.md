@@ -9,7 +9,8 @@
 - **Review:** revised after [the Argus review of the P1 plans](../reviews/tb-claude-custom-workflow-hardening-p0a-a663546-p1-plans.md); this plan carries the fixes for findings a663546-3, -4 and -5; [the second review](../reviews/tb-claude-custom-workflow-hardening-p0a-a663546-p1-plans-r2.md) kept -4 open (the schemas were missing from the QA plugin), and §3.1 and AC-7 now close it; [the third review](../reviews/tb-claude-custom-workflow-hardening-p0a-a663546-p1-plans-r3.md)'s -18 (verdict ranking) is fixed in §3.5, and the fourth review's -20 (command cross-check) too, limited to check commands after the sixth review's -21, with `build`'s rule fixed after the seventh's -22
 - **Findings used:** [daedalus-hardening-phase0.md](daedalus-hardening-phase0.md) (C-5, C-8, C-13; probe C3's resume observation); [threat model](daedalus-hardening-threat-model.md) T14, T15
 - **Metadata:** `Security: critical`. Evidence records and digests are what P1c's completion gate and P5's CI gate trust
-- **Base:** `feat/hardening-p0a` @ `a663546`, plugin `0.4.0`. No version bump here; P1c bumps to `0.5.0`
+- **Base:** `main` with P1a merged (iamjcabalejo/daedalus#2, which also renames the Argus rubric skill to `skills/argus-rubric/` and `trace-flow` to `flow-tracing`), plugin `0.4.0`. No version bump here; P1c bumps to `0.5.0`
+- **Updated 2026-11-28, after P1a landed:** the base above; the renamed skill paths (T14, §6); PF-8 and AC-16 from P1a QA run 2, deviation 1
 - **Graph gate:** skipped (no graph)
 - **Profile:** root `.` · layer `lib` · packs `ci-cd`, `go`, `iac`, `python`; only `python` and `ci-cd` apply to the files touched (`go` and `iac` come from benchmark fixtures). Shell scripts follow the repo's conventions
 
@@ -48,6 +49,7 @@
 | PF-5 | **The model would transcribe digests** if `/argus` assembled the review JSON by hand from bundle output | `.claude/commands/argus.md:93` (the parent writes the file) | §3.7: `artifacts.py review-assemble` merges the bundle's machine-written facts with the reviewer's claim; the model never copies a digest. The same applies to QA (`qa-assemble`) |
 | PF-6 | **`/manual-test` lives in the `daedalus-qa` plugin, which has no path to `artifacts.py`.** The build rewrites a cross-plugin script reference into prose ("the daedalus plugin's scripts/…"), not a path, and the QA plugin ships no `scripts/`, so `qa-assemble` couldn't run there, and the model would hand-write the QA JSON (which PF-5 forbids) | `scripts/build-plugin.sh:60–69`; `plugins/daedalus-qa/` (review finding a663546-4) | P1a's build copies `workflow.py`, `detect-stack.py` and `scripts/lib/` into the QA plugin (P1a PF-9). This plan adds `artifacts.py` to that list **and copies the schema files** (`skills/workflow-artifacts/schemas/*.schema.json`) to `plugins/daedalus-qa/scripts/schemas/`, because `qa-assemble` validates `qa-cases` and `qa` against them; `artifacts.schema_dir()` finds either location (§3.1). `/manual-test` calls `${CLAUDE_PLUGIN_ROOT}/scripts/artifacts.py` on plugin installs. `build-plugin.sh --check` keeps the copies identical, and a test runs `qa-assemble` from the built QA plugin |
 | PF-7 | **AC ids collide across plans.** A rework plan numbers its AC from AC-1 again, so bare ids in a test report can't say which plan's AC-1 a test covers | §3.6 grammar; P1c G5 (review finding a663546-5) | Every role output and test report uses **qualified ids** `<plan-slug>:AC-n` (§3.5); `test-report/1` fixes the fields P1c's gates read |
+| PF-8 | **A refused `DAEDALUS_HOME` lets trust-store writes reach the real home folder.** When the variable is set but refused (for example a relative path), `wfconfig.user_folder` falls back to the home folder and reports it only as a warning. In P1a's QA, `workflow.py trust record` therefore wrote the OQ-7 entries to the maintainer's real `~/.workflow/trust.json`, although the variable exists to keep runs away from it | [P1a QA run 2](../qa/daedalus-hardening-p1a-qa-2.md), deviation 1; `.claude/scripts/lib/wfconfig.py:741–749`; `TrustStore.record` and `_write` in `.claude/scripts/lib/trust.py` | AC-16: writes under the user folder fail closed when `DAEDALUS_HOME` is set but refused; reads keep today's fallback and warning |
 
 ---
 
@@ -70,8 +72,9 @@
 | **AC-13** | **Migration framework** (`lib/migrate.py`).<br>• Every persisted format carries a version (§3.10).<br>• `artifacts.py migrate <path> [--dry-run]` moves N-1 to N with a backup; anything newer than N, or older than N-1, is refused with recovery steps (finish on the version that wrote it, or restart).<br>• Upgraders are registered per kind and major; P1a's and P1c's formats register in the same table.<br>• Each migration has a test, including the 0.4.0 plan adopter (AC-10) and a synthetic `/1 → /2` kind that exercises the N-1 reader | R-AC-57 | U (`U-migrate-01`…`-08`) |
 | **AC-14** | **Hub hygiene.**<br>• `scripts/test-artifacts.sh`, `scripts/test-fingerprint.sh` and `scripts/test-migrate.sh` are added to `scripts/test-all.sh` (after P1a's checks).<br>• `lib/version.py` holds `DAEDALUS_VERSION`; `build-plugin.sh --check` fails when it differs from the build's `VERSION`.<br>• `build-plugin.sh` adds `artifacts.py` to P1a's list of scripts copied into `daedalus-qa`, and copies `skills/workflow-artifacts/schemas/*.schema.json` to `plugins/daedalus-qa/scripts/schemas/` (PF-6).<br>• `build-plugin.sh --check`, `check-generic.sh` and `lint-packs.sh` pass; `plugins/**` is regenerated and carries the `workflow-artifacts` skill in the `daedalus` plugin.<br>• Docs: ARCHITECTURE §2.4 (scripts), §6.2 (review checkpoints: scope and fingerprint), §13 (D10–D12); the new `workflow-artifacts` skill; the `feature-planning` skill. No version bump | R-AC-42 | CI, D |
 | **AC-15** | **Operational QA** (§9) on the script and plugin installs, reported in `docs/qa/daedalus-hardening-p1b-qa-N.md`. FAIL → `docs/plans/daedalus-hardening-p1b-rework-N.md`; BLOCKED → the user | R-AC-66 | OQ |
+| **AC-16** | **Refused `DAEDALUS_HOME` fails closed for writes** (PF-8).<br>• When `DAEDALUS_HOME` is set and `wfconfig` refuses it, `workflow.py trust record` and every other trust-store write exit non-zero with `E_TRUST_HOME_REFUSED`, name the variable and the reason, and write nothing: no `trust.json`, no `trust.lock`, no `.workflow/` folder, in either the refused path or the real home.<br>• Reads (`config resolve`, `explain`, `get`, `commands`, `trust list`, `trust pending`) keep today's behavior: the home-folder fallback plus the warning.<br>• Unset or accepted `DAEDALUS_HOME`: unchanged | R-AC-61 (P1a AC-2 and AC-8 follow-up) | `U-trust-home-01`…`-04` |
 
-**Roadmap coverage.** R-AC-25 → AC-1, 2, 3. R-AC-26 → AC-4, 5, 6, 7, 8. R-AC-48 → AC-6, 11, 12. R-AC-49 → AC-4, 8, 9. R-AC-57 → AC-3, 10, 13 (P1a registers config and trust-store versions; P1c registers run formats and the compatibility check, P1c AC-8). R-AC-42 → AC-14. R-AC-66 → AC-15.
+**Roadmap coverage.** R-AC-25 → AC-1, 2, 3. R-AC-26 → AC-4, 5, 6, 7, 8. R-AC-48 → AC-6, 11, 12. R-AC-49 → AC-4, 8, 9. R-AC-57 → AC-3, 10, 13 (P1a registers config and trust-store versions; P1c registers run formats and the compatibility check, P1c AC-8). R-AC-42 → AC-14. R-AC-66 → AC-15. R-AC-61 (P1a QA follow-up) → AC-16.
 
 ---
 
@@ -279,7 +282,7 @@ Interfaces are frozen at the end of T1; a later change needs a note in P1c's pla
 ### Layer: lib (python, ci-cd)
 
 - **Root(s):** `.`
-- **Needs:** P1a merged. This plan edits files P1a also edits (`scripts/test-all.sh`, `scripts/build-plugin.sh`, `.claude/commands/{argus,manual-test,feature-plan,apply-ticket}.md`, `.claude/agents/{implementer,test-runner}.md`, ARCHITECTURE §13) and extends P1a's QA-plugin script copy. From P1a's code it uses nothing at runtime; it writes `policy.schema.json` and `trust.schema.json` from P1a's shapes (P1a §3.6, §3.7).
+- **Needs:** P1a merged. This plan edits files P1a also edits (`scripts/test-all.sh`, `scripts/build-plugin.sh`, `.claude/commands/{argus,manual-test,feature-plan,apply-ticket}.md`, `.claude/agents/{implementer,test-runner}.md`, ARCHITECTURE §13) and extends P1a's QA-plugin script copy. AC-16 changes P1a's `wfconfig.py`, `trust.py` and `workflow.py`. Apart from that, it uses nothing from P1a's code at runtime; it writes `policy.schema.json` and `trust.schema.json` from P1a's shapes (P1a §3.6, §3.7).
 - **Produces:** the interfaces in §3.11 (P1c, P2, P5).
 
 **Tasks**
@@ -302,10 +305,11 @@ Interfaces are frozen at the end of T1; a later change needs a note in P1c's pla
   - `implementer.md` and `test-runner.md` also say: refer to AC by the qualified ids the brief gives (PF-7).
   - `/feature-plan`, `/apply-ticket`: write fenced plans and the JSON, then run `artifacts.py check`.
   - `implementer.md`, `test-runner.md`, `argus.md` (agent), `qa-tester.md`: return the JSON block of their kind (AC-5).
-  - `feature-planning/SKILL.md`: the fence grammar, kinds and an example; `manual-qa/report-template.md` and `argus/review-template.md`: the JSON link line replaces `<details>findings.json`.
+  - `feature-planning/SKILL.md`: the fence grammar, kinds and an example; `manual-qa/report-template.md` and `argus-rubric/review-template.md`: the JSON link line replaces `<details>findings.json`.
 - [ ] **T15 Skill** `workflow-artifacts/SKILL.md`: kinds, the subset, canonical form, fences, evidence classes, freshness, version rules.
 - [ ] **T16 Hub hygiene:** add `artifacts`, `fingerprint`, `migrate` to `test-all.sh` (after P1a's checks); `build-plugin.sh` checks `lib/version.py` against `VERSION`, adds `artifacts.py` to P1a's `QA_SCRIPTS` list, and copies the schema files to `plugins/daedalus-qa/scripts/schemas/`; regenerate `plugins/**`.
 - [ ] **T17 Docs:** ARCHITECTURE §2.4, §6.2, §13 (D10–D12).
+- [ ] **T19 Refused `DAEDALUS_HOME` fails closed for writes** (AC-16, PF-8), before T18: `lib/wfconfig.py` reports the refusal as data, not only as a warning string; `lib/trust.py` and `workflow.py trust record` refuse to write when it's set; tests in `scripts/test-trust.sh`.
 - [ ] **T18 Operational QA** (§9) and `docs/qa/daedalus-hardening-p1b-qa-N.md`.
 
 **Contracts:** the kinds and fields in §3.3–§3.10; the CLI and Python interfaces in §3.11; the bundle output lines `SCOPE=` and `FINGERPRINT=` and `bundle.json`.
@@ -325,6 +329,7 @@ Interfaces are frozen at the end of T1; a later change needs a note in P1c's pla
 - AC-12 → `U-evidence-digest-01`…`-08` (write-once, class not settable, freshness per field, per-root freshness, legacy never fresh, head scope over a dirty tree stale).
 - AC-13 → `U-migrate-01`…`-08`.
 - AC-14 → CI. AC-15 → OQ.
+- AC-16 → `U-trust-home-01`…`-04` (a relative `DAEDALUS_HOME`: `trust record` exits non-zero with `E_TRUST_HOME_REFUSED` and creates nothing under the refused path or the real home, which the test points at a temporary folder; a missing absolute path: the same; an accepted path: the record is written there; reads under a refused value still resolve and carry the warning).
 
 **Commands** (from `.workflow/profile.json`):
 - **test:** after P1a, the hub's test command should be `bash scripts/test-all.sh`, registered and trusted through `/setup` (P1a next steps, step 2); CI already runs it (P1a's `check.yml` consolidation). **Flag:** if the maintainer hasn't registered it, the profile still says `bash scripts/test-detector.sh` and both are untrusted under P1a's rules, so the test-runner asks before running either.
@@ -361,8 +366,9 @@ Interfaces are frozen at the end of T1; a later change needs a note in P1c's pla
 - `.claude/scripts/argus-bundle.sh` (`--working-tree`, `SCOPE`, `FINGERPRINT`, `bundle.json`)
 - `.claude/commands/{argus,manual-test,feature-plan,apply-ticket}.md`
 - `.claude/agents/{implementer,test-runner,argus,qa-tester}.md` (JSON return blocks)
-- `.claude/skills/feature-planning/SKILL.md`, `.claude/skills/manual-qa/report-template.md`, `.claude/skills/argus/review-template.md`
+- `.claude/skills/feature-planning/SKILL.md`, `.claude/skills/manual-qa/report-template.md`, `.claude/skills/argus-rubric/review-template.md`
 - `scripts/test-all.sh`, `scripts/build-plugin.sh` (version check against `lib/version.py`; `artifacts.py` and the schema files added to the QA-plugin copy)
+- `.claude/scripts/lib/wfconfig.py`, `.claude/scripts/lib/trust.py`, `.claude/scripts/workflow.py`, `scripts/test-trust.sh` (AC-16)
 - `ARCHITECTURE.md` (§2.4, §6.2, §13)
 - Generated: `plugins/**`
 
