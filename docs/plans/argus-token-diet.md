@@ -5,9 +5,9 @@
 - **Estimated effort:** 2–3 engineering days, plus one bench run (operator, paid)
 - **Ticket:** none
 - **Metadata:** `Performance: critical`: token cost is the objective. Recall is the constraint: nothing ships that loses findings (AC-9)
-- **Base:** `feat/hardening-p0a` @ `a663546`. The argus files are unchanged since `71a3214` (`git diff --stat 71a3214 HEAD` on `.claude/{agents/argus.md,skills/argus,skills/stacks,commands/argus*.md,scripts/argus-bundle.sh}` is empty), so the bench arm `daedalus-0.4.0` is the baseline
+- **Base:** set when this plan is picked up after P1c. The original base (`feat/hardening-p0a` @ `a663546`, with the argus files unchanged since `71a3214`, so the bench arm `daedalus-0.4.0` was the baseline) no longer holds: P1a changed `agents/argus.md`, `commands/argus.md`, `scripts/argus-bundle.sh` and the rubric skill, which iamjcabalejo/daedalus#2 also renamed to `skills/argus-rubric/`; P1b rewrites the bundle and the review output. Measure a fresh baseline arm at the new base instead of `daedalus-0.4.0`
 - **Graph gate:** skipped (no graph; `integrations.graph.graphify: false`)
-- **Sequencing:** before P1a (§10, §11)
+- **Sequencing:** after P1c (decided 2026-11-28; it was "before P1a", but P1a landed first). P1b and P1c rewrite the same argus files, so this plan doesn't run alongside them. Re-plan §2–§6 against the post-P1c tree before implementing (§10, §11). Paths below use the renamed skill folder
 - **Review:** revised after [the Argus review of this plan](../reviews/tb-claude-custom-workflow-hardening-p0a-a663546-argus-token-diet.md); this revision carries the fixes for findings a663546-1 to -5
 
 ## 1. Feature overview
@@ -45,11 +45,11 @@ Findings:
 ## 2. Acceptance criteria
 
 - **AC-1 Rubric built by script (pr, local).** Given a bundle, the resolved config and mode `pr` or `local`, when `/argus` runs `argus-prepare.py`, then `<bundle>/rubric.md` holds these parts in this order, each preceded by `<!-- rubric-part: <source> -->`:
-  1. `skills/argus/SKILL.md` without its frontmatter and without `## Loading`;
+  1. `skills/argus-rubric/SKILL.md` without its frontmatter and without `## Loading`;
   2. `skills/stacks/failure-modes.md`, whole;
   3. the `## Review` section of each selected pack, sorted by name;
   4. the `## Review` section of `_generic.md`, when any non-ignored changed file is uncovered;
-  5. the domain pack `skills/argus/domains/<domain>.md`, when the domain isn't `none`. It's looked up in this order, first hit wins: `<workspace>/.claude/`, then `~/.claude/` (where both the script install and the plugin-install guide put overlay packs, [writing-an-overlay.md:37](../guides/writing-an-overlay.md)), then the script's own root;
+  5. the domain pack `skills/argus-rubric/domains/<domain>.md`, when the domain isn't `none`. It's looked up in this order, first hit wins: `<workspace>/.claude/`, then `~/.claude/` (where both the script install and the plugin-install guide put overlay packs, [writing-an-overlay.md:37](../guides/writing-an-overlay.md)), then the script's own root;
   6. each `house_rules` file, read from the checkout;
   7. `review-template.md`.
 
@@ -65,7 +65,7 @@ Findings:
   - Concatenating the patches in order reproduces `diff.patch` byte for byte.
   - Additions, deletions, renames, binary files and paths with spaces or git-quoted characters are handled; `head_lines` is `0` for a deletion and `-` for a binary file.
   - `diff.patch` stays: `right_lines` and P1b's fingerprint use it.
-- **AC-5 Skill split.** `SKILL.md` keeps the review core. The Configuration section moves verbatim to `skills/argus/config.md`, and Scan mode to `skills/argus/scan.md`. `## Loading` is rewritten: `rubric.md` is what the reviewer loads, the AC-3 rules are the script's contract, and the manual load is the fallback. Every heading that existed before the split exists in exactly one of the three files, and no reference to a moved section points at `SKILL.md`.
+- **AC-5 Skill split.** `SKILL.md` keeps the review core. The Configuration section moves verbatim to `skills/argus-rubric/config.md`, and Scan mode to `skills/argus-rubric/scan.md`. `## Loading` is rewritten: `rubric.md` is what the reviewer loads, the AC-3 rules are the script's contract, and the manual load is the fallback. Every heading that existed before the split exists in exactly one of the three files, and no reference to a moved section points at `SKILL.md`.
 - **AC-6 One rubric read.** When the brief names `rubric:` and the file exists, `argus` reads it once and opens none of its sources. When it's missing (prepare failed, or an older command), `argus` loads the sources as today, and `/argus` writes `Rubric: manual (<reason>)` in the Run notes. The review JSON doesn't change. Proven on transcripts with `argus-usage.py`: `rubric.md` read once, rubric sources read zero times.
 - **AC-7 Scoped reads.** The role's procedure:
   - read `diff-index.tsv` first, then only the per-file patches it needs;
@@ -118,7 +118,7 @@ python3 -I argus-prepare.py --bundle <dir> --checkout <dir> --mode pr|local|scan
 ```
 
 - **Location:** finds its `.claude` root from its own path, as `detect-stack.py` does with `HUB`. The skill, packs and templates come from there, so it works on script and plugin installs alike.
-- **Domain packs** come from the AC-1 search order instead, because overlays install them outside the plugin: `<workspace>/.claude/skills/argus/domains/`, then `~/.claude/skills/argus/domains/` (`Path.home()`, so tests can set `HOME`), then the root's. `--workspace` is the folder the session started from, which `/argus` passes explicitly, as P1a's commands do. The resolved path goes in the header and in `DOMAIN_PATH`.
+- **Domain packs** come from the AC-1 search order instead, because overlays install them outside the plugin: `<workspace>/.claude/skills/argus-rubric/domains/`, then `~/.claude/skills/argus-rubric/domains/` (`Path.home()`, so tests can set `HOME`), then the root's. Each location also tries the pre-rename `skills/argus/domains/`, as the renamed skill does. `--workspace` is the folder the session started from, which `/argus` passes explicitly, as P1a's commands do. The resolved path goes in the header and in `DOMAIN_PATH`.
 - **Detector reuse:** imports `detect-stack.py` from its own folder with `importlib.util.spec_from_file_location` (both files sit in `scripts/` in the plugin too). `PACK_DIRS` is honored.
 - **Reads:** `pr.json` (`files[].path`) and `diff.patch` from the bundle; root manifests, `head_lines` and house rules from the checkout.
 - **Writes:** `rubric.md`; in `pr` and `local` modes also `diff/` and `diff-index.tsv`. Nothing outside `--bundle`.
@@ -130,14 +130,14 @@ python3 -I argus-prepare.py --bundle <dir> --checkout <dir> --mode pr|local|scan
 ### 3.3 `rubric.md` layout
 
 ```
-<!-- argus-rubric mode=local packs=python,serverless-queues uncovered=src/lib/rules.ex domain=loaded:~/.claude/skills/argus/domains/acme.md missing_house_rules= -->
-<!-- rubric-part: skills/argus/SKILL.md -->
+<!-- argus-rubric mode=local packs=python,serverless-queues uncovered=src/lib/rules.ex domain=loaded:~/.claude/skills/argus-rubric/domains/acme.md missing_house_rules= -->
+<!-- rubric-part: skills/argus-rubric/SKILL.md -->
 …
 <!-- rubric-part: skills/stacks/failure-modes.md -->
 …
 <!-- rubric-part: skills/stacks/python.md#Review -->
 …
-<!-- rubric-part: skills/argus/review-template.md -->
+<!-- rubric-part: skills/argus-rubric/review-template.md -->
 …
 ```
 
@@ -204,12 +204,12 @@ The separation happens where it pays: by mode (`SKILL.md`, `config.md`, `scan.md
 
 ### 3.10 Measurement
 
-- **`scripts/argus-usage.py`:** hub-only (`build-plugin.sh` reads only `.claude/`, so it never ships). It finds runs through each transcript's `.meta.json` (`agentType`). Buckets: rubric (`skills/argus/`, `skills/stacks/`, `domains/`, `rubric.md`), bundle (the bundle folder), code read (any other Read), search (Grep, Glob), shell (any other Bash). A re-read is the same path with an overlapping line range; a Read without `offset` covers the whole file. Byte-based estimates are labeled approximate.
+- **`scripts/argus-usage.py`:** hub-only (`build-plugin.sh` reads only `.claude/`, so it never ships). It finds runs through each transcript's `.meta.json` (`agentType`). Buckets: rubric (`skills/argus-rubric/` and the pre-rename `skills/argus/`, so baseline transcripts still classify; `skills/stacks/`, `domains/`, `rubric.md`), bundle (the bundle folder), code read (any other Read), search (Grep, Glob), shell (any other Bash). A re-read is the same path with an overlapping line range; a Read without `offset` covers the whole file. Byte-based estimates are labeled approximate.
 - **Bench:** two new arms (T13). The results files give `review.tp`, `fp`, `fn` and `severity_correct` per record, which feed AC-9. Argus's own tokens and re-reads (AC-7, AC-10) come from `argus-usage.py --projects <run>/home/.claude/projects` over each run folder, because record `tokens` cover the main stream only, and `repeated_reads` ignores ranges. T14 records whether the stream's `result.usage` includes subagent tokens; the probes never compared them ([G1.json:101](../../scripts/probes/cases/G1.json)).
 
 ### 3.11 Fit with the hardening roadmap
 
-- **P1a** replaces the prose merge rules with `workflow.py config resolve`. After this plan, those rules live in `config.md`, so P1a's citations of `argus/SKILL.md:39–50` and `:44–50` move to `config.md`.
+- **P1a** replaces the prose merge rules with `workflow.py config resolve`. After this plan, those rules live in `config.md`, so P1a's citations of `argus-rubric/SKILL.md:39–50` and `:44–50` move to `config.md`.
 - **P1b** T13 edits `argus-bundle.sh`. This plan doesn't touch that script (the split lives in `argus-prepare.py`), so there's no conflict there. P1b's edits to `/argus` Phase B and C must keep the rubric lines.
 - **P2 AC-3** removes Bash and says "argus' bundle gains base versions, log and blame for changed files". The diff index and per-file patches are the first part of that, and `argus-prepare.py` is the natural place for the rest.
 - **P2 `maxTurns`:** AC-8's turn counts give the data to size it.
@@ -229,7 +229,7 @@ The separation happens where it pays: by mode (`SKILL.md`, `config.md`, `scan.md
     - [ ] T4 `scripts/test-argus.sh` and fixtures in `scripts/fixtures/argus/prepare/` (a small checkout tree, `pr.json`, a `diff.patch` with an addition, modification, deletion, rename, binary file and a path with a space, a profile, a house-rules file); cases in §5.
   - **Phase 3: skill split**
     - [ ] T5 Split `SKILL.md` into `SKILL.md`, `config.md` and `scan.md` (§3.6); rewrite `## Loading`; update the layer table and Inputs.
-    - [ ] T6 `rg -n "Configuration section|Scan mode|argus/SKILL.md" .claude ARCHITECTURE.md README.md`, and fix each reference that now points to the wrong file.
+    - [ ] T6 `rg -n "Configuration section|Scan mode|argus-rubric/SKILL.md" .claude ARCHITECTURE.md README.md`, and fix each reference that now points to the wrong file.
   - **Phase 4: role and commands**
     - [ ] T7 `.claude/agents/argus.md` (§3.7).
     - [ ] T8 `.claude/commands/argus.md` (§3.8).
@@ -278,15 +278,15 @@ AC-6 to AC-12 are role behavior, proven by the operator evaluation (§9).
 
 **Create**
 - `.claude/scripts/argus-prepare.py`
-- `.claude/skills/argus/config.md`
-- `.claude/skills/argus/scan.md`
+- `.claude/skills/argus-rubric/config.md`
+- `.claude/skills/argus-rubric/scan.md`
 - `scripts/argus-usage.py`
 - `scripts/test-argus.sh`
 - `scripts/fixtures/argus/prepare/**`, `scripts/fixtures/argus/transcripts/**`
 - `bench/arms/daedalus-argus-diet.json`, `bench/arms/daedalus-argus-diet-medium.json` (T13)
 
 **Modify**
-- `.claude/skills/argus/SKILL.md`
+- `.claude/skills/argus-rubric/SKILL.md`
 - `.claude/agents/argus.md`
 - `.claude/commands/argus.md`
 - `.claude/commands/argus-scan.md`
@@ -321,17 +321,17 @@ N/A: no UI-observable AC. Operator evaluation instead:
 - **Domain packs outside the plugin.** Overlays install domain packs under `~/.claude/`, not in the plugin. Mitigation: the AC-1 search order, the resolved path in the header and Run notes, and `prepare-12`.
 - **Turn budget truncates large PRs.** Mitigation: 45 turns over 1,500 diff lines, and unread files are disclosed. P2's `maxTurns` should be sized from AC-8's data, not guessed.
 - **Small bench tasks distort the token numbers.** The 25 review tasks are short patches. AC-12 checks one real PR.
-- **Conflicts with P1a and P1b.** Both edit `.claude/commands/argus.md`, and P1a edits `skills/argus/SKILL.md`. Run this plan first (it's smaller and gives P1c and P2 their token and turn data), then update the P1 citations (§11).
+- **Conflicts with P1b and P1c.** Both rewrite `/argus`, the `argus` role and `argus-bundle.sh` (P1b: working-tree bundle and review JSON; P1c: role-output validation). This plan runs after P1c and is re-planned against that tree; its first order ("run first") was overtaken when P1a landed before it.
 - **`effort:` frontmatter may not be honored.** AC-11 handles both outcomes.
 - **Fixed per-turn cost on the user's machine (out of scope).** The duplicated `~/.claude/rules/` files and the double skill listing in this hub repo cost tokens on every turn of every session here. Measure them with `argus-usage.py`'s first-turn context, and decide separately: the global rules also apply to the other Ticketboat repos.
 
 ## 11. Next steps
 
 1. Confirm the checks in §4 Commands with `/setup`, so the test-runner may run them.
-2. Implement on its own branch from `feat/hardening-p0a` (for example `feat/argus-token-diet`), before P1a.
+2. After P1c has landed: re-plan against `main`, measure a new baseline arm, then implement on its own branch from `main` (for example `feat/argus-token-diet`).
 3. Run `/clear`, then `/daedalus:project-manager docs/plans/argus-token-diet.md`.
 4. Phase 6 (T13–T18) needs the changes committed, and a bench budget. Both are the maintainer's call.
-5. After this lands: move P1a's citations of `argus/SKILL.md:39–50` and `:44–50` to `argus/config.md`, and make P1b's `/argus` Phase B and C edits keep the rubric lines.
+5. When re-planning: point any P1a citation of the rubric's configuration section at `argus-rubric/config.md`, and keep P1b's `/argus` Phase B and C behavior (review assembly, working-tree scope) and P1c's role-output checks.
 
 ## 12. Evaluation notes
 
