@@ -14,7 +14,7 @@ $ARGUMENTS
 
 - **Stack knowledge:** `.claude/rules/stack-knowledge.md`. Find the file's root in `.workflow/profile.json` and read its packs (`## Build`, and FM-06 / FM-16 under `## Review`) for the stack's budgets, blocking calls and profilers.
 - **Skill:** `performance-profiling`: measure first, then optimize.
-- **Roles:** apply the `agent-selection` skill: the `implementer` perspective for the change, the `argus` rubric to self-check. When following a performance rework list, implement only those items and report before/after metrics.
+- **Roles:** apply the `agent-selection` skill: the `implementer` perspective for the change, the `argus-rubric` skill to self-check. When following a performance rework list, implement only those items and report before/after metrics.
 
 ## Strategy
 
@@ -27,7 +27,7 @@ $ARGUMENTS
    - **Rendering:** avoid needless re-renders (memoization where measured), virtualize long lists, debounce input-driven requests.
    - **Bundle:** route-level code splitting, dynamic imports for heavy libraries, tree-shaking.
    - **Data:** reuse the repo's data-fetching cache; don't refetch large sets on an interval.
-4. **Verify.** Re-measure after each change, and run the root's `test` command (safe commands only).
+4. **Verify.** Re-measure after each change, and run the root's `test` command when `workflow.py config commands --json` reports it `trusted: true` and `unsafe: false` (the `project-profile` skill); otherwise ask the user, or run `/setup`.
 
 ## Output
 

@@ -4,7 +4,7 @@ detect:
   files: ["**/server.js", "**/server.ts", "**/handler.js", "**/handler.ts", "**/worker*.js", "**/worker*.ts", "**/nest-cli.json", "**/ecosystem.config.js"]
   weak: ["**/*.js", "**/*.ts", "**/*.mjs", "**/*.cjs", "**/app.js", "**/package.json", "**/index.js", "**/index.ts"]   # count only when a files glob or signal also matches
   signals: ["express", "fastify", "koa", "@nestjs/", "@aws-sdk/", "aws-sdk", "\"pg\"", "mysql2", "mongoose", "prisma", "sequelize", "knex", "ioredis", "\"redis\"", "bullmq", "kafkajs", "amqplib", "node-cron", "process.on(", "exports.handler", "require(\"node:"]
-evidence: "seed: 3 idioms from a live calibration run, plus ≈33 NRD Sight findings on Node services; the rest is unvalidated"
+evidence: "seed: idioms from a live calibration run plus a small set of code review findings on Node services; the rest is unvalidated"
 ---
 
 # Node.js services (Express, Fastify, NestJS, Lambda, workers, CLIs)

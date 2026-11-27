@@ -1,0 +1,43 @@
+{
+  "scalars": [
+    "one",
+    2,
+    "three"
+  ],
+  "flows": [
+    [
+      "a",
+      "b"
+    ],
+    {
+      "k": "v"
+    }
+  ],
+  "mappings": [
+    {
+      "category": "ownership",
+      "max": "consider"
+    },
+    {
+      "family": "FM-16",
+      "min": "important"
+    }
+  ],
+  "nested": [
+    [
+      "inner"
+    ],
+    [
+      "compact",
+      "pair"
+    ]
+  ],
+  "same_indent": [
+    "a",
+    "b"
+  ],
+  "empty_item": [
+    null
+  ],
+  "after": "done"
+}

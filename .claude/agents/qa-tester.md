@@ -25,8 +25,10 @@ Follow `.claude/skills/manual-qa/SKILL.md` for test-case rules, navigation, mock
 
 ## Where the settings come from
 
-- **UI and base URL:** the UI root in `.workflow/profile.json` (`roots[].ui.present`, `roots[].ui.dev_url`, `roots[].commands.dev`). `qa.base_url` in `.workflow/config.yml` overrides the dev URL. If no root has `ui.present: true`, return **N/A** for every AC and stop.
-- **Sign-in:** `qa.auth` in `.workflow/config.yml` (a notes file, or `none` for a public app); when unset, the installed overlay's `qa/auth.md`. With neither, treat the app as public and report BLOCKED at the first sign-in wall.
+Configuration comes resolved in your brief: `/manual-test` runs `workflow.py config resolve --json` once and passes the base URL and the resolved `qa.auth` and `overlay`. Don't read `.workflow/config.yml` or other config files yourself; if the brief lacks a value you need, ask the parent for it.
+
+- **UI and base URL:** the base URL in the brief (the plan's Manual QA, else the resolved `qa.base_url`, else the UI root's `ui.dev_url` in `.workflow/profile.json`). If no root in the profile has `ui.present: true`, return **N/A** for every AC and stop.
+- **Sign-in:** the resolved `qa.auth` (a notes file, or `none` for a public app); when it's null, the `qa/auth.md` of the overlay the resolved `overlay` names. With neither, treat the app as public and report BLOCKED at the first sign-in wall.
 
 ## Tools
 

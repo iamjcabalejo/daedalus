@@ -1,0 +1,50 @@
+# Argus configuration. Every key is optional; missing keys use the defaults shown.
+#
+# Lookup: `workflow.py config resolve` reads every level (repo, workspace, user, organization), including the
+# legacy .argus.yml files, and combines them; `workflow.py config explain <key>` shows where a value came from.
+# In .workflow/config.yml, severity and post go under `review:`; in .argus.yml they stay top-level
+# and the resolver lifts them under `review:`, so both spellings are one key.
+
+# Which stack packs to load. "auto" loads the project profile's packs for the touched roots
+# (.workflow/profile.json) plus every pack whose detect.files globs match a changed path or root
+# manifest (globs alone when there is no profile). A list replaces auto-detection.
+stacks: auto                 # auto | [python, node-js, go, csharp-dotnet, web-frontend, sql-migrations, data-warehouse, iac, ci-cd, serverless-queues]
+extra_stacks: []             # always added, e.g. [serverless-queues] for a worker repo
+
+# Business invariants pack from domains/<name>.md. Keep domain packs out of public repos.
+domain: none
+
+tickets:
+  system: auto               # auto | linear | github | jira | none
+  key: '[A-Z][A-Z0-9]+-\d+'  # regex for ticket keys in the title, branch and body (linear/jira)
+  # github: "Closes #123" style refs in the PR body are resolved with `gh issue view`
+  # jira: needs a Jira MCP connected; otherwise treated as none
+
+# Paths never reviewed (globs).
+ignore:
+  - "**/*.lock"
+  - "**/package-lock.json"
+  - "**/pnpm-lock.yaml"
+  - "**/go.sum"
+  - "**/vendor/**"
+  - "**/node_modules/**"
+  - "**/dist/**"
+  - "**/build/**"
+  - "**/*.min.*"
+  - "**/__snapshots__/**"
+  - "**/generated/**"
+
+# Extra team rules, as repo-relative docs. They add checks; they never lower the gate.
+house_rules: []              # e.g. [docs/review-rules.md, CONTRIBUTING.md]
+
+severity:
+  overrides: []              # e.g. [{category: ownership, max: consider}, {family: FM-16, min: important}]
+  critical_triggers: []      # extra outcomes that are always critical here, in plain words
+
+review:
+  header: "Argus review"    # first line of the body; never impersonate another reviewer's name
+  max_findings: 0            # 0 = no cap; otherwise keep the N most severe and say how many were dropped
+  compare_with: null         # with --compare: the GitHub login whose review of the same PR Argus is graded against
+
+post:
+  inline: true               # with --post, add inline comments for new findings on changed lines

@@ -1,0 +1,9 @@
+# TL4 <repo>/.workflow/config.yml.
+tickets: {system: github}
+guard:
+  mode: "off"
+budgets:
+  rework_rounds: 99
+gaurd: {mode: warn}
+commands:
+  ".": {lint: "make lint"}

@@ -1,0 +1,14 @@
+# Nested block mappings, quoted keys and one indentation width per block (U-config-yaml-02).
+tickets:
+  system: github
+  key: '\b(ABC|XYZ)-\d+\b'
+review:
+    header: "Argus review"
+    severity:
+        critical_triggers: []
+commands:
+  ".":
+    test: make test
+  "packages/web": {lint: "npm run lint"}
+'two words': 1
+"dotted.key" : 2

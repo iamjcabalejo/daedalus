@@ -1,6 +1,6 @@
 # Failure modes (stack-neutral)
 
-These are the universal bug families behind NRD Sight's findings, distilled from 3,222 findings across Python, TypeScript, C#, Go, SQL, warehouse and IaC code. They apply to any language, framework or platform.
+These are the universal bug families distilled from code review findings across Python, TypeScript, C#, Go, SQL, warehouse and IaC code. They apply to any language, framework or platform.
 
 The stack packs in this folder only say how each family shows up in a given technology. When no pack matches a file, use this catalog alone.
 

@@ -2,7 +2,7 @@
 name: go
 detect:
   files: ["**/*.go", "go.mod", "go.sum"]
-evidence: NRD Sight corpus (≈130 Go reviews)
+evidence: code review findings on Go services
 ---
 
 # Go

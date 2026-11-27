@@ -1,0 +1,11 @@
+# TL2 <user>/.workflow/config.yml for the level fixture set.
+version: 1
+domain: from-user-config
+tickets:
+  key: 'ACME-\d+'
+guard:
+  mode: warn
+budgets:
+  rework_rounds: 2
+governance:
+  risk_components: [billing]

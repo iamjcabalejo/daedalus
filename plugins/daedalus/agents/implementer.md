@@ -17,7 +17,7 @@ The plan is the contract. Build exactly what the plan's tasks for **your layer**
 - `plan`: the plan path, and the section for your layer (for example "Layer: api (python)").
 - `layer` and `roots`: the layer, and the profile root(s) it covers (`roots[].path`).
 - `packs`: the stack packs for those roots, from `.workflow/profile.json`.
-- `commands`: the root's runnable commands (only confirmed or safe ones; see below).
+- `commands`: the root's runnable commands (only trusted, not `unsafe`, ones from `config commands`; see below).
 - `ac`: the acceptance criteria this layer implements, verbatim.
 - `contracts`: anything an earlier layer produced that you must use (API shape, schema, event payload).
 - `overlay`: the overlay's rule files, if one is installed.
@@ -42,7 +42,7 @@ The plan is the contract. Build exactly what the plan's tasks for **your layer**
 
 ## Commands
 
-- **May run without asking:** commands in the brief or the profile with confidence `script`, `derived` or `user`, and `inferred` ones marked `confirmed: true`.
+- **May run without asking:** the commands in the brief, which come from `workflow.py config commands --json` (`trusted: true`, `unsafe: false`; the `project-profile` skill). Without a brief, run that yourself and apply the same filter. Any other command: ask the user, or run `/setup`; never run it.
 - **Never run** a command marked `unsafe: true` (deploy, migrate, publish, release, destroy, drop, or anything whose body does those), and never anything that touches production or shared environments. Ask in the handoff instead.
 - Print the exact command before running it, run it from `<repo>/<root.path>`, and keep long runs in the background.
 - Don't install new dependencies unless the plan says so; if you must, use the root's package manager and lockfile.

@@ -1,0 +1,114 @@
+{
+  "version": 1,
+  "overlay": "none",
+  "domain": "none",
+  "stacks": "auto",
+  "extra_stacks": [],
+  "tickets": {
+    "system": "auto",
+    "key": null,
+    "team": null
+  },
+  "chat": "none",
+  "graph": "auto",
+  "ignore": [],
+  "house_rules": [],
+  "commands": {},
+  "qa": {
+    "auth": null,
+    "base_url": null
+  },
+  "review": {
+    "header": "Argus review",
+    "max_findings": 0,
+    "severity": {
+      "overrides": [],
+      "critical_triggers": []
+    },
+    "post": {
+      "inline": true
+    },
+    "compare_with": null
+  },
+  "guard": {
+    "mode": "enforce",
+    "readonly_bash_allow": []
+  },
+  "budgets": {
+    "rework_rounds": 3,
+    "qa_rounds": 2,
+    "run_tokens": {
+      "soft": null,
+      "hard": null
+    },
+    "attempt": {
+      "tool_calls": 200,
+      "wall_minutes": 45
+    },
+    "role_turns": {
+      "implementer": 60,
+      "test-runner": 40,
+      "argus": 40,
+      "qa-tester": 60
+    },
+    "price_table": null
+  },
+  "tdd": {
+    "mode": "off",
+    "min": "off"
+  },
+  "tiers": {
+    "default": "auto",
+    "trivial_max_files": 3,
+    "floors": {},
+    "steps": {}
+  },
+  "isolation": {
+    "mode": "none",
+    "baseline": "snapshot",
+    "dependencies": "none",
+    "share_sensitive": [],
+    "root": null,
+    "ttl_days": 7
+  },
+  "parallel": {
+    "enabled": false,
+    "max_agents": 2
+  },
+  "exec": {
+    "env_passthrough": [],
+    "timeout_minutes": 20
+  },
+  "gate": {
+    "mode": "advisory",
+    "require": [
+      "checks",
+      "review",
+      "qa"
+    ],
+    "non_waivable": [],
+    "approver_role": "maintain",
+    "trusted_classes": [
+      "ci",
+      "human"
+    ]
+  },
+  "specs": {
+    "system": "auto"
+  },
+  "runtime": {
+    "lease_ttl_minutes": 30
+  },
+  "retention": {
+    "runs_days": 30,
+    "failed_runs_days": 90,
+    "audit_days": 30
+  },
+  "telemetry": {
+    "export": "none"
+  },
+  "governance": {
+    "trust_roots": [],
+    "risk_components": []
+  }
+}

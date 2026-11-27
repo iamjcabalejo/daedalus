@@ -1,0 +1,19 @@
+{
+  "null_tilde": null,
+  "null_word": null,
+  "null_empty": null,
+  "yes_bool": true,
+  "no_bool": false,
+  "int": 42,
+  "negative": -7,
+  "zero": 0,
+  "plain": "hello world",
+  "url": "http://localhost:3000/path?q=1",
+  "hash_inside": "a#b",
+  "version_like": "1.2.3",
+  "double": "a \"quoted\" \\ value\twith\nescapes é",
+  "single": "it's single",
+  "quoted_bool": "yes",
+  "quoted_float": "1.5",
+  "quoted_off": "off"
+}

@@ -1,0 +1,39 @@
+{
+  "list": [
+    "a",
+    "b c",
+    "d",
+    1,
+    true,
+    null,
+    null
+  ],
+  "nested": [
+    [
+      1,
+      2
+    ],
+    {
+      "k": "v"
+    },
+    []
+  ],
+  "map": {
+    "k": "v",
+    "k2": [
+      "x",
+      "y"
+    ],
+    "k3": null,
+    "k4": {
+      "deep": [
+        1
+      ]
+    }
+  },
+  "empty_list": [],
+  "empty_map": {},
+  "url_in_flow": [
+    "http://example.com:8080/x"
+  ]
+}

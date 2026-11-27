@@ -10,7 +10,7 @@ Clean up and refactor the following code to improve readability and maintainabil
 
 - **Stack knowledge:** `.claude/rules/stack-knowledge.md`. Find the file's root in `.workflow/profile.json`, then read that root's packs (`## Build` for idioms, `## Review` to self-check). Repo conventions and `house_rules` win.
 - **Skill:** `refactoring-checklist` (small, behavior-preserving steps).
-- **Roles:** apply the `agent-selection` skill: the `implementer` perspective for the change, and the `argus` rubric to self-check before you finish. When cleanup follows a rework list, treat it as Code phase: implement only the rework items and write implementation notes.
+- **Roles:** apply the `agent-selection` skill: the `implementer` perspective for the change, and the `argus-rubric` skill to self-check before you finish. When cleanup follows a rework list, treat it as Code phase: implement only the rework items and write implementation notes.
 
 ## Code to clean
 
@@ -18,7 +18,7 @@ $ARGUMENTS
 
 ## Checklist
 
-- **Tooling:** run the root's `format` and `lint` commands from the profile (with `--fix` where the tool supports it) and `typecheck` when present. Only safe commands (confidence `script`, `derived`, `user`, or confirmed `inferred`).
+- **Tooling:** run the root's `format` and `lint` commands from the profile (with `--fix` where the tool supports it) and `typecheck` when present. Run only the commands `workflow.py config commands --json` reports `trusted: true` and `unsafe: false` (the `project-profile` skill); ask the user before any other, or run `/setup`.
 - **Structure:** one responsibility per function, component or class; thin handlers; extract helpers or hooks; early returns and guard clauses.
 - **Names and constants:** descriptive names in the language's conventions (booleans `is`/`has`/`can`); no magic numbers or strings.
 - **Duplication:** extract repeated code into shared modules.

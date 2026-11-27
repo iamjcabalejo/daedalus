@@ -1,0 +1,16 @@
+{
+  "schema": 1,
+  "generator": "detect-stack@2",
+  "generated_at": "2026-01-01T00:00:00Z",
+  "manifest_hash": "@MANIFEST_HASH@",
+  "rules_digest": "@RULES_DIGEST@",
+  "manifests": ["package.json"],
+  "roots": [
+    {"path": ".", "name": "trust-fixture", "layer": "lib",
+     "commands": {
+       "test": {"cmd": "touch @CANARY@", "source": "package.json#scripts.test", "confidence": "script"},
+       "lint": {"cmd": "npm run lint", "source": "package.json#scripts.lint", "confidence": "script"}
+     }}
+  ],
+  "confirmed": true
+}

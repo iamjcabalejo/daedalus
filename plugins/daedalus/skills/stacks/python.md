@@ -3,7 +3,7 @@ name: python
 detect:
   files: ["**/*.py", "pyproject.toml", "requirements*.txt", "Pipfile", "setup.py", "setup.cfg"]
   signals: ["fastapi", "django", "flask", "pydantic", "boto3", "psycopg", "sqlalchemy", "celery"]
-evidence: NRD Sight corpus (≈1,700 findings on Python services)
+evidence: code review findings on Python services
 ---
 
 # Python (FastAPI / Django / Flask, workers, scripts)

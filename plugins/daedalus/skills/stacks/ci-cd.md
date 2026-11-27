@@ -2,7 +2,7 @@
 name: ci-cd
 detect:
   files: [".github/workflows/**", ".gitlab-ci.yml", "bitbucket-pipelines.yml", "Jenkinsfile", ".circleci/**", "azure-pipelines.yml", "**/deploy*.sh", "**/buildspec*.yml", "**/Makefile"]
-evidence: NRD Sight corpus (≈60 findings on GitHub Actions, Bitbucket and deploy scripts)
+evidence: code review findings on GitHub Actions, Bitbucket and deploy scripts
 ---
 
 # CI/CD pipelines and deploy scripts

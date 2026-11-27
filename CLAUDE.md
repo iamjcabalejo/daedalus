@@ -8,7 +8,7 @@ A stack-agnostic Plan → Code → Review → QA workflow. It detects each proje
 - Plan → Code → Review/Test → Manual QA → Plan (`.claude/rules/compounding-dev-cycle.md`).
 - ASK / PLAN / AGENT mean the behaviors in `.claude/rules/claude-code.md`.
 - Stack knowledge: `.claude/rules/stack-knowledge.md`. Project facts are in `.workflow/profile.json`; choices are in `.workflow/config.yml`; stack packs are in `.claude/skills/stacks/`.
-- Run only commands the profile marks safe (`script`, `derived`, `user`, or confirmed `inferred`); never an `unsafe: true` one without asking.
+- Run only the commands `workflow.py config commands --json` reports `trusted: true` and `unsafe: false` (the `project-profile` skill); ask before any other, or run `/setup`. Never an `unsafe: true` one without asking.
 - Code graph: optional. `.claude/rules/graphify.md` applies only when the project has one.
 - Do not commit, push, or open a pull request unless the user explicitly asks in this message.
 

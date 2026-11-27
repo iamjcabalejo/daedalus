@@ -4,7 +4,7 @@ detect:
   files: ["**/*.<ext>", "<manifest file>"]   # globs matched against changed paths and the repo root
   weak: ["**/*.<shared ext>"]                # optional: shared extensions (.ts, .sql, .yaml) that count only when a files glob or signal also matches
   signals: ["<import or keyword>"]           # optional: case-insensitive token matches in manifests (and sampled SQL)
-evidence: <where the checks come from: "NRD Sight corpus (≈N findings)", "team incidents", or "seed — unvalidated">
+evidence: <where the checks come from: "code review findings", "team incidents", or "seed — unvalidated">
 ---
 
 # <Stack name>

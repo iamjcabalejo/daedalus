@@ -24,6 +24,7 @@ $ARGUMENTS
 ## Steps
 
 1. **Profile.** Read `.workflow/profile.json`. If it's missing or stale, run `detect-stack.py --stdout --root <repo>` (read-only) and use the output; suggest `/setup` in the final message.
+   - **Configuration:** `python3 -I <scripts>/workflow.py config resolve --json --repo <repo> --workspace <folder you were started from>` (`<scripts>`: where the `project-profile` skill says). Use its `values` (`graph`, `house_rules`, `tickets.*`, `stacks`); don't read config files yourself. Exit code 3 → show the error and fix, and stop.
 2. **Refine** the request: objective, in and out of scope, constraints, AC-1…
 3. **Find the affected layers.** Map the change to profile roots and layers. Read only what's needed (the graph or narrow search, then the files it points to).
 4. **Load the packs** for those roots (`## Build`, `## Test`). Roots without a pack use `_generic.md`; say so under Technical design.

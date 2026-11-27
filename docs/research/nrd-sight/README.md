@@ -314,7 +314,7 @@ A replica should:
 ## 11. Replicating it in our Claude Code workflow
 
 ### Shape (built)
-- **Rubric:** [`.claude/skills/argus/`](../../../.claude/skills/argus/SKILL.md), restructured on 2026-11-25 into layers:
+- **Rubric:** [`.claude/skills/argus-rubric/`](../../../.claude/skills/argus-rubric/SKILL.md), restructured on 2026-11-25 into layers:
   - the stack-agnostic `SKILL.md` core;
   - `failure-modes.md` (FM-01…FM-19);
   - auto-detected `stacks/*.md` packs;

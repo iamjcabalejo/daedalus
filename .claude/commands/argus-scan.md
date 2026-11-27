@@ -12,7 +12,7 @@ disable-model-invocation: true
 
 - **Token policy:** `.claude/rules/token-policy.md`.
 - **Graphify:** this is orientation, so the graph gate applies (`.claude/rules/graphify.md`) when a graph exists. Otherwise use narrow search. Query entry points before reading.
-- **Skill:** `argus`, from the `.claude/` folder this command was loaded from:
+- **Skill:** `argus-rubric`, from the `.claude/` folder this command was loaded from:
   - the **Scan mode** section of `SKILL.md`;
   - `skills/stacks/failure-modes.md`;
   - the packs listed in `.workflow/profile.json` (or detected) from `skills/stacks/`, for their **Entry points (scan mode)**;
@@ -35,7 +35,7 @@ If the arguments are empty, ask which repo and stop.
 
 1. **Resolve the checkout and config.**
    - Record HEAD `sha7` and the `owner/repo` (`git remote get-url origin`).
-   - Resolve config as `/argus` does: read every file in the chain (`.workflow/config.yml`, then the legacy `.argus.yml`, in the repo, then the workspace, then `~/.workflow/config.yml`, then `~/.claude/argus.yml`, then defaults) and merge key by key, nearest first. Read only.
+   - Resolve config as `/argus` does: `python3 -I <scripts>/workflow.py config resolve --json --repo <checkout> --workspace <folder you were started from>` (`<scripts>`: where the `project-profile` skill says), and use its `values`. Exit code 3 → show the error and fix, and stop. Read only.
 2. **Detect stacks.** Run `detect-stack.py --stdout --root <checkout>` (read-only and current even when the saved profile is stale) and take the union of its packs with those in `.workflow/profile.json`, if present. Without the detector, match the repo's files and root manifests against each pack's `detect.files`. Honor `config.stacks` and `extra_stacks`, and note languages that no pack covers (the detector's `gaps`).
 3. **Write `scope.txt`** in a temp bundle folder:
    - the paths given, or the whole repo minus `config.ignore`, `node_modules`, `dist`, `build` and `.venv`;

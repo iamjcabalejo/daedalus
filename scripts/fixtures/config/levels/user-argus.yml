@@ -1,0 +1,4 @@
+# TL2 legacy <user>/.claude/argus.yml.
+domain: from-user-legacy
+severity:
+  critical_triggers: [data loss]

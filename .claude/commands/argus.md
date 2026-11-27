@@ -12,7 +12,7 @@ disable-model-invocation: true
 
 - **Token policy:** `.claude/rules/token-policy.md`. Build the bundle, hand it off, and validate what comes back. Do not re-review the code yourself.
 - **Graphify:** Diff-first (`.claude/rules/graphify.md`). The reviewer queries only for blast radius.
-- **Skill:** `argus`, in `skills/argus/` of the same `.claude/` folder: the core `SKILL.md`, `domains/`, `review-template.md` and `config-template.yml`.
+- **Skill:** `argus-rubric`, in `skills/argus-rubric/` of the same `.claude/` folder: the core `SKILL.md`, `domains/`, `review-template.md` and `config-template.yml`.
 
 ## Target
 
@@ -23,7 +23,7 @@ $ARGUMENTS
 - A bare `N` → PR mode in the repo of the current folder (`gh repo view --json nameWithOwner`).
 - `--local [base-ref]` → review the current branch against `base-ref` (default `origin/<default branch>`), before a PR exists.
 - `--sha <commit>` → review the PR at an earlier commit (calibration).
-- `--compare` → after the review, compare it with NRD Sight's review of the same commit.
+- `--compare` → after the review, compare it with the review that the GitHub account in `review.compare_with` (for example, another review bot) posted on the same commit.
 - `--post` → post the review to the PR.
 
 If the arguments are empty, ask for the PR and stop.
@@ -31,19 +31,15 @@ If the arguments are empty, ask for the PR and stop.
 ## Phase A — Config and bundle
 
 0. **Resolve config.**
-   - Read **every** file that exists in this chain, nearest first (the repo is the checkout, or the current repo for `--local`):
-     1. `<repo>/.workflow/config.yml`, then the legacy `<repo>/.argus.yml`;
-     2. `<folder you were started from>/.workflow/config.yml`, then `<folder you were started from>/.argus.yml`;
-     3. `~/.workflow/config.yml`, then `~/.claude/argus.yml`;
-     4. the defaults in `config-template.yml`.
-   - Merge **key by key** with the rules in the skill's Configuration section: the nearest file that sets a key wins; mappings merge recursively; lists are replaced whole; `null` or empty falls through; an explicit `none` or `[]` wins. A `.workflow/config.yml` that sets only some keys never hides the rest.
-   - Lift a legacy top-level `severity` or `post` to `review.severity` / `review.post` before merging.
-   - Record the files you read as `config.sources` in the brief, and note which file supplied `domain` and `tickets.system` (or "default") for Phase C. Read these files only; never create one in a product repo.
+   - Run `python3 -I <scripts>/workflow.py config resolve --json --repo <repo> --workspace <folder you were started from>`, where `<scripts>` is the `scripts/` folder step 1 names and the repo is the checkout, or the current repo for `--local`. It reads every level, including the legacy `.argus.yml` files, and applies the merge rules; don't read or combine config files yourself.
+   - Exit code 3 is a configuration error: show its code, file, line and fix, and stop.
+   - Fill the brief's `config` from `values` (`stacks`, `extra_stacks`, `domain`, `ignore`, `house_rules`, `review.*`), and `config.sources` from `sources` (level and path). For Phase C, `provenance` names the file that supplied `domain` and `tickets.system` (its `source`, or "default"). Never create a config file in a product repo.
    - If `<repo>/.workflow/profile.json` exists, note the `packs` of each root that contains a changed file as `profile_packs` in the brief. The reviewer adds packs whose globs match the diff.
-   - Keep the resolved `tickets.key` for step 1.
+   - Keep the resolved `tickets.key`, and with `--compare` the resolved `review.compare_with`, for step 1.
 1. Run `scripts/argus-bundle.sh` from the `.claude/` folder this command was loaded from: `~/.claude/` for a user-level install, otherwise `<workspace root>/.claude/`; in a plugin install, `"${CLAUDE_PLUGIN_ROOT}/scripts/argus-bundle.sh"`. Call it as `"$HOME/.claude/scripts/argus-bundle.sh"` (or the workspace path) from the folder you were started from, with the PR arguments: `<owner/repo> <N> [--sha …] [--workspace <folder you were started from>]`, or `--local [base]`. Keep the `KEY=value` lines it prints.
    - The script needs `gh` (signed in), `git` and `jq`.
    - Pass `ARGUS_TICKET_RE='<tickets.key>'` in the environment when config sets it.
+   - With `--compare`, pass `ARGUS_COMPARE_WITH='<review.compare_with>'` in the environment when config sets it.
    - If the script fails, show its error and stop.
 2. **Ticket**, through the `ticket-adapters` skill (it resolves `tickets.system`, including `auto`, and says what to do when a tool is missing):
    - **`linear`** or **`jira`:** **get** each key in `TICKET_KEYS` (title, description, URL).
@@ -65,7 +61,7 @@ checkout: <CHECKOUT>
 review_id: <REVIEW_ID>
 sha7: <SHA7>
 config:
-  sources: [<files read, nearest first>]
+  sources: [<level and path of each file config resolve read>]
   stacks: <auto | [..]>
   profile_packs: <[..] | none>
   extra_stacks: [..]
@@ -74,7 +70,7 @@ config:
   house_rules: [..]
   severity: {overrides: [..], critical_triggers: [..]}
   review: {header: "<header>", max_findings: <n>}
-Load the argus skill first: SKILL.md, skills/stacks/failure-modes.md, the Review sections of profile_packs plus the packs whose detect globs match the diff, domains/<domain>.md, house rules, review-template.md. Diff-first graphify budget; plain search if no graph.
+Load the argus-rubric skill first: SKILL.md, skills/stacks/failure-modes.md, the Review sections of profile_packs plus the packs whose detect globs match the diff, domains/<domain>.md, house rules, review-template.md. Diff-first graphify budget; plain search if no graph.
 Return the review body, then the json block.
 ```
 
@@ -94,19 +90,22 @@ Never pass `<COMPARE>` or its contents to the reviewer.
 
 ## Phase D — Compare (only with `--compare`)
 
-1. Read `<COMPARE>`. If it is `none`, say NRD Sight has not reviewed this PR and skip this phase. If `same_sha: false`, say which commit NRD reviewed.
+1. Read `<COMPARE>`.
+   - `unconfigured`: say `--compare` needs `review.compare_with` (the GitHub login of the reviewer to compare with, such as `my-reviewer[bot]`) in `.workflow/config.yml` or an overlay, and skip this phase.
+   - `none`: say that reviewer has not reviewed this PR, and skip this phase.
+   - Otherwise, the first line names the reviewer and its commit. If `same_sha: false`, say which commit it reviewed.
 2. Match findings by root cause: the same file and the same failure, with lines within about 20 of each other or the same symbol.
 3. Append this to the saved file. It is never posted.
 
 ```markdown
-## Comparison with NRD Sight (<nrd sha7>)
+## Comparison with <reviewer> (<reference sha7>)
 
-| NRD finding | Ours | Match | Severity |
+| Reference finding | Ours | Match | Severity |
 |---|---|---|---|
 | [important · correctness] … | #2 … | yes / partial / missed | same / higher / lower |
 | — | #3 … | extra | — |
 
-Recall: <matched>/<NRD total> · Extra: <n> · Severity agreement: <same>/<matched>
+Recall: <matched>/<reference total> · Extra: <n> · Severity agreement: <same>/<matched>
 ```
 
 ## Phase E — Post (only with `--post`)

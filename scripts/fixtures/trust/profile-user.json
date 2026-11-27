@@ -1,0 +1,11 @@
+{
+  "schema": 1,
+  "generator": "detect-stack@2",
+  "roots": [
+    {"path": ".", "name": "trust-fixture", "layer": "lib",
+     "commands": {
+       "test": {"cmd": "touch @CANARY@", "source": "/setup", "confidence": "user"}
+     }}
+  ],
+  "confirmed": true
+}

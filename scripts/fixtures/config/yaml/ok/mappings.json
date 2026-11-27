@@ -1,0 +1,22 @@
+{
+  "tickets": {
+    "system": "github",
+    "key": "\\b(ABC|XYZ)-\\d+\\b"
+  },
+  "review": {
+    "header": "Argus review",
+    "severity": {
+      "critical_triggers": []
+    }
+  },
+  "commands": {
+    ".": {
+      "test": "make test"
+    },
+    "packages/web": {
+      "lint": "npm run lint"
+    }
+  },
+  "two words": 1,
+  "dotted.key": 2
+}

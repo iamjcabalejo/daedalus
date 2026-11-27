@@ -2,7 +2,7 @@
 name: csharp-dotnet
 detect:
   files: ["**/*.cs", "**/*.csproj", "**/*.sln", "**/appsettings*.json", "**/*.razor", "**/*.cshtml"]
-evidence: NRD Sight corpus (≈135 C# reviews)
+evidence: code review findings on C# services
 ---
 
 # C# / .NET (ASP.NET Core, workers, importers)

@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="460" viewBox="0 0 1280 460" role="img" aria-labelledby="title desc">
+  <title id="title">Daedalus</title>
+  <desc id="desc">Daedalus, the plug-and-play dev workflow for Claude Code: Plan, Code, Review, QA.</desc>
+  <defs>
+    <radialGradient id="glow-gold" cx="0.12" cy="0.95" r="0.55">
+      <stop offset="0" stop-color="#F4C76A" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#F4C76A" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glow-sea" cx="0.88" cy="0.08" r="0.55">
+      <stop offset="0" stop-color="#8FC9E8" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#8FC9E8" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glow-mid" cx="0.62" cy="0.55" r="0.35">
+      <stop offset="0" stop-color="#BFE3D9" stop-opacity="0.35"/>
+      <stop offset="1" stop-color="#BFE3D9" stop-opacity="0"/>
+    </radialGradient>
+    <clipPath id="card"><rect width="1280" height="460" rx="28"/></clipPath>
+    <style>
+      .word { font: 800 104px "Inter", "SF Pro Display", "Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif; fill: #14213D; letter-spacing: -2px; }
+      .tag  { font: 500 27px "Inter", "SF Pro Text", "Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif; fill: #475569; }
+      .chip { font: 700 18px ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace; fill: #FFFFFF; letter-spacing: 3px; }
+      .arrow { fill: none; stroke: #C8902E; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+    </style>
+  </defs>
+  <g clip-path="url(#card)">
+    <rect width="1280" height="460" fill="#FBFAF6"/>
+    <rect width="1280" height="460" fill="url(#glow-gold)"/>
+    <rect width="1280" height="460" fill="url(#glow-sea)"/>
+    <rect width="1280" height="460" fill="url(#glow-mid)"/>
+  </g>
+  <g fill="none" stroke="#14213D" stroke-width="3" stroke-linecap="square">
+    <path d="M64 86 V52 H98"/>
+    <path d="M1216 86 V52 H1182"/>
+    <path d="M64 374 V408 H98"/>
+    <path d="M1216 374 V408 H1182"/>
+  </g>
+  <g fill="none" stroke="#14213D" stroke-width="8" stroke-linecap="round">
+    <path d="M406.01 103.98 A58 58 0 1 1 375.99 103.98"/>
+    <path d="M379.01 199.21 A41 41 0 1 1 402.99 199.21"/>
+    <path d="M414.87 157.49 A24 24 0 1 1 405.11 140.58"/>
+    <line x1="355.49" y1="180.50" x2="340.77" y2="189.00"/>
+    <line x1="426.51" y1="180.50" x2="441.23" y2="189.00"/>
+    <line x1="370.22" y1="148.00" x2="355.49" y2="139.50"/>
+  </g>
+  <circle cx="391" cy="160" r="9" fill="#C8902E"/>
+  <text x="489" y="197" class="word" textLength="440" lengthAdjust="spacing">Daedalus</text>
+  <text x="640.0" y="280" text-anchor="middle" class="tag">The plug-and-play dev workflow for Claude Code, in any stack</text>
+  <rect x="262.0" y="318" width="150" height="46" rx="23" fill="#14213D"/><text x="337.0" y="348" text-anchor="middle" class="chip">PLAN</text>
+  <path d="M424.0 341.0 H452.0 M444.0 334.0 L452.0 341.0 L444.0 348.0" class="arrow"/>
+  <rect x="464.0" y="318" width="150" height="46" rx="23" fill="#14213D"/><text x="539.0" y="348" text-anchor="middle" class="chip">CODE</text>
+  <path d="M626.0 341.0 H654.0 M646.0 334.0 L654.0 341.0 L646.0 348.0" class="arrow"/>
+  <rect x="666.0" y="318" width="150" height="46" rx="23" fill="#C8902E"/><text x="741.0" y="348" text-anchor="middle" class="chip">REVIEW</text>
+  <path d="M828.0 341.0 H856.0 M848.0 334.0 L856.0 341.0 L848.0 348.0" class="arrow"/>
+  <rect x="868.0" y="318" width="150" height="46" rx="23" fill="#14213D"/><text x="943.0" y="348" text-anchor="middle" class="chip">QA</text>
+</svg>

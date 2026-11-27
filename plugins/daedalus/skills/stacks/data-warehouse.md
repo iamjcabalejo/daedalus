@@ -3,7 +3,7 @@ name: data-warehouse
 detect:
   files: ["**/dbt_project.yml", "**/models/**/*.sql", "**/macros/**/*.sql", "**/snapshots/**", "**/*snowflake*/**", "**/*.snowsql"]
   signals: ["MERGE INTO", "COPY INTO", "CREATE OR REPLACE TASK", "dynamic table", "{{ ref(", "{{ config(", "snowflake", "schemachange", "snowsql", "bigquery", "redshift"]
-evidence: NRD Sight corpus (≈150 findings on Snowflake and dbt); the principles apply to BigQuery and Redshift
+evidence: code review findings on Snowflake and dbt; the principles apply to BigQuery and Redshift
 ---
 
 # Data warehouse (Snowflake, dbt; BigQuery and Redshift by analogy)

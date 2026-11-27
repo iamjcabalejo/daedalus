@@ -16,17 +16,11 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Stack packs have the required sections
-        run: scripts/lint-packs.sh
-      - name: Public hub stays generic (AC-11)
-        run: scripts/check-generic.sh
-      - name: Generated plugins are up to date (AC-12)
-        run: scripts/build-plugin.sh --check
-      - name: Detector validation matrix (public and synthetic rows; private rows skip without matrix.local.json)
+      # One step runs every hub check (AC-14): detector matrix (public and synthetic rows; private rows skip without
+      # matrix.local.json), probe and benchmark harnesses (offline: no credentials, no model, no docker), config and
+      # trust tests, shell and Python 3.8 syntax, pack lint, the generic check and the plugin build check.
+      # It continues past a failure, prints a summary, and exits 1 if any check failed.
+      - name: Hub checks (scripts/test-all.sh)
         env:
           WORKFLOW_MATRIX_CACHE: ${{ runner.temp }}/workflow-matrix
-        run: scripts/test-detector.sh
-      - name: Probe harness offline tests (AC-12; no credentials, no model)
-        run: scripts/test-probes.sh
-      - name: Benchmark harness offline tests (AC-12; no credentials, no docker, no model)
-        run: scripts/test-bench.sh
+        run: scripts/test-all.sh

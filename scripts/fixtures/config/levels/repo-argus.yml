@@ -1,0 +1,5 @@
+# TL4 legacy <repo>/.argus.yml.
+review:
+  header: Repo review
+post:
+  inline: false

@@ -8,11 +8,18 @@
 #   argus-bundle.sh --cleanup <root-dir>
 #
 # Prints KEY=value lines: ROOT, BUNDLE, CHECKOUT, COMPARE, REPO, N, SHA, SHA7, REVIEW_ID, TICKET_KEYS.
+# Environment: ARGUS_TICKET_RE (tickets.key); ARGUS_COMPARE_WITH (review.compare_with), the GitHub login
+# whose review of the PR is saved to COMPARE for /argus --compare.
 set -euo pipefail
 
 die() { echo "argus-bundle: $*" >&2; exit 1; }
 need() { command -v "$1" >/dev/null 2>&1 || die "$1 not found on PATH"; }
 need git; need jq
+
+# A GitHub login, optionally an app's "[bot]" account. Checked before any network call.
+if [ -n "${ARGUS_COMPARE_WITH:-}" ] && ! printf '%s' "$ARGUS_COMPARE_WITH" | grep -Eq '^[A-Za-z0-9][A-Za-z0-9-]{0,38}(\[bot\])?$'; then
+  die "ARGUS_COMPARE_WITH '$ARGUS_COMPARE_WITH' is not a GitHub login (for example my-reviewer[bot])"
+fi
 
 MARK='<!-- argus-review:'
 
@@ -153,12 +160,16 @@ else
     echo "none" > "$B/replies.md"
   fi
 
-  # NRD Sight's own review for --compare. Kept outside the bundle so the reviewer never sees it.
-  jq -r --arg sha "$SHA" '
-    [.[] | select(.user.login == "nrd-sight[bot]")] as $r
-    | (([$r[] | select(.commit_id == $sha)] | last) // ($r | last)) as $x
-    | if $x then "<!-- nrd commit: \($x.commit_id) same_sha: \($x.commit_id == $sha) -->\n\($x.body)" else "none" end' \
-    "$ROOT/reviews.json" > "$C/nrd-sight.md"
+  # The configured reviewer's own review for --compare. Kept outside the bundle so the reviewer never sees it.
+  if [ -z "${ARGUS_COMPARE_WITH:-}" ]; then
+    echo "unconfigured" > "$C/reference.md"
+  else
+    jq -r --arg sha "$SHA" --arg who "$ARGUS_COMPARE_WITH" '
+      [.[] | select(.user.login == $who)] as $r
+      | (([$r[] | select(.commit_id == $sha)] | last) // ($r | last)) as $x
+      | if $x then "<!-- reference: \($who) commit: \($x.commit_id) same_sha: \($x.commit_id == $sha) -->\n\($x.body)" else "none" end' \
+      "$ROOT/reviews.json" > "$C/reference.md"
+  fi
 
   REVIEW_ID="$REPO#$N:$SHA"
   keys="$(ticket_keys "$(jq -r .title "$B/pr.json")" "$branch" "$(jq -r .body "$B/pr.json")")"
@@ -173,7 +184,7 @@ cat <<EOF
 ROOT=$ROOT
 BUNDLE=$B
 CHECKOUT=$CHECKOUT
-COMPARE=$C/nrd-sight.md
+COMPARE=$C/reference.md
 RIGHT_LINES=$ROOT/right-lines.txt
 REPO=$REPO
 N=$N

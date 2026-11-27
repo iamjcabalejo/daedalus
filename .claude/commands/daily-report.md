@@ -8,7 +8,7 @@ disable-model-invocation: true
 
 **Token policy:** `.claude/rules/token-policy.md`. Fetch in parallel, keep only the fields you need, no raw dumps in the reply.
 
-**Sources:** `tickets.system` and `chat` resolve per the `ticket-adapters` skill (`.claude/skills/ticket-adapters/SKILL.md`). If an overlay is installed and has `daily-report/sources.md` (under `<.claude>/overlays/<overlay>/` or `~/.claude/overlays/<overlay>/`), read it too: it names extra sources, team conventions and the report's target format.
+**Sources:** resolve configuration once with `python3 -I <scripts>/workflow.py config resolve --json --workspace <folder you were started from>` (`<scripts>`: the `scripts/` folder the **Git** step names) and pass its `values` on: `tickets.*` and `chat` go to the `ticket-adapters` skill (`.claude/skills/ticket-adapters/SKILL.md`), and `overlay` names the installed overlay (`none`: no overlay). Exit code 3 → show the error and fix, and continue with git only. If an overlay is installed and has `daily-report/sources.md` (under `<.claude>/overlays/<overlay>/` or `~/.claude/overlays/<overlay>/`), read it too: it names extra sources, team conventions and the report's target format.
 
 ## 1. Resolve the window
 
