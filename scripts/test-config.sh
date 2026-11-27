@@ -1265,10 +1265,23 @@ class BuildCompanionNames(TempCase):
 
 
 
+def hub_claude_files() -> List[Path]:
+    """Files under .claude/ that ship: git's tracked and unignored files. A walk would also scan a nested git
+    worktree under .claude/worktrees/ (where Claude Code puts them) and ignored local files. Without git, walk the
+    tree but skip .claude/worktrees/."""
+    try:
+        out = subprocess.run(["git", "-C", str(HUB), "ls-files", "-co", "--exclude-standard", "-z", "--", ".claude"],
+                             capture_output=True, text=True, check=True).stdout
+        paths = [HUB / name for name in out.split("\0") if name]
+    except (OSError, subprocess.CalledProcessError):
+        paths = list((HUB / ".claude").rglob("*"))
+    return sorted(p for p in paths if p.is_file() and p.relative_to(HUB).parts[1:2] != ("worktrees",))
+
+
 def hub_text_files() -> List[Path]:
     """Every text file under .claude/ (the shipped tree), minus the audit log and Finder metadata."""
     files = []
-    for path in sorted((HUB / ".claude").rglob("*")):
+    for path in hub_claude_files():
         if not path.is_file() or path.name in ("audit.log", ".DS_Store"):
             continue
         try:

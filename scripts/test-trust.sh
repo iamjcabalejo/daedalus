@@ -67,6 +67,19 @@ CANARY = SAFE_ROOT / "CANARY-ran"
 ZERO = "sha256:" + "0" * 64
 
 
+def hub_claude_files() -> List[Path]:
+    """Files under .claude/ that ship: git's tracked and unignored files. A walk would also scan a nested git
+    worktree under .claude/worktrees/ (where Claude Code puts them) and ignored local files. Without git, walk the
+    tree but skip .claude/worktrees/."""
+    try:
+        out = subprocess.run(["git", "-C", str(HUB), "ls-files", "-co", "--exclude-standard", "-z", "--", ".claude"],
+                             capture_output=True, text=True, check=True).stdout
+        paths = [HUB / name for name in out.split("\0") if name]
+    except (OSError, subprocess.CalledProcessError):
+        paths = list((HUB / ".claude").rglob("*"))
+    return sorted(p for p in paths if p.is_file() and p.relative_to(HUB).parts[1:2] != ("worktrees",))
+
+
 def to_yaml(flat: Dict[str, Any]) -> str:
     """Dotted keys → a block mapping of one-line flow values (JSON is valid flow YAML in the subset)."""
     nested: Dict[str, Any] = {}
@@ -1852,7 +1865,7 @@ class Banner(TempCase):
         --pending`, and is counted; the banner holds no hidden character beyond its line ends; ordinary non-ASCII
         commands (`pytest -k "café"`, `echo ✓`) show once trusted. The rule has one definition, lib/text.py, which the
         hook imports from its own install."""
-        definitions = sorted(str(path.relative_to(HUB)) for path in (HUB / ".claude").rglob("*")
+        definitions = sorted(str(path.relative_to(HUB)) for path in hub_claude_files()
                              if path.suffix in (".py", ".sh") and path.is_file()
                              and "HIDDEN_CATEGORIES = " in path.read_text(encoding="utf-8", errors="replace"))
         self.assertEqual(definitions, [".claude/scripts/lib/text.py"])
@@ -1966,7 +1979,7 @@ class Consumers(unittest.TestCase):
     @staticmethod
     def scanned() -> List[Path]:
         files = [HUB / "CLAUDE.md", HUB / "README.md"]
-        for path in sorted((HUB / ".claude").rglob("*")):
+        for path in hub_claude_files():
             if path.is_file() and path.name not in ("audit.log", ".DS_Store"):
                 files.append(path)
         return files
