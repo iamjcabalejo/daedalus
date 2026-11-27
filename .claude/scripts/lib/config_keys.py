@@ -95,7 +95,7 @@ _ENTRIES: List[Key] = [
     Key("version", META, (INTEGER,), 1, PER_FILE, enum=(1,), doc="file format version; only 1 is accepted"),
     # Preferences (template keys).
     _pref("overlay", (STRING,), "none", "name of an installed overlay"),
-    _pref("domain", (STRING,), "none", "Argus domain pack (skills/argus/domains/<name>.md)"),
+    _pref("domain", (STRING,), "none", "Argus domain pack (skills/argus-rubric/domains/<name>.md)"),
     _pref("chat", (STRING,), "none", "chat system for /daily-report", enum=("teams", "slack", "none")),
     _pref("ignore", (LIST,), [], "globs never reviewed", items=STRING),
     _pref("house_rules", (LIST,), [], "repo-relative docs with team rules", items=STRING),

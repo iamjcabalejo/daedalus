@@ -1286,7 +1286,7 @@ class Consumers(unittest.TestCase):
         ".claude/commands/argus.md", ".claude/commands/argus-scan.md", ".claude/commands/setup.md",
         ".claude/commands/daily-report.md", ".claude/commands/manual-test.md", ".claude/commands/feature-plan.md",
         ".claude/commands/apply-ticket.md", ".claude/commands/project-manager.md",
-        ".claude/skills/argus/SKILL.md", ".claude/skills/argus/config-template.yml",
+        ".claude/skills/argus-rubric/SKILL.md", ".claude/skills/argus-rubric/config-template.yml",
         ".claude/skills/ticket-adapters/SKILL.md", ".claude/skills/project-profile/SKILL.md",
         # QA reads the values /manual-test resolved and passed in its brief, never the config files
         ".claude/agents/qa-tester.md", ".claude/skills/manual-qa/SKILL.md",

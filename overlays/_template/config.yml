@@ -5,7 +5,7 @@
 
 version: 1
 overlay: <name>               # the overlay's name, as in overlay.yml
-domain: none                  # or <name> when the overlay ships skills/argus/domains/<name>.md
+domain: none                  # or <name> when the overlay ships skills/argus-rubric/domains/<name>.md
 tickets:
   system: auto                # auto | linear | jira | github | none
   key: null                   # regex for ticket keys, e.g. '\b(ABC|XYZ)-\d+\b'

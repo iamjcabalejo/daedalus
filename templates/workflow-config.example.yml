@@ -28,7 +28,7 @@
 version: 1                    # file format; only 1 is accepted
 
 overlay: none                 # P name of an installed overlay (its rules, packs, QA and report notes)
-domain: none                  # P Argus domain pack (skills/argus/domains/<name>.md); none = no domain checks
+domain: none                  # P Argus domain pack (skills/argus-rubric/domains/<name>.md); none = no domain checks
 
 # Stack packs. "auto" = the profile's packs per root, plus any pack matching a changed file.
 stacks: auto                  # P or an explicit list, e.g. [python, sql-migrations]
