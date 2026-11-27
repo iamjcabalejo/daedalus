@@ -8,7 +8,7 @@ An overlay adds one team's or organization's specifics to the generic workflow w
 overlays/<name>/
   overlay.yml                      # name, description, what it provides (see the template)
   rules/<name>-context.md          # always-on context: stack conventions, secrets, time zones, repo map
-  skills/argus/domains/<name>.md   # Argus domain pack (copy .claude/skills/argus/domains/_template.md)
+  skills/argus-rubric/domains/<name>.md   # Argus domain pack (copy .claude/skills/argus-rubric/domains/_template.md)
   config.yml                       # defaults: overlay, tickets, chat, graph, domain, house_rules, qa
   hooks/context.txt                # extra session-start lines (keep it to a few)
   qa/auth.md                       # sign-in notes for qa-tester

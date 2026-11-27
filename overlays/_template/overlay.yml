@@ -8,7 +8,7 @@ version: 1
 # Every entry is optional. Paths are relative to this folder.
 provides:
   rules: []                          # e.g. [rules/<name>-context.md] — always-on context (stack conventions, secrets, time zones)
-  skills: []                         # e.g. [skills/argus/domains/<name>.md] — domain pack(s) and extra skills
+  skills: []                         # e.g. [skills/argus-rubric/domains/<name>.md] — domain pack(s) and extra skills
   config: config.yml                 # defaults merged into ~/.workflow/config.yml (keys you haven't set yourself)
   hook_context: hooks/context.txt    # extra lines added to the session-start context
   qa_auth: qa/auth.md                # sign-in notes for qa-tester (states, buttons, identity-provider hosts)

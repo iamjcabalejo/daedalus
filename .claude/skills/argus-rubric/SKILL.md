@@ -1,5 +1,5 @@
 ---
-name: argus
+name: argus-rubric
 description: >-
   Argus, the hundred-eyed PR and repo reviewer: a stack-agnostic rubric with material findings
   only, each with a failure scenario, location, fix and cost, graded
@@ -63,7 +63,7 @@ Defaults when nothing is configured:
 2. **Unknown stacks.** If a changed file matches no pack, apply `../stacks/failure-modes.md` with `../stacks/_generic.md`. Infer idioms from the repo itself: README, CONTRIBUTING, lint or format config, existing tests, and the surrounding code. Then:
    - list the language under `not covered by a stack pack:` in the verdict;
    - add `pack_suggestions` to the JSON block (never to the posted body).
-3. **Domain.** If `domain` is set, load `domains/<domain>.md`. Its invariants and critical triggers extend this file.
+3. **Domain.** If `domain` is set, load `domains/<domain>.md`. If it isn't there, try the legacy `skills/argus/domains/<domain>.md` in the same `.claude/` folder. Its invariants and critical triggers extend this file.
 4. **House rules.** Read each file listed in `house_rules`. They extend the checks; they never lower the materiality gate.
 5. **Ignore.** Skip paths matching `ignore`, and mention them only if a finding depends on them.
 

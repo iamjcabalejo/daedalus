@@ -13,7 +13,9 @@ The original version of this workflow was built for the Ticketboat stack: fixed 
 | `/api-new`, `/api-test` | `/scaffold endpoint <name>`, `/test-gen <target>` | Work in any detected framework |
 | Backend / C# Backend / Frontend task blocks in plans | `### Layer: <layer> (<packs>)` blocks | `/project-manager` still reads old plans and maps them to layers |
 | Linear and Teams in commands | the `ticket-adapters` skill + `tickets.system` / `chat` in config | The overlay sets `linear` and `teams` |
-| `skills/argus/domains/ticketboat.md` in the tree | `overlays/ticketboat/skills/argus/domains/ticketboat.md` | Private |
+| `skills/argus/domains/ticketboat.md` in the tree | `overlays/ticketboat/skills/argus-rubric/domains/ticketboat.md` | Private |
+| `skills/argus/` (`SKILL.md` and templates) | `skills/argus-rubric/` | Renamed so `/argus` runs the command, not a skill of the same name. Domain packs left in `skills/argus/domains/` are still read |
+| `skills/trace-flow/` | `skills/flow-tracing/` | Renamed so `/trace-flow` runs the command |
 | `.argus.yml`, `~/.claude/argus.yml` | `.workflow/config.yml`, `~/.workflow/config.yml` | The old files are still read, merged key by key after the new ones |
 | Graphify required | optional (`graph: auto`) | Used only when a graph exists |
 | `skills/graphify` (build skill) | `addons/graphify/` | `install.sh --addon graphify` |
@@ -35,7 +37,7 @@ The original version of this workflow was built for the Ticketboat stack: fixed 
    - **Overwrites:** files the install overwrites (for example `agents/argus.md`) are backed up too.
    - **Hooks:** older hook entries in `~/.claude/settings.json` that point at `${CLAUDE_PROJECT_DIR}/.claude/hooks/…` are replaced by `~/.claude/hooks/…` paths, which also work in projects that don't have their own `.claude/hooks/`.
    - **Workspace installs:** if you used a workspace-level install (`<workspace>/.claude`), run the same command with `--project <workspace>` instead of `--user`.
-3. **Plugin instead?** Install `daedalus` (and `daedalus-qa` for the admin UI), copy `overlays/ticketboat/` to `~/.claude/overlays/ticketboat/`, put its `config.yml` keys in `~/.workflow/config.yml`, and copy the domain pack to `~/.claude/skills/argus/domains/`. Then remove the old files by hand: the paths in the table, under `~/.claude`.
+3. **Plugin instead?** Install `daedalus` (and `daedalus-qa` for the admin UI), copy `overlays/ticketboat/` to `~/.claude/overlays/ticketboat/`, put its `config.yml` keys in `~/.workflow/config.yml`, and copy the domain pack to `~/.claude/skills/argus-rubric/domains/`. Then remove the old files by hand: the paths in the table, under `~/.claude`.
 4. **Run `/setup` once per repo** (admin-frontend, admin-api-python, admin-api-csharp, the data repos). Confirm the commands, and commit `.workflow/`.
 5. **Compare once.** Run `/feature-plan` for a small change in one repo and `/argus --local` on a known branch, then check the plan sections and the review against what the old install produced (this is AC-11's parity check).
 

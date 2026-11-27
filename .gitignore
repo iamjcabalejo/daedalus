@@ -2,8 +2,8 @@
 docs/research/nrd-sight/local/
 
 # Domain packs describe internal systems. Only the template is public.
-.claude/skills/argus/domains/*
-!.claude/skills/argus/domains/_template.md
+.claude/skills/argus-rubric/domains/*
+!.claude/skills/argus-rubric/domains/_template.md
 
 # Detected profile of this hub repo itself (target repos commit theirs; see D5)
 .workflow/

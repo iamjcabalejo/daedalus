@@ -41,7 +41,7 @@ The design rests on three ideas.
 | `rules/` | Always-on contract | `token-policy`, `compounding-dev-cycle`, `claude-code` (the mode map), `core-standards`, `stack-knowledge`, `graphify` | Every session in a script install. In a plugin install, through the `workflow-contract` skill |
 | `commands/` | Entry points | One file per slash command (`/setup`, `/feature-plan`, `/project-manager`, `/argus`, …) | When the user types the command. All except `/trace-flow` set `disable-model-invocation: true`, so only the user can start them |
 | `agents/` | Roles | `implementer`, `test-runner`, `argus`, `qa-tester`, `tech-stack-researcher`, `technical-writer` | Spawned by commands through the Agent tool |
-| `skills/` | Knowledge | Process skills (`feature-planning`, `manual-qa`, `ui-mockup`, `trace-flow`, …), contract skills (`workflow-contract`, `project-profile`, `ticket-adapters`), the `stacks/` packs and `argus/` | On demand, by name |
+| `skills/` | Knowledge | Process skills (`feature-planning`, `manual-qa`, `ui-mockup`, `flow-tracing`, …), contract skills (`workflow-contract`, `project-profile`, `ticket-adapters`), the `stacks/` packs and `argus-rubric/` | On demand, by name |
 | `hooks/` | Runtime glue | `session-init.sh` (SessionStart) and `audit.sh` (Bash pre/post, Stop, SessionEnd) | Registered in `settings.json` |
 | `scripts/` | Deterministic helpers | `detect-stack.py`, `validate-profile.py`, `argus-bundle.sh`, `daily-git-activity.sh` | Called by hooks and commands |
 | `settings.json` | Hook registration | Source for the plugin's `hooks/hooks.json` and for the installer's settings merge | — |
@@ -230,7 +230,7 @@ Argus is the read-only reviewer. It has three modes:
    - **Scans:** the detector runs with `--stdout`, and its packs are combined with the saved profile's.
    - **Config:** `stacks:` replaces auto-detection; `extra_stacks` adds packs.
 3. **Uncovered code:** files that no pack matches get `_generic.md` and the failure modes, and the output names the languages that had no pack.
-4. **Domain pack and house rules:** `skills/argus/domains/<domain>.md` adds business invariants and always-critical triggers. `house_rules` files add checks but never lower the materiality gate. Only the domain template is public; real domain packs live in overlays.
+4. **Domain pack and house rules:** `skills/argus-rubric/domains/<domain>.md` adds business invariants and always-critical triggers. `house_rules` files add checks but never lower the materiality gate. Only the domain template is public; real domain packs live in overlays.
 5. **Ignore:** paths that match `ignore` are skipped. By default these are lockfiles and vendored, generated and minified files.
 
 ### 6.2 Review checkpoints (`pr` and `local`)

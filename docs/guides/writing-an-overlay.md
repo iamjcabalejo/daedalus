@@ -17,7 +17,7 @@ Edit `overlays/<name>/overlay.yml`: set `name` (kebab-case; it's also the value 
 | You want | Add | Notes |
 |---|---|---|
 | Conventions every session should know (secrets manager, time zones, repo map, house style) | `rules/<name>-context.md` | Write rules, not tutorials. Stack idioms belong in the public packs |
-| Review checks for your business invariants | `skills/argus/domains/<name>.md` (copy `.claude/skills/argus/domains/_template.md`), plus `domain: <name>` in `config.yml` | Each invariant is an outcome that must never happen, with how to spot a violation in a diff; mark the always-critical ones |
+| Review checks for your business invariants | `skills/argus-rubric/domains/<name>.md` (copy `.claude/skills/argus-rubric/domains/_template.md`), plus `domain: <name>` in `config.yml` | Each invariant is an outcome that must never happen, with how to spot a violation in a diff; mark the always-critical ones |
 | Ticket system and keys, chat, graph | `config.yml` (`tickets`, `chat`, `graph`, `domain`, `house_rules`) | Merged into `~/.workflow/config.yml` at install; keys you already set win |
 | Sign-in steps for browser QA | `qa/auth.md` | The exact signal for each probe state (signed-in, expiring, signed-out, re-auth, account changed, access denied, reconnecting), the app's own sign-in button, and the identity-provider hosts the tester must never touch. Never credentials |
 | Daily-report sources | `daily-report/sources.md` | Git roots (`DAILY_REPORT_ROOTS`), ticket key prefixes, which chat to search, the report format |

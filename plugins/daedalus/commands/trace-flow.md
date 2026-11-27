@@ -9,7 +9,7 @@ description: Reverse-engineer a page or user action from route load through API 
 - **Token policy:** Apply `${CLAUDE_PLUGIN_ROOT}/skills/workflow-contract/rules/token-policy.md` first. Refine the argument into one entry point (page, route, or action), then trace. No filler in the trace or the chat reply.
 - **Profile:** read `.workflow/profile.json` to find the UI root and the server roots (`roots[].layer`), their frameworks and data stores.
 - **Orientation:** when a root has a graph, apply `${CLAUDE_PLUGIN_ROOT}/skills/workflow-contract/rules/graphify.md` and the `graphify-navigation` skill for it; otherwise start from one narrow search (route path or page name). Don't walk the tree to orient.
-- **Trace skill:** Apply `${CLAUDE_PLUGIN_ROOT}/skills/trace-flow/SKILL.md` for the layer order, evidence rules, and flowchart. Write the artifact with `${CLAUDE_PLUGIN_ROOT}/skills/trace-flow/output-template.md`.
+- **Trace skill:** Apply `${CLAUDE_PLUGIN_ROOT}/skills/flow-tracing/SKILL.md` for the layer order, evidence rules, and flowchart. Write the artifact with `${CLAUDE_PLUGIN_ROOT}/skills/flow-tracing/output-template.md`.
 
 ## Target
 

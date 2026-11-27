@@ -1,5 +1,5 @@
 ---
-name: trace-flow
+name: flow-tracing
 description: >-
   Reverse-engineer a user-facing flow from page load through the API client,
   backend functions, database, and UI render. Use when running the trace-flow

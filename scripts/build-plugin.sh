@@ -240,7 +240,18 @@ def snapshot(base: Path) -> dict[str, tuple[bytes, bool]]:
                 files[str(p.relative_to(base))] = (p.read_bytes(), bool(p.stat().st_mode & stat.S_IXUSR))
     return files
 
+def name_clashes() -> list[str]:
+    """Skill folders named like a command: Claude Code runs the skill for /<name>, so the command never runs."""
+    files = tracked()
+    commands = {Path(f).stem for f in files if re.fullmatch(r"\.claude/commands/[^/]+\.md", f)}
+    skills = {Path(f).parts[2] for f in files if re.fullmatch(r"\.claude/skills/[^/]+/SKILL\.md", f)}
+    return sorted(commands & skills)
+
 def main() -> int:
+    clashes = name_clashes()
+    if clashes:
+        print(f"skill and command share a name (the skill wins, so the command never runs): {', '.join(clashes)}")
+        return 1
     args = sys.argv[1:]
     if "--out" in args:
         index = args.index("--out")
