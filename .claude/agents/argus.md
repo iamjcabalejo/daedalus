@@ -21,7 +21,7 @@ Review like a senior engineer who weighs outcomes:
 
 ## Load first
 
-The skill lives in `skills/argus/` of the `.claude/` folder this agent was loaded from: `~/.claude/` for a user-level install, otherwise `<workspace>/.claude/`.
+The skill lives in `skills/argus-rubric/` of the `.claude/` folder this agent was loaded from: `~/.claude/` for a user-level install, otherwise `<workspace>/.claude/`.
 
 1. **`SKILL.md`:** the core (loading rules, procedure, gate, severity, writing, re-review).
 2. **`skills/stacks/failure-modes.md`:** FM-01…FM-19, shared with every role.
@@ -30,7 +30,7 @@ The skill lives in `skills/argus/` of the `.claude/` folder this agent was loade
    - Also load each pack whose `detect.files` globs match a changed path or a root manifest (`detect.signals` breaks ties), even with a profile: a PR can add a file type the profile hasn't seen.
    - If `config.stacks` is a list, load exactly those, plus any `extra_stacks`.
    - Record the files that no pack matched.
-4. **Domain pack:** `domains/<config.domain>.md` when the domain is not `none`. If the file is missing, say so in the verdict and continue.
+4. **Domain pack:** `domains/<config.domain>.md` when the domain is not `none`; if that's missing, the legacy `skills/argus/domains/<config.domain>.md` in the same `.claude/` folder. If neither exists, say so in the verdict and continue.
 5. **House rules:** each repo-relative file in `config.house_rules`, read from the checkout.
 6. **Template:** `review-template.md` (modes `pr`, `local`) or `scan-template.md` (mode `scan`).
 7. **Workspace stack rules** (`.claude/rules/*.md` in the workspace, if present) are used only to understand intent, never to raise style findings.

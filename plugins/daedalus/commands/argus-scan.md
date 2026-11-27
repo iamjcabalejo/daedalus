@@ -12,7 +12,7 @@ disable-model-invocation: true
 
 - **Token policy:** `${CLAUDE_PLUGIN_ROOT}/skills/workflow-contract/rules/token-policy.md`.
 - **Graphify:** this is orientation, so the graph gate applies (`${CLAUDE_PLUGIN_ROOT}/skills/workflow-contract/rules/graphify.md`) when a graph exists. Otherwise use narrow search. Query entry points before reading.
-- **Skill:** `argus`, from the `.claude/` folder this command was loaded from:
+- **Skill:** `argus-rubric`, from the `.claude/` folder this command was loaded from:
   - the **Scan mode** section of `SKILL.md`;
   - `skills/stacks/failure-modes.md`;
   - the packs listed in `.workflow/profile.json` (or detected) from `skills/stacks/`, for their **Entry points (scan mode)**;

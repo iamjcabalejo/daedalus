@@ -14,7 +14,7 @@ $ARGUMENTS
 
 - **Stack knowledge:** `${CLAUDE_PLUGIN_ROOT}/skills/workflow-contract/rules/stack-knowledge.md`. Find the file's root in `.workflow/profile.json` and read its packs (`## Build`, and FM-06 / FM-16 under `## Review`) for the stack's budgets, blocking calls and profilers.
 - **Skill:** `performance-profiling`: measure first, then optimize.
-- **Roles:** apply the `agent-selection` skill: the `implementer` perspective for the change, the `argus` rubric to self-check. When following a performance rework list, implement only those items and report before/after metrics.
+- **Roles:** apply the `agent-selection` skill: the `implementer` perspective for the change, the `argus-rubric` skill to self-check. When following a performance rework list, implement only those items and report before/after metrics.
 
 ## Strategy
 

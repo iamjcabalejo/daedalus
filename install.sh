@@ -35,7 +35,10 @@ LEGACY = ["agents/backend-architect.md", "agents/frontend-architect.md", "agents
           "rules/api-routes-csharp.md", "rules/react-frontend.md", "rules/typescript.md", "skills/backend-architect",
           "skills/frontend-architect", "skills/backend-reviewer", "skills/frontend-reviewer", "skills/api-design-patterns",
           "skills/api-testing", "commands/api-new.md", "commands/api-test.md", "skills/argus/stacks",
-          "skills/argus/failure-modes.md"]
+          "skills/argus/failure-modes.md",
+          # Skills renamed so /argus and /trace-flow run their commands; the argus domains/ folder (user packs) stays.
+          "skills/argus/SKILL.md", "skills/argus/review-template.md", "skills/argus/scan-template.md",
+          "skills/argus/config-template.yml", "skills/trace-flow"]
 
 def sha(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()

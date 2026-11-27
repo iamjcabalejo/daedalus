@@ -12,7 +12,7 @@ disable-model-invocation: true
 
 - **Token policy:** `.claude/rules/token-policy.md`. Build the bundle, hand it off, and validate what comes back. Do not re-review the code yourself.
 - **Graphify:** Diff-first (`.claude/rules/graphify.md`). The reviewer queries only for blast radius.
-- **Skill:** `argus`, in `skills/argus/` of the same `.claude/` folder: the core `SKILL.md`, `domains/`, `review-template.md` and `config-template.yml`.
+- **Skill:** `argus-rubric`, in `skills/argus-rubric/` of the same `.claude/` folder: the core `SKILL.md`, `domains/`, `review-template.md` and `config-template.yml`.
 
 ## Target
 
@@ -74,7 +74,7 @@ config:
   house_rules: [..]
   severity: {overrides: [..], critical_triggers: [..]}
   review: {header: "<header>", max_findings: <n>}
-Load the argus skill first: SKILL.md, skills/stacks/failure-modes.md, the Review sections of profile_packs plus the packs whose detect globs match the diff, domains/<domain>.md, house rules, review-template.md. Diff-first graphify budget; plain search if no graph.
+Load the argus-rubric skill first: SKILL.md, skills/stacks/failure-modes.md, the Review sections of profile_packs plus the packs whose detect globs match the diff, domains/<domain>.md, house rules, review-template.md. Diff-first graphify budget; plain search if no graph.
 Return the review body, then the json block.
 ```
 

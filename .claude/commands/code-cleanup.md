@@ -10,7 +10,7 @@ Clean up and refactor the following code to improve readability and maintainabil
 
 - **Stack knowledge:** `.claude/rules/stack-knowledge.md`. Find the file's root in `.workflow/profile.json`, then read that root's packs (`## Build` for idioms, `## Review` to self-check). Repo conventions and `house_rules` win.
 - **Skill:** `refactoring-checklist` (small, behavior-preserving steps).
-- **Roles:** apply the `agent-selection` skill: the `implementer` perspective for the change, and the `argus` rubric to self-check before you finish. When cleanup follows a rework list, treat it as Code phase: implement only the rework items and write implementation notes.
+- **Roles:** apply the `agent-selection` skill: the `implementer` perspective for the change, and the `argus-rubric` skill to self-check before you finish. When cleanup follows a rework list, treat it as Code phase: implement only the rework items and write implementation notes.
 
 ## Code to clean
 
